@@ -149,7 +149,7 @@ input:focus {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .footer {
@@ -173,8 +173,36 @@ input:focus {
 
   <div class="panel">
 
-    <!-- CADASTRO -->
-    <form id="register">
+    <!-- LOGIN: PRIMEIRA TELA -->
+    <form id="login">
+      <h2>Bem-vindo de volta</h2>
+
+      <div class="field">
+        <label>Nome de usuário</label>
+        <input id="loginUsername" type="text"
+          placeholder="Seu usuário"
+          autocomplete="username" required>
+      </div>
+
+      <div class="field">
+        <label>Senha</label>
+        <input id="loginPassword" type="password"
+          placeholder="Sua senha"
+          autocomplete="current-password" required>
+      </div>
+
+      <button class="main-btn" id="loginButton" type="submit">
+        ENTRAR
+      </button>
+
+      <p class="switch">
+        Não possui uma conta?
+        <a href="#" id="goRegister">Criar conta</a>
+      </p>
+    </form>
+
+    <!-- CADASTRO: APARECE AO CLICAR -->
+    <form id="register" class="hidden">
       <h2>Criar sua conta</h2>
 
       <div class="field">
@@ -207,34 +235,6 @@ input:focus {
       <p class="switch">
         Já possui uma conta?
         <a href="#" id="goLogin">Entrar</a>
-      </p>
-    </form>
-
-    <!-- LOGIN -->
-    <form id="login" class="hidden">
-      <h2>Bem-vindo de volta</h2>
-
-      <div class="field">
-        <label>Nome de usuário</label>
-        <input id="loginUsername" type="text"
-          placeholder="Seu usuário"
-          autocomplete="username" required>
-      </div>
-
-      <div class="field">
-        <label>Senha</label>
-        <input id="loginPassword" type="password"
-          placeholder="Sua senha"
-          autocomplete="current-password" required>
-      </div>
-
-      <button class="main-btn" id="loginButton" type="submit">
-        ENTRAR
-      </button>
-
-      <p class="switch">
-        Não possui uma conta?
-        <a href="#" id="goRegister">Criar conta</a>
       </p>
     </form>
 
@@ -284,6 +284,7 @@ async function checkExistingSession() {
 
 checkExistingSession();
 
+// ALTERNAR TELAS
 function showLogin() {
   register.classList.add("hidden");
   login.classList.remove("hidden");
