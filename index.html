@@ -121,6 +121,11 @@ input:focus {
   transform: scale(.98);
 }
 
+.main-btn:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
 .switch {
   text-align: center;
   color: #888;
@@ -140,6 +145,7 @@ input:focus {
   font-size: 13px;
   margin-top: 12px;
   color: #00ff55;
+  overflow-wrap: anywhere;
 }
 
 .hidden {
@@ -167,57 +173,68 @@ input:focus {
 
   <div class="panel">
 
+    <!-- CADASTRO -->
     <form id="register">
       <h2>Criar sua conta</h2>
 
       <div class="field">
         <label>Nome de usuário</label>
         <input id="username" type="text"
-          placeholder="Escolha seu nome" required>
+          placeholder="Escolha seu nome"
+          minlength="3" maxlength="20"
+          autocomplete="username" required>
       </div>
 
       <div class="field">
         <label>Senha</label>
         <input id="password" type="password"
-          placeholder="Crie uma senha" required>
+          placeholder="Crie uma senha"
+          minlength="8"
+          autocomplete="new-password" required>
       </div>
 
       <div class="field">
         <label>Confirmar senha</label>
         <input id="confirm" type="password"
-          placeholder="Repita sua senha" required>
+          placeholder="Repita sua senha"
+          autocomplete="new-password" required>
       </div>
 
-      <button class="main-btn" type="submit">
+      <button class="main-btn" id="registerButton" type="submit">
         CRIAR CONTA
       </button>
 
       <p class="switch">
         Já possui uma conta?
-        <a onclick="showLogin()">Entrar</a>
+        <a href="#" id="goLogin">Entrar</a>
       </p>
     </form>
 
+    <!-- LOGIN -->
     <form id="login" class="hidden">
       <h2>Bem-vindo de volta</h2>
 
       <div class="field">
         <label>Nome de usuário</label>
-        <input type="text" placeholder="Seu usuário" required>
+        <input id="loginUsername" type="text"
+          placeholder="Seu usuário"
+          autocomplete="username" required>
       </div>
 
       <div class="field">
         <label>Senha</label>
-        <input type="password" placeholder="Sua senha" required>
+        <input id="loginPassword" type="password"
+          placeholder="Sua senha"
+          autocomplete="current-password" required>
       </div>
 
-      <button class="main-btn" type="submit">
+      <button class="main-btn" id="loginButton" type="submit">
         ENTRAR
       </button>
 
       <p class="switch">
         Não possui uma conta?
-        <a onclick="showRegister()">Criar conta</a>
+        <a href="#" id="goRegister">Criar conta</a>
       </p>
     </form>
 
@@ -230,7 +247,6 @@ input:focus {
   </div>
 
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -246,32 +262,59 @@ const supabaseClient = window.supabase.createClient(
 
 const register = document.getElementById("register");
 const login = document.getElementById("login");
+const message = document.getElementById("message");
 
 function showLogin() {
   register.classList.add("hidden");
   login.classList.remove("hidden");
-  document.getElementById("message").textContent = "";
+  message.textContent = "";
 }
 
 function showRegister() {
   login.classList.add("hidden");
   register.classList.remove("hidden");
-  document.getElementById("message").textContent = "";
+  message.textContent = "";
 }
 
+document.getElementById("goLogin").addEventListener("click", function(e) {
+  e.preventDefault();
+  showLogin();
+});
+
+document.getElementById("goRegister").addEventListener("click", function(e) {
+  e.preventDefault();
+  showRegister();
+});
+
+// CADASTRO
 register.addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  const username = document.getElementById("username").value;
+  const username = document.getElementById("username")
+    .value.trim().toLowerCase();
+
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirm").value;
-  const message = document.getElementById("message");
+  const button = document.getElementById("registerButton");
+
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    message.textContent =
+      "Use de 3 a 20 caracteres: letras, números ou _.";
+    return;
+  }
+
+  if (password.length < 8) {
+    message.textContent =
+      "A senha precisa ter pelo menos 8 caracteres.";
+    return;
+  }
 
   if (password !== confirmPassword) {
     message.textContent = "As senhas não coincidem!";
     return;
   }
 
+  button.disabled = true;
   message.textContent = "Criando sua conta...";
 
   try {
@@ -290,25 +333,70 @@ register.addEventListener("submit", async function(e) {
     const data = await response.json();
 
     if (!response.ok) {
-      message.textContent = data.error || "Erro ao criar conta.";
+      message.textContent =
+        data.error || "Não foi possível criar sua conta.";
       return;
     }
 
-    message.textContent = "Conta criada com sucesso! Faça login.";
+    message.textContent =
+      "Conta criada com sucesso! Agora faça login.";
 
     register.reset();
 
+    setTimeout(showLogin, 1500);
+
+    document.getElementById("loginUsername").value = username;
+
   } catch (error) {
-    message.textContent = "Erro de conexão. Tente novamente.";
+    message.textContent =
+      "Erro de conexão. Tente novamente.";
+  } finally {
+    button.disabled = false;
   }
 });
 
-login.addEventListener("submit", function(e) {
+// LOGIN
+login.addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  document.getElementById("message").textContent =
-    "Login será ativado na próxima etapa.";
+  const username = document.getElementById("loginUsername")
+    .value.trim().toLowerCase();
+
+  const password = document.getElementById("loginPassword").value;
+  const button = document.getElementById("loginButton");
+
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    message.textContent = "Nome de usuário inválido.";
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = "Entrando na sua conta...";
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: `${username}@login.zuckerbot.invalid`,
+      password: password
+    });
+
+    if (error) {
+      message.textContent = "Usuário ou senha incorretos.";
+      return;
+    }
+
+    message.textContent =
+      "Login realizado com sucesso! Bem-vindo ao ZuckerBot!";
+
+    console.log("Usuário autenticado:", data.user.id);
+
+  } catch (error) {
+    message.textContent =
+      "Erro de conexão. Tente novamente.";
+  } finally {
+    button.disabled = false;
+  }
 });
 </script>
+
 </body>
 </html>
