@@ -231,7 +231,19 @@ input:focus {
 
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
+const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ"";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
 const register = document.getElementById("register");
 const login = document.getElementById("login");
 
@@ -247,20 +259,48 @@ function showRegister() {
   document.getElementById("message").textContent = "";
 }
 
-register.addEventListener("submit", function(e) {
+register.addEventListener("submit", async function(e) {
   e.preventDefault();
 
+  const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
-  const confirm = document.getElementById("confirm").value;
+  const confirmPassword = document.getElementById("confirm").value;
+  const message = document.getElementById("message");
 
-  if (password !== confirm) {
-    document.getElementById("message").textContent =
-      "As senhas não coincidem!";
+  if (password !== confirmPassword) {
+    message.textContent = "As senhas não coincidem!";
     return;
   }
 
-  document.getElementById("message").textContent =
-    "Interface pronta! Cadastro será ativado na próxima etapa.";
+  message.textContent = "Criando sua conta...";
+
+  try {
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        confirmPassword
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      message.textContent = data.error || "Erro ao criar conta.";
+      return;
+    }
+
+    message.textContent = "Conta criada com sucesso! Faça login.";
+
+    register.reset();
+
+  } catch (error) {
+    message.textContent = "Erro de conexão. Tente novamente.";
+  }
 });
 
 login.addEventListener("submit", function(e) {
@@ -270,21 +310,5 @@ login.addEventListener("submit", function(e) {
     "Login será ativado na próxima etapa.";
 });
 </script>
-  
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
-
-const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-</script>
-  
 </body>
 </html>
