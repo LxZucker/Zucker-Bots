@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZuckerBot</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #080808;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 390px;
+  text-align: center;
+}
+
+.logo {
+  font-size: 65px;
+  font-weight: 900;
+  letter-spacing: -8px;
+  margin-bottom: 5px;
+}
+
+.logo .z {
+  color: #ff2020;
+  text-shadow: 0 0 12px red, 0 0 30px #ff2020;
+}
+
+.logo .b {
+  color: #00ff55;
+  text-shadow: 0 0 12px #00ff55, 0 0 30px #00ff55;
+}
+
+.brand {
+  font-size: 27px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.brand span {
+  color: #00ff55;
+}
+
+.subtitle {
+  color: #777;
+  font-size: 12px;
+  letter-spacing: 3px;
+  margin-bottom: 35px;
+}
+
+.panel {
+  background: #111;
+  border: 1px solid #292929;
+  border-radius: 15px;
+  padding: 27px 22px;
+  text-align: left;
+}
+
+.panel h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 21px;
+}
+
+.field {
+  margin-bottom: 17px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  color: #bbb;
+  margin-bottom: 8px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  background: #080808;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: white;
+  outline: none;
+}
+
+input:focus {
+  border-color: #00ff55;
+  box-shadow: 0 0 8px #00ff5533;
+}
+
+.main-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: #00e64d;
+  color: black;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.main-btn:active {
+  transform: scale(.98);
+}
+
+.switch {
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+  margin-top: 22px;
+}
+
+.switch a {
+  color: #00ff55;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.message {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 12px;
+  color: #00ff55;
+}
+
+.hidden {
+  display: none;
+}
+
+.footer {
+  margin-top: 25px;
+  font-size: 11px;
+  color: #444;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    <span class="z">Z</span><span class="b">B</span>
+  </div>
+
+  <div class="brand">Zucker<span>Bot</span></div>
+  <div class="subtitle">WHATSAPP BOT PLATFORM</div>
+
+  <div class="panel">
+
+    <form id="register">
+      <h2>Criar sua conta</h2>
+
+      <div class="field">
+        <label>Nome de usuário</label>
+        <input id="username" type="text"
+          placeholder="Escolha seu nome" required>
+      </div>
+
+      <div class="field">
+        <label>Senha</label>
+        <input id="password" type="password"
+          placeholder="Crie uma senha" required>
+      </div>
+
+      <div class="field">
+        <label>Confirmar senha</label>
+        <input id="confirm" type="password"
+          placeholder="Repita sua senha" required>
+      </div>
+
+      <button class="main-btn" type="submit">
+        CRIAR CONTA
+      </button>
+
+      <p class="switch">
+        Já possui uma conta?
+        <a onclick="showLogin()">Entrar</a>
+      </p>
+    </form>
+
+    <form id="login" class="hidden">
+      <h2>Bem-vindo de volta</h2>
+
+      <div class="field">
+        <label>Nome de usuário</label>
+        <input type="text" placeholder="Seu usuário" required>
+      </div>
+
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" placeholder="Sua senha" required>
+      </div>
+
+      <button class="main-btn" type="submit">
+        ENTRAR
+      </button>
+
+      <p class="switch">
+        Não possui uma conta?
+        <a onclick="showRegister()">Criar conta</a>
+      </p>
+    </form>
+
+    <p id="message" class="message"></p>
+
+  </div>
+
+  <div class="footer">
+    ZUCKERBOT © 2026 — TODOS OS DIREITOS RESERVADOS
+  </div>
+
+</div>
+
+<script>
+const register = document.getElementById("register");
+const login = document.getElementById("login");
+
+function showLogin() {
+  register.classList.add("hidden");
+  login.classList.remove("hidden");
+  document.getElementById("message").textContent = "";
+}
+
+function showRegister() {
+  login.classList.add("hidden");
+  register.classList.remove("hidden");
+  document.getElementById("message").textContent = "";
+}
+
+register.addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const password = document.getElementById("password").value;
+  const confirm = document.getElementById("confirm").value;
+
+  if (password !== confirm) {
+    document.getElementById("message").textContent =
+      "As senhas não coincidem!";
+    return;
+  }
+
+  document.getElementById("message").textContent =
+    "Interface pronta! Cadastro será ativado na próxima etapa.";
+});
+
+login.addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  document.getElementById("message").textContent =
+    "Login será ativado na próxima etapa.";
+});
+</script>
+
+</body>
+</html>
