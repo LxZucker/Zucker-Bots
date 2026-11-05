@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZuckerBot - Painel</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+:root {
+  --red: #ff2020;
+  --green: #00ff55;
+  --bg: #080808;
+  --card: #111;
+  --border: #292929;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: white;
+  padding: 20px;
+}
+
+.hidden { display: none !important; }
+
+.dashboard {
+  max-width: 850px;
+  margin: auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 35px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -6px;
+}
+
+.z {
+  color: var(--red);
+  text-shadow: 0 0 12px red;
+}
+
+.b {
+  color: var(--green);
+  text-shadow: 0 0 12px var(--green);
+}
+
+.brand h2 {
+  font-size: 23px;
+}
+
+.brand h2 span {
+  color: var(--green);
+}
+
+.status {
+  border: 1px solid #333;
+  border-radius: 20px;
+  padding: 9px 13px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.welcome {
+  margin-bottom: 25px;
+}
+
+.welcome h1 {
+  font-size: 27px;
+  margin-bottom: 8px;
+}
+
+.welcome h1 span {
+  color: var(--green);
+}
+
+.welcome p {
+  color: #888;
+  font-size: 13px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.stat-card, .card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 20px;
+}
+
+.stat-card.red {
+  border-left: 3px solid var(--red);
+}
+
+.stat-card.green {
+  border-left: 3px solid var(--green);
+}
+
+.stat-icon {
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+
+.stat-card h3 {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.stat-card p {
+  color: #888;
+  font-size: 12px;
+}
+
+.section-title {
+  font-size: 18px;
+  margin: 30px 0 14px;
+}
+
+.card {
+  margin-bottom: 15px;
+}
+
+.card.red {
+  border-top: 2px solid var(--red);
+}
+
+.card.green {
+  border-top: 2px solid var(--green);
+}
+
+.card h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.card p {
+  color: #888;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 8px;
+  background: var(--green);
+  color: black;
+  font-weight: bold;
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.account {
+  margin-top: 25px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 20px;
+}
+
+.account p {
+  color: #888;
+  font-size: 13px;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+
+.logout {
+  margin-top: 17px;
+  padding: 12px 18px;
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.footer {
+  text-align: center;
+  color: #444;
+  font-size: 11px;
+  margin-top: 30px;
+}
+
+#error {
+  text-align: center;
+  color: var(--red);
+  margin-top: 40px;
+}
+
+@media(max-width: 450px) {
+  body { padding: 15px; }
+  .stats { gap: 9px; }
+  .stat-card { padding: 14px; }
+  .welcome h1 { font-size: 23px; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="loading" style="text-align:center;margin-top:100px;color:#888">
+  Verificando acesso...
+</div>
+
+<div id="error" class="hidden">
+  Não foi possível verificar sua sessão. Tente novamente.
+</div>
+
+<main class="dashboard hidden" id="dashboard">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <span class="z">Z</span><span class="b">B</span>
+      </div>
+      <h2>Zucker<span>Bot</span></h2>
+    </div>
+
+    <div class="status">
+      ● Painel de controle
+    </div>
+  </header>
+
+  <section class="welcome">
+    <h1>Olá, <span id="username">Usuário</span>!</h1>
+    <p>Bem-vindo ao seu painel de controle.</p>
+  </section>
+
+  <section class="stats">
+
+    <div class="stat-card red">
+      <div class="stat-icon">📱</div>
+      <h3>WhatsApp</h3>
+      <p>Não conectado</p>
+    </div>
+
+    <div class="stat-card green">
+      <div class="stat-icon">🤖</div>
+      <h3>Bot</h3>
+      <p>Aguardando ativação</p>
+    </div>
+
+  </section>
+
+  <h2 class="section-title">Conexão</h2>
+
+  <section class="card red">
+    <h3>📲 Conectar WhatsApp</h3>
+    <p>
+      Em breve você poderá conectar seu WhatsApp
+      e controlar seu bot diretamente por aqui.
+    </p>
+    <button class="action-btn" disabled>
+      CONEXÃO EM BREVE
+    </button>
+  </section>
+
+  <h2 class="section-title">Gerenciamento</h2>
+
+  <section class="card green">
+    <h3>⚙️ Configurações do bot</h3>
+    <p>
+      Aqui ficarão as opções para personalizar
+      o funcionamento do seu bot.
+    </p>
+    <button class="action-btn" disabled>
+      CONFIGURAÇÕES EM BREVE
+    </button>
+  </section>
+
+  <section class="account">
+    <h3>👤 Minha conta</h3>
+    <p>Usuário: <strong id="accountUsername">-</strong></p>
+    <p id="accountEmail"></p>
+
+    <button class="logout" id="logoutButton">
+      SAIR DA CONTA
+    </button>
+  </section>
+
+  <footer class="footer">
+    ZUCKERBOT © 2026
+  </footer>
+
+</main>
+
+<script>
+const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const loading = document.getElementById("loading");
+const dashboard = document.getElementById("dashboard");
+const errorBox = document.getElementById("error");
+
+async function checkSession() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) throw error;
+
+    const session = data.session;
+
+    if (!session) {
+      window.location.replace("index.html");
+      return;
+    }
+
+    const user = session.user;
+    const name = user.user_metadata?.username || user.email?.split("@")[0] || "Usuário";
+
+    document.getElementById("username").textContent = name;
+    document.getElementById("accountUsername").textContent = name;
+    document.getElementById("accountEmail").textContent =
+      "Conta: " + (user.email || "Conta ZuckerBot");
+
+    loading.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+
+  } catch (error) {
+    console.error(error);
+    loading.classList.add("hidden");
+    errorBox.classList.remove("hidden");
+  }
+}
+
+document.getElementById("logoutButton").addEventListener("click", async () => {
+  const button = document.getElementById("logoutButton");
+  button.disabled = true;
+  button.textContent = "SAINDO...";
+
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    alert("Não foi possível sair da conta. Tente novamente.");
+    button.disabled = false;
+    button.textContent = "SAIR DA CONTA";
+    return;
+  }
+
+  window.location.replace("index.html");
+});
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT" || !session) {
+    window.location.replace("index.html");
+  }
+});
+
+checkSession();
+</script>
+
+</body>
+  </html>
+  
