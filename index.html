@@ -264,6 +264,26 @@ const register = document.getElementById("register");
 const login = document.getElementById("login");
 const message = document.getElementById("message");
 
+// VERIFICAR SE JÁ ESTÁ LOGADO
+async function checkExistingSession() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) throw error;
+
+    if (data.session) {
+      window.location.replace("inicio.html");
+    }
+
+  } catch (error) {
+    console.error("Erro ao verificar sessão:", error);
+    message.textContent =
+      "Não foi possível verificar sua sessão. Tente novamente.";
+  }
+}
+
+checkExistingSession();
+
 function showLogin() {
   register.classList.add("hidden");
   login.classList.remove("hidden");
@@ -338,14 +358,13 @@ register.addEventListener("submit", async function(e) {
       return;
     }
 
-    message.textContent =
-      "Conta criada com sucesso! Agora faça login.";
-
     register.reset();
-
-    setTimeout(showLogin, 1500);
+    showLogin();
 
     document.getElementById("loginUsername").value = username;
+
+    message.textContent =
+      "Conta criada com sucesso! Agora faça login.";
 
   } catch (error) {
     message.textContent =
@@ -384,10 +403,9 @@ login.addEventListener("submit", async function(e) {
       return;
     }
 
-    message.textContent =
-      "Login realizado com sucesso! Bem-vindo ao ZuckerBot!";
+    message.textContent = "Login realizado! Redirecionando...";
 
-    console.log("Usuário autenticado:", data.user.id);
+    window.location.replace("inicio.html");
 
   } catch (error) {
     message.textContent =
