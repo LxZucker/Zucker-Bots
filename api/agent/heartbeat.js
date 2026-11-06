@@ -1,4 +1,3 @@
-
 const crypto = require("crypto");
 
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
@@ -53,31 +52,40 @@ module.exports = async (req, res) => {
       `&agent_token_hash=eq.${encodeURIComponent(tokenHash)}`;
 
     const check = await fetch(
-      `${SUPABASE_URL}/rest/v1/devices?${filter}&select=id`,
+      `${SUPABASE_URL}/rest/v1/devices?${filter}&select=id,status`,
       { headers }
     );
 
     if (!check.ok) {
-      return res.status(500).json({
-        error: "Falha ao verificar dispositivo"
-      });
+      throw new Error("Falha ao verificar dispositivo.");
     }
 
     const devices = await check.json();
 
     if (!devices.length) {
       return res.status(401).json({
-        error: "Dispositivo não autorizado"
+        error: "Dispositivo não autorizado."
+      });
+    }
+
+    const device = devices[0];
+
+    // Não permite que o heartbeat reverta a desvinculação.
+    if (device.status === "unlink_pending") {
+      return res.status(200).json({
+        success: true,
+        unlinkPending: true,
+        message: "Desvinculação aguardando processamento."
       });
     }
 
     const update = await fetch(
-      `${SUPABASE_URL}/rest/v1/devices?${filter}`,
+      `${SUPABASE_URL}/rest/v1/devices?${filter}&status=neq.unlink_pending`,
       {
         method: "PATCH",
         headers: {
           ...headers,
-          "Prefer": "return=minimal"
+          "Prefer": "return=representation"
         },
         body: JSON.stringify({
           status: "online",
@@ -87,20 +95,28 @@ module.exports = async (req, res) => {
     );
 
     if (!update.ok) {
-      return res.status(500).json({
-        error: "Não foi possível atualizar o dispositivo"
+      throw new Error("Não foi possível atualizar o dispositivo.");
+    }
+
+    const updatedDevices = await update.json();
+
+    if (!updatedDevices.length) {
+      return res.status(200).json({
+        success: true,
+        unlinkPending: true
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Comunicação recebida"
+      message: "Comunicação recebida."
     });
 
   } catch (error) {
+    console.error("Heartbeat error:", error);
+
     return res.status(500).json({
-      error: "Erro interno do servidor"
+      error: "Erro interno do servidor."
     });
   }
 };
-    
