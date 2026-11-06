@@ -13,53 +13,40 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: "Servidor não configurado" });
     }
 
-    const activationSecret = String(
-      req.body?.activationSecret || ""
-    ).trim();
+    const secret = String(req.body?.activationSecret || "").trim();
 
-    if (!/^[a-f0-9]{64}$/i.test(activationSecret)) {
-      return res.status(400).json({
-        error: "Segredo de ativação inválido."
-      });
+    if (!/^[a-f0-9]{64}$/i.test(secret)) {
+      return res.status(400).json({ error: "Segredo inválido." });
     }
 
     const secretHash = crypto
       .createHash("sha256")
-      .update(activationSecret)
+      .update(secret)
       .digest("hex");
 
     const headers = {
-      "Content-Type": "application/json",
       apikey: SUPABASE_KEY,
       Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
       Prefer: "return=representation"
     };
 
-    // Busca e consome a autorização em uma única operação
-    const response = await fetch(
+    // Procura uma ativação já vinculada, sem consumi-la ainda.
+    const search = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_activations` +
       `?activation_secret_hash=eq.${secretHash}` +
       `&status=eq.claimed` +
       `&agent_token=not.is.null` +
-      `&expires_at=gt.${encodeURIComponent(new Date().toISOString())}`,
-      {
-        method: "PATCH",
-        headers,
-        body: JSON.stringify({
-          status: "consumed"
-        })
-      }
+      `&expires_at=gt.${encodeURIComponent(new Date().toISOString())}` +
+      `&select=id,device_id,agent_token`,
+      { headers }
     );
 
-    if (!response.ok) {
-      console.error("Erro ao consultar ativação:", await response.text());
-
-      return res.status(500).json({
-        error: "Falha ao consultar ativação."
-      });
+    if (!search.ok) {
+      throw new Error("Falha ao consultar ativação.");
     }
 
-    const data = await response.json();
+    const data = await search.json();
 
     if (!data.length) {
       return res.status(200).json({
@@ -72,36 +59,47 @@ module.exports = async (req, res) => {
     const activation = data[0];
 
     if (!activation.device_id || !activation.agent_token) {
-      return res.status(500).json({
-        error: "Dados da ativação incompletos."
-      });
+      throw new Error("Dados da ativação incompletos.");
     }
 
-    // Apaga o token temporário do banco
-    const cleanup = await fetch(
-      `${SUPABASE_URL}/rest/v1/agent_activations?id=eq.${activation.id}`,
+    // Confere se o token ainda pertence ao dispositivo.
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(activation.agent_token)
+      .digest("hex");
+
+    const deviceCheck = await fetch(
+      `${SUPABASE_URL}/rest/v1/devices` +
+      `?id=eq.${activation.device_id}` +
+      `&agent_token_hash=eq.${tokenHash}&select=id`,
       {
-        method: "PATCH",
         headers: {
-          ...headers,
-          Prefer: "return=minimal"
-        },
-        body: JSON.stringify({
-          agent_token: null
-        })
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
       }
     );
 
-    if (!cleanup.ok) {
-      console.error("Não foi possível limpar o token temporário.");
+    if (!deviceCheck.ok) {
+      throw new Error("Falha ao verificar dispositivo.");
     }
 
+    const devices = await deviceCheck.json();
+
+    if (!devices.length) {
+      return res.status(401).json({
+        error: "Autorização do dispositivo inválida."
+      });
+    }
+
+    // Entrega novamente o mesmo token enquanto a ativação
+    // estiver válida. O agente salva localmente antes de
+    // confirmar que recebeu os dados.
     return res.status(200).json({
       success: true,
       activated: true,
       deviceId: activation.device_id,
-      agentToken: activation.agent_token,
-      message: "Agente autorizado com sucesso."
+      agentToken: activation.agent_token
     });
 
   } catch (error) {
