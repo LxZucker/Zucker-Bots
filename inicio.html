@@ -274,20 +274,53 @@ body {
 
   </section>
 
-  <h2 class="section-title">Conexão</h2>
+<h2 class="section-title">Conexão WhatsApp</h2>
 
-  <section class="card red">
-    <h3>📲 Conectar WhatsApp</h3>
-    <p>
-      Em breve você poderá conectar seu WhatsApp
-      e controlar seu bot diretamente por aqui.
+<section class="card red">
+  <h3>📱 Conectar seu WhatsApp</h3>
+
+  <p>
+    Informe seu número para receber um código
+    de conexão diretamente pelo WhatsApp.
+  </p>
+
+  <label for="whatsappNumber"
+    style="display:block;margin-bottom:8px;color:#ccc;font-size:13px;">
+    Número com DDI e DDD
+  </label>
+
+  <input
+    type="tel"
+    id="whatsappNumber"
+    placeholder="Ex: 5511999999999"
+    maxlength="15"
+    style="width:100%;padding:14px;background:#080808;
+    border:1px solid #333;border-radius:8px;color:white;
+    font-size:16px;margin-bottom:15px;"
+  >
+
+  <button class="action-btn" type="button"
+    style="opacity:1;background:var(--green);color:black;cursor:pointer;"
+    onclick="solicitarCodigoWhatsApp()">
+    GERAR CÓDIGO DE CONEXÃO
+  </button>
+
+  <div id="pairingResult" style="display:none;margin-top:20px;">
+    <p style="color:#aaa;margin-bottom:8px;">
+      Seu código de conexão:
     </p>
-    <button class="action-btn" disabled>
-      CONEXÃO EM BREVE
-    </button>
-  </section>
 
-  <h2 class="section-title">Gerenciamento</h2>
+    <h2 id="pairingCode"
+      style="color:var(--green);letter-spacing:5px;text-align:center;">
+      --------
+    </h2>
+  </div>
+
+  <p id="pairingMessage"
+    style="margin-top:15px;color:#888;font-size:12px;">
+    Aguardando conexão.
+  </p>
+</section>
 
   <section class="card green">
     <h3>⚙️ Configurações do bot</h3>
