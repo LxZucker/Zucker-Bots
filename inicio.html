@@ -198,8 +198,7 @@ Não foi possível verificar sua sessão. Tente novamente.
 <footer class="footer">ZUCKERBOTS © 2026</footer>
 
 </main>
-
-  <script>
+<script>
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
 const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0-O-Sg_RbMJMumQ";
 
@@ -208,39 +207,50 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_KEY
 );
 
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-let pairingTimer = null;
-let currentDeviceId = null;
 let accessToken = null;
-let refreshing = false;
+let currentDeviceId = null;
+let pairingTimer = null;
 let pairingActive = false;
+let pollingPairing = false;
+let refreshing = false;
+let pairingChecks = 0;
 
 const AGENT_TIMEOUT = 90000;
 
 function agentIsOnline(device) {
-  if (!device || device.status !== "online") return false;
-
-  if (!device.last_seen) return true;
+  if (!device || device.status !== "online" || !device.last_seen) {
+    return false;
+  }
 
   const lastSeen = new Date(device.last_seen).getTime();
 
-  return Date.now() - lastSeen <= AGENT_TIMEOUT;
+  return Number.isFinite(lastSeen) &&
+    Date.now() - lastSeen < AGENT_TIMEOUT;
 }
 
-function stopPairingAsOffline() {
-  pairingActive = false;
+function showAgentStatus(device) {
+  const status = $("botStatus");
 
-  if (pairingTimer) {
-    clearInterval(pairingTimer);
-    pairingTimer = null;
+  if (!device) {
+    status.textContent = "NÃO VINCULADO";
+    status.style.color = "#ff4545";
+    return false;
   }
 
-  $("pairingResult").style.display = "none";
-  $("pairingMessage").textContent =
-    "O AGENTE DESLIGOU. Ligue novamente o Termux e tente gerar outro código.";
+  if (device.status === "connecting") {
+    status.textContent = "CONECTANDO";
+    status.style.color = "#f0ad4e";
+    return false;
+  }
 
-  $("pairingButton").disabled = false;
+  const online = agentIsOnline(device);
+
+  status.textContent = online ? "ONLINE" : "OFFLINE";
+  status.style.color = online ? "#00df62" : "#ff4545";
+
+  return online;
 }
 
 async function getSession() {
@@ -251,138 +261,154 @@ async function getSession() {
   return data.session;
 }
 
+async function loadDevice() {
+  const response = await fetch("/api/agent/activation-claim", {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + accessToken
+    }
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Não foi possível consultar o vínculo.");
+  }
+
+  const device = data.device || null;
+
+  currentDeviceId = data.linked && device ? device.id : null;
+
+  const linked = Boolean(currentDeviceId);
+
+  $("activationCard").classList.toggle("hidden", linked);
+  $("linkedSection").classList.toggle("hidden", !linked);
+  $("whatsappSection").classList.toggle("hidden", !linked);
+
+  if (linked) {
+    showAgentStatus(device);
+  } else {
+    showAgentStatus(null);
+  }
+
+  return device;
+}
+
 async function refreshDeviceStatus() {
-  if (!currentDeviceId || refreshing) return;
+  if (!accessToken || refreshing) return;
 
   refreshing = true;
 
   try {
-    const response = await fetch(
-      "/api/agent/activation-claim?deviceId=" +
-      encodeURIComponent(currentDeviceId),
-      {
-        headers: {
-          Authorization: "Bearer " + accessToken
-        }
-      }
-    );
+    const device = await loadDevice();
 
-    if (!response.ok) return;
-
-    const data = await response.json();
-    const device = data.device || data;
-
-    if (agentIsOnline(device)) {
-      $("botStatus").textContent = "ONLINE";
-      $("botStatus").className = "status online";
-    } else {
-      $("botStatus").textContent = "OFFLINE";
-      $("botStatus").className = "status offline";
-
-      if (pairingActive) {
-        stopPairingAsOffline();
-      }
+    if (pairingActive && !agentIsOnline(device)) {
+      stopPairingAsOffline();
     }
   } catch (error) {
-    console.error("Erro ao atualizar agente:", error);
+    console.error("Erro ao atualizar status:", error);
   } finally {
     refreshing = false;
   }
 }
 
-async function checkSession() {
-  try {
-    const session = await getSession();
-
-    if (!session) {
-      window.location.href = "index.html";
-      return;
-    }
-
-    accessToken = session.access_token;
-
-    const user = session.user;
-
-    $("username").textContent =
-      user.user_metadata?.username ||
-      user.user_metadata?.name ||
-      user.email?.split("@")[0] ||
-      "Usuário";
-
-    $("accountUsername").textContent =
-      user.user_metadata?.username ||
-      user.user_metadata?.name ||
-      "Não informado";
-
-    $("accountEmail").textContent = user.email || "Não informado";
-
-    $("loading").style.display = "none";
-    $("dashboard").style.display = "block";
-
-    await refreshDeviceStatus();
-
-  } catch (error) {
-    console.error("Erro na sessão:", error);
-    $("loading").style.display = "none";
-    $("error").style.display = "block";
+async function checkSession(session) {
+  if (!session) {
+    window.location.href = "index.html";
+    return;
   }
+
+  accessToken = session.access_token;
+
+  const user = session.user;
+
+  $("username").textContent =
+    user.user_metadata?.username ||
+    user.email?.split("@")[0] ||
+    "Usuário";
+
+  $("accountUsername").textContent =
+    user.user_metadata?.username || "Não informado";
+
+  $("accountEmail").textContent = user.email || "Não informado";
+
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+
+  await loadDevice();
 }
 
 async function validateActivation() {
   const code = $("activationCode").value.trim();
+  const button = $("activationButton");
+  const message = $("activationMessage");
 
-  if (!code) {
-    $("activationMessage").textContent =
-      "Digite o código de ativação.";
+  if (!/^\d{6}$/.test(code)) {
+    message.textContent = "Digite o código de 6 números.";
+    message.style.color = "#ff4545";
     return;
   }
 
-  $("activationButton").disabled = true;
-  $("activationMessage").textContent = "Validando código...";
+  button.disabled = true;
+  button.textContent = "VINCULANDO...";
+  message.textContent = "";
 
   try {
-    const response = await fetch("/api/activation/claim", {
+    const response = await fetch("/api/agent/activation-claim", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + accessToken
       },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({
+        activationCode: code
+      })
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || data.message || "Código inválido.");
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Não foi possível vincular o bot.");
     }
 
-    $("activationMessage").textContent =
-      "Agente vinculado com sucesso!";
+    message.textContent = data.message || "Bot vinculado com sucesso!";
+    message.style.color = "#00df62";
 
-    $("activationMessage").style.color = "#00df62";
+    setTimeout(async () => {
+      try {
+        await loadDevice();
+      } catch (error) {
+        console.error(error);
+      }
 
-    setTimeout(() => {
-      location.reload();
+      button.disabled = false;
+      button.textContent = "VINCULAR BOT";
     }, 1200);
 
   } catch (error) {
-    $("activationMessage").textContent = error.message;
-    $("activationMessage").style.color = "#ff4545";
-  } finally {
-    $("activationButton").disabled = false;
+    message.textContent = error.message;
+    message.style.color = "#ff4545";
+
+    button.disabled = false;
+    button.textContent = "VINCULAR BOT";
   }
 }
 
 async function requestUnlink() {
-  if (!confirm(
-    "Deseja realmente desvincular o agente? A sessão será encerrada."
-  )) return;
+  if (!currentDeviceId) {
+    $("unlinkMessage").textContent = "Nenhum bot vinculado.";
+    return;
+  }
 
-  $("unlinkButton").disabled = true;
-  $("unlinkMessage").textContent = "Desvinculando agente...";
+  const button = $("unlinkButton");
+  const message = $("unlinkMessage");
+
+  button.disabled = true;
+  button.textContent = "ENVIANDO...";
+  message.textContent = "";
 
   try {
-    const response = await fetch("/api/agent/unlink", {
+    const response = await fetch("/api/agent/unlink-request", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -395,65 +421,159 @@ async function requestUnlink() {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "Não foi possível desvincular.");
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Não foi possível solicitar a desconexão.");
     }
 
-    $("unlinkMessage").textContent =
-      "Agente desvinculado com sucesso!";
+    message.textContent =
+      "Solicitação enviada! Aguarde o Termux confirmar a desconexão.";
+    message.style.color = "#00df62";
 
-    setTimeout(() => location.reload(), 1000);
+    button.textContent = "AGUARDANDO...";
+
+    setTimeout(refreshDeviceStatus, 2000);
 
   } catch (error) {
-    $("unlinkMessage").textContent = error.message;
-    $("unlinkButton").disabled = false;
+    message.textContent = error.message;
+    message.style.color = "#ff4545";
+
+    button.disabled = false;
+    button.textContent = "DESCONECTAR BOT";
   }
 }
 
 async function verificarAgenteDurantePedido() {
-  try {
-    const response = await fetch(
-      "/api/agent/activation-claim?deviceId=" +
-      encodeURIComponent(currentDeviceId),
-      {
-        headers: {
-          Authorization: "Bearer " + accessToken
-        }
-      }
-    );
+  const response = await fetch("/api/agent/activation-claim", {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + accessToken
+    }
+  });
 
-    if (!response.ok) return false;
+  if (!response.ok) return false;
 
-    const data = await response.json();
-    const device = data.device || data;
+  const data = await response.json();
+  const device = data.device || null;
 
-    return agentIsOnline(device);
-
-  } catch {
+  if (!data.linked || !device || device.id !== currentDeviceId) {
     return false;
+  }
+
+  return showAgentStatus(device);
+}
+
+function stopPairingAsOffline() {
+  pairingActive = false;
+
+  if (pairingTimer) {
+    clearInterval(pairingTimer);
+    pairingTimer = null;
+  }
+
+  $("pairingButton").disabled = false;
+  $("pairingButton").textContent = "GERAR CÓDIGO";
+
+  $("pairingMessage").textContent =
+    "O bot ficou offline. Coloque o agente do Termux online e tente novamente.";
+
+  $("pairingMessage").style.color = "#ff4545";
+}
+
+async function pollPairing(requestId) {
+  if (!pairingActive || pollingPairing) return;
+
+  pollingPairing = true;
+  pairingChecks++;
+
+  try {
+    if (pairingChecks % 4 === 0) {
+      const online = await verificarAgenteDurantePedido();
+
+      if (!online) {
+        stopPairingAsOffline();
+        return;
+      }
+    }
+
+    const { data, error } = await supabaseClient
+      .from("whatsapp_pairing")
+      .select("status,pairing_code,expires_at")
+      .eq("id", requestId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) return;
+
+    if (data.status === "generated" && data.pairing_code) {
+      pairingActive = false;
+
+      if (pairingTimer) {
+        clearInterval(pairingTimer);
+        pairingTimer = null;
+      }
+
+      $("pairingResult").classList.remove("hidden");
+      $("pairingCode").textContent = data.pairing_code;
+
+      $("pairingMessage").textContent = "Código gerado com sucesso!";
+      $("pairingMessage").style.color = "#00df62";
+
+      $("pairingButton").disabled = false;
+      $("pairingButton").textContent = "GERAR NOVO CÓDIGO";
+
+      return;
+    }
+
+    if (data.status === "expired" ||
+        (data.expires_at && new Date(data.expires_at).getTime() < Date.now())) {
+      pairingActive = false;
+
+      if (pairingTimer) {
+        clearInterval(pairingTimer);
+        pairingTimer = null;
+      }
+
+      $("pairingMessage").textContent =
+        "O pedido expirou. Gere um novo código.";
+      $("pairingMessage").style.color = "#ff4545";
+
+      $("pairingButton").disabled = false;
+      $("pairingButton").textContent = "GERAR CÓDIGO";
+    }
+
+  } catch (error) {
+    console.error("Erro ao consultar código:", error);
+    $("pairingMessage").textContent =
+      "Erro ao consultar o código. Tente novamente.";
+    $("pairingMessage").style.color = "#ff4545";
+  } finally {
+    pollingPairing = false;
   }
 }
 
 async function solicitarCodigoWhatsApp() {
-  const number = $("whatsappNumber").value.replace(/\D/g, "");
+  const phone = $("whatsappNumber").value.replace(/\D/g, "");
+  const button = $("pairingButton");
+  const message = $("pairingMessage");
 
-  if (!/^\d{12,13}$/.test(number)) {
-    $("pairingMessage").textContent =
-      "Digite o número com DDI e DDD. Exemplo: 5511999999999";
+  if (phone.length < 12 || phone.length > 13) {
+    message.textContent =
+      "Digite o número com DDD e código do país (55).";
+    message.style.color = "#ff4545";
     return;
   }
 
-  $("pairingButton").disabled = true;
-  $("pairingResult").style.display = "none";
-  $("pairingMessage").textContent = "Solicitando código...";
+  button.disabled = true;
+  button.textContent = "SOLICITANDO...";
+  message.textContent = "";
+  $("pairingResult").classList.add("hidden");
 
   try {
     const online = await verificarAgenteDurantePedido();
 
     if (!online) {
-      throw new Error(
-        "O agente está offline. Ligue o Termux antes de continuar."
-      );
+      throw new Error("Seu bot está offline no Termux.");
     }
 
     const response = await fetch("/api/whatsapp/request-code", {
@@ -462,160 +582,80 @@ async function solicitarCodigoWhatsApp() {
         "Content-Type": "application/json",
         Authorization: "Bearer " + accessToken
       },
-      body: JSON.stringify({ phone: number })
+      body: JSON.stringify({
+        phone: phone
+      })
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "Não foi possível solicitar o código.");
-    }
-
-    const requestId = data.requestId || data.id;
-
-    if (!requestId) {
-      throw new Error("O painel não recebeu o identificador do pedido.");
+    if (!response.ok || !data.success || !data.requestId) {
+      throw new Error(data.message || "Não foi possível solicitar o código.");
     }
 
     pairingActive = true;
+    pairingChecks = 0;
 
-    $("pairingMessage").textContent =
-      "Aguardando o código do WhatsApp...";
+    message.textContent = "Pedido enviado. Aguardando código...";
+    message.style.color = "#f0ad4e";
 
-    let attempts = 0;
-    let offlineChecks = 0;
+    button.textContent = "AGUARDANDO CÓDIGO...";
 
     if (pairingTimer) clearInterval(pairingTimer);
 
-    pairingTimer = setInterval(async () => {
-      attempts++;
-
-      try {
-        const onlineNow = await verificarAgenteDurantePedido();
-
-        if (!onlineNow) {
-          offlineChecks++;
-
-          if (offlineChecks >= 3) {
-            stopPairingAsOffline();
-          }
-
-          return;
-        }
-
-        offlineChecks = 0;
-
-        const { data: pairing, error } = await supabaseClient
-          .from("whatsapp_pairing")
-          .select("status,pairing_code,expires_at")
-          .eq("id", requestId)
-          .maybeSingle();
-
-        if (error) {
-          $("pairingMessage").textContent =
-            "Erro ao consultar o pedido: " + error.message;
-          return;
-        }
-
-        if (pairing?.status === "generated" && pairing.pairing_code) {
-          clearInterval(pairingTimer);
-          pairingTimer = null;
-          pairingActive = false;
-
-          $("pairingCode").textContent = pairing.pairing_code;
-          $("pairingResult").style.display = "block";
-          $("pairingMessage").textContent =
-            "Código recebido! Digite-o no WhatsApp em 'Conectar com número de telefone'.";
-          $("pairingButton").disabled = false;
-          return;
-        }
-
-        if (
-          pairing?.status === "expired" ||
-          (pairing?.expires_at &&
-            new Date(pairing.expires_at).getTime() < Date.now())
-        ) {
-          clearInterval(pairingTimer);
-          pairingTimer = null;
-          pairingActive = false;
-
-          $("pairingMessage").textContent =
-            "O pedido expirou. Solicite um novo código.";
-          $("pairingButton").disabled = false;
-          return;
-        }
-
-        if (attempts >= 150) {
-          clearInterval(pairingTimer);
-          pairingTimer = null;
-          pairingActive = false;
-
-          $("pairingMessage").textContent =
-            "Tempo esgotado. Tente novamente.";
-          $("pairingButton").disabled = false;
-        }
-
-      } catch (error) {
-        console.error("Erro ao consultar código:", error);
-      }
+    pairingTimer = setInterval(() => {
+      pollPairing(data.requestId);
     }, 2000);
 
+    pollPairing(data.requestId);
+
   } catch (error) {
-    $("pairingMessage").textContent = error.message;
-    $("pairingButton").disabled = false;
+    message.textContent = error.message;
+    message.style.color = "#ff4545";
+
+    button.disabled = false;
+    button.textContent = "GERAR CÓDIGO";
   }
 }
 
-$("activationButton").addEventListener("click", validateActivation);
-
-$("activationCode").addEventListener("input", (event) => {
-  event.target.value = event.target.value
-    .replace(/\D/g, "")
-    .slice(0, 6);
-});
-
-$("unlinkButton").addEventListener("click", requestUnlink);
-
-$("pairingButton").addEventListener(
-  "click",
-  solicitarCodigoWhatsApp
-);
-
-$("logoutButton").addEventListener("click", async () => {
+async function logout() {
   await supabaseClient.auth.signOut();
   window.location.href = "index.html";
-});
+}
 
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT" || !session) {
+$("activationButton").addEventListener("click", validateActivation);
+$("unlinkButton").addEventListener("click", requestUnlink);
+$("pairingButton").addEventListener("click", solicitarCodigoWhatsApp);
+$("logoutButton").addEventListener("click", logout);
+
+supabaseClient.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_OUT") {
     window.location.href = "index.html";
   }
 });
 
 async function iniciarPainel() {
-  const session = await getSession();
+  try {
+    const session = await getSession();
 
-  if (!session) {
-    window.location.href = "index.html";
-    return;
+    if (!session) {
+      window.location.href = "index.html";
+      return;
+    }
+
+    await checkSession(session);
+
+    setInterval(refreshDeviceStatus, 5000);
+
+  } catch (error) {
+    console.error("Erro ao iniciar painel:", error);
+
+    $("loading").classList.add("hidden");
+    $("error").classList.remove("hidden");
+
+    $("error").textContent =
+      "Não foi possível carregar o painel. Atualize a página e tente novamente.";
   }
-
-  accessToken = session.access_token;
-
-  await checkSession();
-
-  const { data, error } = await supabaseClient
-    .from("devices")
-    .select("id,status,last_seen")
-    .eq("user_id", session.user.id)
-    .maybeSingle();
-
-  if (!error && data) {
-    currentDeviceId = data.id;
-    await refreshDeviceStatus();
-  }
-
-  setInterval(refreshDeviceStatus, 5000);
 }
 
 iniciarPainel();
