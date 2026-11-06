@@ -98,8 +98,9 @@ module.exports = async (req, res) => {
 
     // 4. Limpa os pedidos de conexão desse usuário.
     const pairingDelete = await fetch(
-      `${SUPABASE_URL}/rest/v1/whatsapp_pairing` +
-      `?user_id=eq.${device.user_id}`,
+      ``${SUPABASE_URL}/rest/v1/whatsapp_pairing` +
+`?user_id=eq.${device.user_id}` +
+`&device_id=eq.${deviceId}`,
       {
         method: "DELETE",
         headers
