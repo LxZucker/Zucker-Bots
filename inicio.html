@@ -219,6 +219,16 @@ let pairingChecks = 0;
 
 const AGENT_TIMEOUT = 90000;
 
+function setWhatsAppStatus(message, color = "#aaa") {
+  const status = $("whatsappStatus");
+  status.textContent = message;
+  status.style.color = color;
+}
+
+function showApiError(data, fallback) {
+  return data?.error || data?.message || fallback;
+}
+
 function agentIsOnline(device) {
   if (!device || device.status !== "online" || !device.last_seen) {
     return false;
@@ -272,7 +282,10 @@ async function loadDevice() {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || "Não foi possível consultar o vínculo.");
+    throw new Error(showApiError(
+      data,
+      "Não foi possível consultar o vínculo."
+    ));
   }
 
   const device = data.device || null;
@@ -286,9 +299,21 @@ async function loadDevice() {
   $("whatsappSection").classList.toggle("hidden", !linked);
 
   if (linked) {
-    showAgentStatus(device);
+    const online = showAgentStatus(device);
+
+    if (pairingActive && online) {
+      setWhatsAppStatus("Aguardando código de conexão...", "#f0ad4e");
+    } else {
+      setWhatsAppStatus(
+        online
+          ? "Agente online; aguardando conexão do WhatsApp"
+          : "Agente vinculado; aguardando ficar online",
+        online ? "#f0ad4e" : "#ff4545"
+      );
+    }
   } else {
     showAgentStatus(null);
+    setWhatsAppStatus("Aguardando ativação do bot");
   }
 
   return device;
@@ -368,7 +393,10 @@ async function validateActivation() {
     const data = await response.json();
 
     if (!response.ok || !data.success) {
-      throw new Error(data.message || "Não foi possível vincular o bot.");
+      throw new Error(showApiError(
+        data,
+        "Não foi possível vincular o bot."
+      ));
     }
 
     message.textContent = data.message || "Bot vinculado com sucesso!";
@@ -382,7 +410,7 @@ async function validateActivation() {
       }
 
       button.disabled = false;
-      button.textContent = "VINCULAR BOT";
+      button.textContent = "VALIDAR E VINCULAR BOT";
     }, 1200);
 
   } catch (error) {
@@ -390,7 +418,7 @@ async function validateActivation() {
     message.style.color = "#ff4545";
 
     button.disabled = false;
-    button.textContent = "VINCULAR BOT";
+    button.textContent = "VALIDAR E VINCULAR BOT";
   }
 }
 
@@ -422,7 +450,10 @@ async function requestUnlink() {
     const data = await response.json();
 
     if (!response.ok || !data.success) {
-      throw new Error(data.message || "Não foi possível solicitar a desconexão.");
+      throw new Error(showApiError(
+        data,
+        "Não foi possível solicitar a desconexão."
+      ));
     }
 
     message.textContent =
@@ -438,7 +469,7 @@ async function requestUnlink() {
     message.style.color = "#ff4545";
 
     button.disabled = false;
-    button.textContent = "DESCONECTAR BOT";
+    button.textContent = "DESCONECTAR DO BOT";
   }
 }
 
@@ -471,12 +502,17 @@ function stopPairingAsOffline() {
   }
 
   $("pairingButton").disabled = false;
-  $("pairingButton").textContent = "GERAR CÓDIGO";
+  $("pairingButton").textContent = "GERAR CÓDIGO DE CONEXÃO";
 
   $("pairingMessage").textContent =
     "O bot ficou offline. Coloque o agente do Termux online e tente novamente.";
 
   $("pairingMessage").style.color = "#ff4545";
+
+  setWhatsAppStatus(
+    "Agente offline; não é possível gerar o código",
+    "#ff4545"
+  );
 }
 
 async function pollPairing(requestId) {
@@ -516,8 +552,11 @@ async function pollPairing(requestId) {
       $("pairingResult").classList.remove("hidden");
       $("pairingCode").textContent = data.pairing_code;
 
-      $("pairingMessage").textContent = "Código gerado com sucesso!";
+      $("pairingMessage").textContent =
+        "Código gerado! Conclua a conexão no WhatsApp.";
       $("pairingMessage").style.color = "#00df62";
+
+      setWhatsAppStatus("Código de conexão gerado", "#00df62");
 
       $("pairingButton").disabled = false;
       $("pairingButton").textContent = "GERAR NOVO CÓDIGO";
@@ -525,8 +564,11 @@ async function pollPairing(requestId) {
       return;
     }
 
-    if (data.status === "expired" ||
-        (data.expires_at && new Date(data.expires_at).getTime() < Date.now())) {
+    if (
+      data.status === "expired" ||
+      (data.expires_at &&
+       new Date(data.expires_at).getTime() < Date.now())
+    ) {
       pairingActive = false;
 
       if (pairingTimer) {
@@ -538,15 +580,19 @@ async function pollPairing(requestId) {
         "O pedido expirou. Gere um novo código.";
       $("pairingMessage").style.color = "#ff4545";
 
+      setWhatsAppStatus("Solicitação de conexão expirada", "#ff4545");
+
       $("pairingButton").disabled = false;
-      $("pairingButton").textContent = "GERAR CÓDIGO";
+      $("pairingButton").textContent = "GERAR CÓDIGO DE CONEXÃO";
     }
 
   } catch (error) {
     console.error("Erro ao consultar código:", error);
+
     $("pairingMessage").textContent =
       "Erro ao consultar o código. Tente novamente.";
     $("pairingMessage").style.color = "#ff4545";
+
   } finally {
     pollingPairing = false;
   }
@@ -559,7 +605,7 @@ async function solicitarCodigoWhatsApp() {
 
   if (phone.length < 12 || phone.length > 13) {
     message.textContent =
-      "Digite o número com DDD e código do país (55).";
+      "Digite o número com DDI e DDD (55 para Brasil).";
     message.style.color = "#ff4545";
     return;
   }
@@ -567,6 +613,9 @@ async function solicitarCodigoWhatsApp() {
   button.disabled = true;
   button.textContent = "SOLICITANDO...";
   message.textContent = "";
+
+  setWhatsAppStatus("Solicitando código de conexão...", "#f0ad4e");
+
   $("pairingResult").classList.add("hidden");
 
   try {
@@ -590,7 +639,10 @@ async function solicitarCodigoWhatsApp() {
     const data = await response.json();
 
     if (!response.ok || !data.success || !data.requestId) {
-      throw new Error(data.message || "Não foi possível solicitar o código.");
+      throw new Error(showApiError(
+        data,
+        "Não foi possível solicitar o código."
+      ));
     }
 
     pairingActive = true;
@@ -598,6 +650,8 @@ async function solicitarCodigoWhatsApp() {
 
     message.textContent = "Pedido enviado. Aguardando código...";
     message.style.color = "#f0ad4e";
+
+    setWhatsAppStatus("Aguardando código de conexão...", "#f0ad4e");
 
     button.textContent = "AGUARDANDO CÓDIGO...";
 
@@ -613,8 +667,13 @@ async function solicitarCodigoWhatsApp() {
     message.textContent = error.message;
     message.style.color = "#ff4545";
 
+    setWhatsAppStatus(
+      "Não foi possível iniciar a conexão",
+      "#ff4545"
+    );
+
     button.disabled = false;
-    button.textContent = "GERAR CÓDIGO";
+    button.textContent = "GERAR CÓDIGO DE CONEXÃO";
   }
 }
 
