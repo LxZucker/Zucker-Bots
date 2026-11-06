@@ -4,260 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZuckerBot - Painel</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-:root {
-  --red: #ff2020;
-  --green: #00ff55;
-  --bg: #080808;
-  --card: #111;
-  --border: #292929;
-}
-
-body {
-  min-height: 100vh;
-  background: var(--bg);
-  color: white;
-  padding: 20px;
-}
-
-.hidden { display: none !important; }
-
-.dashboard {
-  max-width: 850px;
-  margin: auto;
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 35px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo {
-  font-size: 42px;
-  font-weight: 900;
-  letter-spacing: -6px;
-}
-
-.z {
-  color: var(--red);
-  text-shadow: 0 0 12px red;
-}
-
-.b {
-  color: var(--green);
-  text-shadow: 0 0 12px var(--green);
-}
-
-.brand h2 {
-  font-size: 23px;
-}
-
-.brand h2 span {
-  color: var(--green);
-}
-
-.status {
-  border: 1px solid #333;
-  border-radius: 20px;
-  padding: 9px 13px;
-  font-size: 12px;
-  color: #aaa;
-}
-
-.welcome {
-  margin-bottom: 25px;
-}
-
-.welcome h1 {
-  font-size: 27px;
-  margin-bottom: 8px;
-}
-
-.welcome h1 span {
-  color: var(--green);
-}
-
-.welcome p {
-  color: #888;
-  font-size: 13px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-}
-
-.stat-card, .card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  padding: 20px;
-}
-
-.stat-card.red {
-  border-left: 3px solid var(--red);
-}
-
-.stat-card.green {
-  border-left: 3px solid var(--green);
-}
-
-.stat-icon {
-  font-size: 26px;
-  margin-bottom: 12px;
-}
-
-.stat-card h3 {
-  font-size: 15px;
-  margin-bottom: 8px;
-}
-
-.stat-card p {
-  color: #888;
-  font-size: 12px;
-}
-
-.section-title {
-  font-size: 18px;
-  margin: 30px 0 14px;
-}
-
-.card {
-  margin-bottom: 15px;
-}
-
-.card.red {
-  border-top: 2px solid var(--red);
-}
-
-.card.green {
-  border-top: 2px solid var(--green);
-}
-
-.card h3 {
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-.card p {
-  color: #888;
-  font-size: 13px;
-  line-height: 1.6;
-  margin-bottom: 16px;
-}
-
-.action-btn {
-  width: 100%;
-  padding: 13px;
-  border: none;
-  border-radius: 8px;
-  background: var(--green);
-  color: black;
-  font-weight: bold;
-  opacity: .55;
-  cursor: not-allowed;
-}
-
-.account {
-  margin-top: 25px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  padding: 20px;
-}
-
-.account p {
-  color: #888;
-  font-size: 13px;
-  margin-top: 10px;
-  overflow-wrap: anywhere;
-}
-
-.logout {
-  margin-top: 17px;
-  padding: 12px 18px;
-  background: transparent;
-  border: 1px solid var(--red);
-  color: var(--red);
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.footer {
-  text-align: center;
-  color: #444;
-  font-size: 11px;
-  margin-top: 30px;
-}
-
-#error {
-  text-align: center;
-  color: var(--red);
-  margin-top: 40px;
-}
-
-.pairing-code {
-  color: var(--green);
-  letter-spacing: 5px;
-  text-align: center;
-  font-size: 27px;
-  margin: 15px 0;
-}
-
-@media(max-width: 450px) {
-  body { padding: 15px; }
-  .stats { gap: 9px; }
-  .stat-card { padding: 14px; }
-  .welcome h1 { font-size: 23px; }
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+:root{--red:#ff2020;--green:#00ff55;--bg:#080808;--card:#111;--border:#292929}
+body{min-height:100vh;background:var(--bg);color:#fff;padding:20px}
+.hidden{display:none!important}.dashboard{max-width:850px;margin:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;margin-bottom:35px}
+.brand{display:flex;align-items:center;gap:12px}.logo{font-size:42px;font-weight:900;letter-spacing:-6px}
+.z{color:var(--red);text-shadow:0 0 12px red}.b{color:var(--green);text-shadow:0 0 12px var(--green)}
+.brand h2{font-size:23px}.brand h2 span,.welcome h1 span{color:var(--green)}
+.status{border:1px solid #333;border-radius:20px;padding:9px 13px;font-size:12px;color:#aaa}
+.welcome{margin-bottom:25px}.welcome h1{font-size:27px;margin-bottom:8px}.welcome p,.card p,.stat-card p,.account p{color:#888;font-size:13px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+.stat-card,.card,.account{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:20px}
+.stat-card.red{border-left:3px solid var(--red)}.stat-card.green{border-left:3px solid var(--green)}
+.stat-icon{font-size:26px;margin-bottom:12px}.stat-card h3{font-size:15px;margin-bottom:8px}
+.section-title{font-size:18px;margin:30px 0 14px}.card{margin-bottom:15px}.card.red{border-top:2px solid var(--red)}.card.green{border-top:2px solid var(--green)}
+.card h3{margin-bottom:10px;font-size:16px}.card p{margin-bottom:15px}
+.field{width:100%;padding:14px;background:#080808;border:1px solid #333;border-radius:8px;color:#fff;font-size:16px;margin:8px 0 15px}
+.code-field{text-align:center;font-size:28px;letter-spacing:9px;font-weight:bold}
+.action-btn{width:100%;padding:13px;border:0;border-radius:8px;background:var(--green);color:#000;font-weight:bold;cursor:pointer}
+.action-btn:disabled{opacity:.55;cursor:not-allowed}
+.message{margin-top:13px;color:#aaa;font-size:12px;line-height:1.5;min-height:18px}
+.logout{margin-top:17px;padding:12px 18px;background:transparent;border:1px solid var(--red);color:var(--red);border-radius:8px;font-weight:bold;cursor:pointer}
+.account{margin-top:25px}.account p{margin-top:10px;overflow-wrap:anywhere}
+.footer{text-align:center;color:#444;font-size:11px;margin-top:30px}
+.pairing-code{color:var(--green);letter-spacing:5px;text-align:center;font-size:27px;margin:15px 0}
+@media(max-width:450px){body{padding:15px}.stats{gap:9px}.stat-card{padding:14px}.welcome h1{font-size:23px}}
 </style>
 </head>
-
 <body>
-
-<div id="loading" style="text-align:center;margin-top:100px;color:#888">
-  Verificando acesso...
-</div>
-
-<div id="error" class="hidden">
-  Não foi possível verificar sua sessão. Tente novamente.
-</div>
+<div id="loading" style="text-align:center;margin-top:100px;color:#888">Verificando acesso...</div>
+<div id="error" class="hidden" style="text-align:center;color:#ff2020;margin-top:40px">Não foi possível verificar sua sessão. Tente novamente.</div>
 
 <main class="dashboard hidden" id="dashboard">
-
   <header class="topbar">
-    <div class="brand">
-      <div class="logo">
-        <span class="z">Z</span><span class="b">B</span>
-      </div>
-      <h2>Zucker<span>Bot</span></h2>
-    </div>
-
-    <div class="status">
-      ● Painel de controle
-    </div>
+    <div class="brand"><div class="logo"><span class="z">Z</span><span class="b">B</span></div><h2>Zucker<span>Bot</span></h2></div>
+    <div class="status">● Painel de controle</div>
   </header>
 
   <section class="welcome">
@@ -266,318 +50,249 @@ body {
   </section>
 
   <section class="stats">
-    <div class="stat-card red">
-      <div class="stat-icon">📱</div>
-      <h3>WhatsApp</h3>
-      <p>Não conectado</p>
-    </div>
-
-    <div class="stat-card green">
-      <div class="stat-icon">🤖</div>
-      <h3>Bot</h3>
-      <p>Aguardando ativação</p>
-    </div>
+    <div class="stat-card red"><div class="stat-icon">📱</div><h3>WhatsApp</h3><p id="whatsappStatus">Aguardando ativação do bot</p></div>
+    <div class="stat-card green"><div class="stat-icon">🤖</div><h3>Bot</h3><p id="botStatus">Não vinculado</p></div>
   </section>
 
-  <h2 class="section-title">Conexão WhatsApp</h2>
+  <h2 class="section-title">Ativação do ZuckerBot</h2>
+  <section class="card green" id="activationCard">
+    <h3>🔐 Vincular seu bot</h3>
+    <p>1. Inicie o bot pelo Termux.<br>2. Ele mostrará um código de 6 números.<br>3. Digite o código abaixo. Ele vale por apenas 3 minutos e só pode ser usado uma vez.</p>
+    <label for="activationCode" style="display:block;color:#ccc;font-size:13px">Código de ativação</label>
+    <input class="field code-field" id="activationCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+    <button class="action-btn" id="activationButton" type="button">VALIDAR E VINCULAR BOT</button>
+    <p class="message" id="activationMessage" aria-live="polite">Aguardando o código do Termux.</p>
+  </section>
 
-  <section class="card red">
-    <h3>📱 Conectar seu WhatsApp</h3>
-
-    <p>
-      Informe seu número com DDI e DDD para gerar
-      seu código de conexão.
-    </p>
-
-    <label for="whatsappNumber"
-      style="display:block;margin-bottom:8px;color:#ccc;font-size:13px;">
-      Número com DDI e DDD
-    </label>
-
-    <input
-      type="tel"
-      id="whatsappNumber"
-      placeholder="Ex: 5511999999999"
-      maxlength="15"
-      style="width:100%;padding:14px;background:#080808;
-      border:1px solid #333;border-radius:8px;color:white;
-      font-size:16px;margin-bottom:15px;"
-    >
-
-    <button
-      class="action-btn"
-      id="pairingButton"
-      type="button"
-      style="opacity:1;background:var(--green);color:black;cursor:pointer;"
-      onclick="solicitarCodigoWhatsApp()">
-      GERAR CÓDIGO DE CONEXÃO
-    </button>
-
-    <div id="pairingResult" style="display:none;margin-top:20px;">
-      <p style="color:#aaa;text-align:center;">
-        Seu código de conexão:
-      </p>
-
-      <h2 id="pairingCode" class="pairing-code">
-        --------
-      </h2>
-    </div>
-
-    <p id="pairingMessage"
-      style="margin-top:15px;color:#888;font-size:12px;">
-      Aguardando conexão.
-    </p>
+  <section id="whatsappSection" class="hidden">
+    <h2 class="section-title">Conexão WhatsApp</h2>
+    <section class="card red">
+      <h3>📱 Conectar seu WhatsApp</h3>
+      <p>Informe seu número com DDI e DDD para gerar seu código de conexão.</p>
+      <label for="whatsappNumber" style="display:block;color:#ccc;font-size:13px">Número com DDI e DDD</label>
+      <input class="field" type="tel" id="whatsappNumber" placeholder="Ex: 5511999999999" maxlength="15">
+      <button class="action-btn" id="pairingButton" type="button">GERAR CÓDIGO DE CONEXÃO</button>
+      <div id="pairingResult" class="hidden" style="margin-top:20px">
+        <p style="color:#aaa;text-align:center">Seu código de conexão:</p>
+        <h2 id="pairingCode" class="pairing-code">--------</h2>
+      </div>
+      <p class="message" id="pairingMessage">Aguardando conexão.</p>
+    </section>
   </section>
 
   <section class="card green">
     <h3>⚙️ Configurações do bot</h3>
-    <p>
-      Aqui ficarão as opções para personalizar
-      o funcionamento do seu bot.
-    </p>
-    <button class="action-btn" disabled>
-      CONFIGURAÇÕES EM BREVE
-    </button>
+    <p>Aqui ficarão as opções para personalizar o funcionamento do seu bot.</p>
+    <button class="action-btn" disabled>CONFIGURAÇÕES EM BREVE</button>
   </section>
 
   <section class="account">
     <h3>👤 Minha conta</h3>
     <p>Usuário: <strong id="accountUsername">-</strong></p>
     <p id="accountEmail"></p>
-
-    <button class="logout" id="logoutButton">
-      SAIR DA CONTA
-    </button>
+    <button class="logout" id="logoutButton">SAIR DA CONTA</button>
   </section>
-
-  <footer class="footer">
-    ZUCKERBOT © 2026
-  </footer>
-
+  <footer class="footer">ZUCKERBOT © 2026</footer>
 </main>
 
 <script>
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
 const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0-O-Sg_RbMJMumQ";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-const loading = document.getElementById("loading");
-const dashboard = document.getElementById("dashboard");
-const errorBox = document.getElementById("error");
-
+const $ = (id) => document.getElementById(id);
 let pairingTimer = null;
+let currentDeviceId = null;
+let accessToken = null;
+
+async function getSession() {
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) throw error;
+  if (!data.session) {
+    window.location.replace("index.html");
+    return null;
+  }
+  accessToken = data.session.access_token;
+  return data.session;
+}
+
+async function refreshDeviceStatus() {
+  const response = await fetch("/api/agent/activation-claim", {
+    method: "GET",
+    headers: { "Authorization": "Bearer " + accessToken }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Falha ao consultar seu bot.");
+
+  if (data.linked && data.device) {
+    currentDeviceId = data.device.id;
+    $("activationCard").classList.add("hidden");
+    $("whatsappSection").classList.remove("hidden");
+    $("botStatus").textContent = data.device.status === "online" ? "Conectado" : "Vinculado";
+    $("whatsappStatus").textContent = "Bot vinculado; aguardando WhatsApp";
+  } else {
+    currentDeviceId = null;
+    $("activationCard").classList.remove("hidden");
+    $("whatsappSection").classList.add("hidden");
+    $("botStatus").textContent = "Aguardando ativação";
+    $("whatsappStatus").textContent = "Não conectado";
+  }
+}
 
 async function checkSession() {
   try {
-    const { data, error } =
-      await supabaseClient.auth.getSession();
-
-    if (error) throw error;
-
-    const session = data.session;
-
-    if (!session) {
-      window.location.replace("index.html");
-      return;
-    }
-
+    const session = await getSession();
+    if (!session) return;
     const user = session.user;
-
-    const name =
-      user.user_metadata?.username ||
-      user.email?.split("@")[0] ||
-      "Usuário";
-
-    document.getElementById("username").textContent = name;
-    document.getElementById("accountUsername").textContent = name;
-
-    document.getElementById("accountEmail").textContent =
-      "Conta: " + (user.email || "Conta ZuckerBot");
-
-    loading.classList.add("hidden");
-    dashboard.classList.remove("hidden");
-
+    const name = user.user_metadata?.username || user.email?.split("@")[0] || "Usuário";
+    $("username").textContent = name;
+    $("accountUsername").textContent = name;
+    $("accountEmail").textContent = "Conta: " + (user.email || "Conta ZuckerBot");
+    $("loading").classList.add("hidden");
+    $("dashboard").classList.remove("hidden");
+    await refreshDeviceStatus();
   } catch (error) {
     console.error(error);
+    $("loading").classList.add("hidden");
+    $("error").classList.remove("hidden");
+  }
+}
 
-    loading.classList.add("hidden");
-    errorBox.classList.remove("hidden");
+async function validateActivation() {
+  const button = $("activationButton");
+  const message = $("activationMessage");
+  const code = $("activationCode").value.replace(/\D/g, "");
+  if (!/^\d{6}$/.test(code)) {
+    message.textContent = "Digite os 6 números do código.";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "VALIDANDO...";
+  message.textContent = "Consultando o banco de dados e verificando a validade...";
+
+  try {
+    const response = await fetch("/api/agent/activation-claim", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + accessToken
+      },
+      body: JSON.stringify({ activationCode: code })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Código não aprovado.");
+
+    message.textContent = "Bot vinculado! Atualizando painel...";
+    $("activationCode").value = "";
+    await refreshDeviceStatus();
+  } catch (error) {
+    message.textContent = error.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = "VALIDAR E VINCULAR BOT";
   }
 }
 
 async function solicitarCodigoWhatsApp() {
-  const button = document.getElementById("pairingButton");
-  const message = document.getElementById("pairingMessage");
-  const result = document.getElementById("pairingResult");
-  const codeElement = document.getElementById("pairingCode");
-
-  const phone = document.getElementById("whatsappNumber")
-    .value.replace(/\D/g, "");
+  const button = $("pairingButton");
+  const message = $("pairingMessage");
+  const result = $("pairingResult");
+  const codeElement = $("pairingCode");
+  const phone = $("whatsappNumber").value.replace(/\D/g, "");
 
   if (!/^\d{12,13}$/.test(phone)) {
-    message.textContent =
-      "Número inválido. Use DDI + DDD + número.";
+    message.textContent = "Número inválido. Use DDI + DDD + número.";
     return;
   }
-
-  if (pairingTimer) {
-    clearInterval(pairingTimer);
-    pairingTimer = null;
-  }
+  if (pairingTimer) clearInterval(pairingTimer);
 
   button.disabled = true;
   button.textContent = "SOLICITANDO...";
-
-  result.style.display = "none";
+  result.classList.add("hidden");
   codeElement.textContent = "--------";
-
   message.textContent = "Enviando solicitação ao agente...";
 
   try {
-    const { data: sessionData, error: sessionError } =
-      await supabaseClient.auth.getSession();
-
-    if (sessionError || !sessionData.session) {
-      throw new Error("Sua sessão expirou. Entre novamente.");
-    }
-
     const response = await fetch("/api/whatsapp/request-code", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization":
-          "Bearer " + sessionData.session.access_token
+        "Authorization": "Bearer " + accessToken
       },
       body: JSON.stringify({ phone })
     });
-
     const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.error || "Não foi possível solicitar o código."
-      );
-    }
+    if (!response.ok) throw new Error(data.error || "Não foi possível solicitar o código.");
 
     const requestId = data.requestId;
-    const expiresAt = data.expiresAt
-      ? new Date(data.expiresAt).getTime()
-      : Date.now() + 5 * 60 * 1000;
-
-    message.textContent =
-      "Solicitação recebida! Aguardando o agente gerar seu código...";
+    const expiresAt = data.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 5 * 60 * 1000;
+    message.textContent = "Solicitação recebida! Aguardando o agente gerar seu código...";
 
     pairingTimer = setInterval(async () => {
       try {
         if (Date.now() >= expiresAt) {
-          clearInterval(pairingTimer);
-          pairingTimer = null;
-
-          button.disabled = false;
-          button.textContent = "GERAR NOVO CÓDIGO";
-
-          message.textContent =
-            "Tempo esgotado. Solicite um novo código.";
-
+          clearInterval(pairingTimer); pairingTimer = null;
+          button.disabled = false; button.textContent = "GERAR NOVO CÓDIGO";
+          message.textContent = "Tempo esgotado. Solicite um novo código.";
           return;
         }
-
         const { data: pairing, error } = await supabaseClient
           .from("whatsapp_pairing")
           .select("status,pairing_code,expires_at")
           .eq("id", requestId)
           .maybeSingle();
-
         if (error) throw error;
         if (!pairing) return;
 
-        if (
-          pairing.status === "generated" &&
-          pairing.pairing_code
-        ) {
-          clearInterval(pairingTimer);
-          pairingTimer = null;
-
+        if (pairing.status === "generated" && pairing.pairing_code) {
+          clearInterval(pairingTimer); pairingTimer = null;
           codeElement.textContent = pairing.pairing_code;
-          result.style.display = "block";
-
-          message.textContent =
-            "Código gerado! Digite-o no WhatsApp para conectar.";
-
-          button.disabled = false;
-          button.textContent = "GERAR NOVO CÓDIGO";
+          result.classList.remove("hidden");
+          message.textContent = "Código gerado! Digite-o no WhatsApp para conectar.";
+          button.disabled = false; button.textContent = "GERAR NOVO CÓDIGO";
+        } else if (pairing.status === "connected") {
+          clearInterval(pairingTimer); pairingTimer = null;
+          message.textContent = "WhatsApp conectado com sucesso!";
+          button.disabled = false; button.textContent = "CONECTADO";
+        } else if (pairing.status === "error") {
+          clearInterval(pairingTimer); pairingTimer = null;
+          message.textContent = "Erro ao gerar o código. Tente novamente.";
+          button.disabled = false; button.textContent = "TENTAR NOVAMENTE";
         }
-
-        if (pairing.status === "connected") {
-          clearInterval(pairingTimer);
-          pairingTimer = null;
-
-          message.textContent =
-            "WhatsApp conectado com sucesso!";
-
-          button.disabled = false;
-          button.textContent = "CONECTADO";
-        }
-
-        if (pairing.status === "error") {
-          clearInterval(pairingTimer);
-          pairingTimer = null;
-
-          message.textContent =
-            "Erro ao gerar o código. Tente novamente.";
-
-          button.disabled = false;
-          button.textContent = "TENTAR NOVAMENTE";
-        }
-
       } catch (error) {
         console.error("Erro ao consultar pareamento:", error);
       }
     }, 2000);
-
   } catch (error) {
     message.textContent = error.message;
-
     button.disabled = false;
     button.textContent = "TENTAR NOVAMENTE";
   }
 }
 
-document.getElementById("logoutButton").addEventListener(
-  "click",
-  async () => {
-    const button = document.getElementById("logoutButton");
-
-    button.disabled = true;
-    button.textContent = "SAINDO...";
-
-    const { error } = await supabaseClient.auth.signOut();
-
-    if (error) {
-      alert("Não foi possível sair da conta. Tente novamente.");
-
-      button.disabled = false;
-      button.textContent = "SAIR DA CONTA";
-
-      return;
-    }
-
-    window.location.replace("index.html");
-  }
-);
-
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT" || !session) {
-    window.location.replace("index.html");
-  }
+$("activationButton").addEventListener("click", validateActivation);
+$("activationCode").addEventListener("input", () => {
+  $("activationCode").value = $("activationCode").value.replace(/\D/g, "").slice(0, 6);
 });
-
+$("pairingButton").addEventListener("click", solicitarCodigoWhatsApp);
+$("logoutButton").addEventListener("click", async () => {
+  const button = $("logoutButton");
+  button.disabled = true;
+  button.textContent = "SAINDO...";
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) {
+    alert("Não foi possível sair da conta. Tente novamente.");
+    button.disabled = false;
+    button.textContent = "SAIR DA CONTA";
+    return;
+  }
+  window.location.replace("index.html");
+});
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT" || !session) window.location.replace("index.html");
+});
 checkSession();
 </script>
-
 </body>
-  </html>
+</html>
