@@ -13,25 +13,14 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: "Servidor não configurado" });
     }
 
-    const auth = req.headers.authorization || "";
-    const token = auth.startsWith("Bearer ")
-      ? auth.slice(7).trim()
-      : "";
+    const deviceId = String(req.body?.deviceId || "");
+    const commandId = String(req.body?.commandId || "");
+    const token = String(req.headers.authorization || "")
+      .replace(/^Bearer\s+/i, "");
 
-    const { deviceId, commandId } = req.body || {};
-
-    if (!token || !deviceId || !commandId) {
+    if (!deviceId || !commandId || !token) {
       return res.status(400).json({
         error: "Dados obrigatórios ausentes."
-      });
-    }
-
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-    if (!uuidRegex.test(deviceId) || !uuidRegex.test(commandId)) {
-      return res.status(400).json({
-        error: "Identificadores inválidos."
       });
     }
 
@@ -47,11 +36,12 @@ module.exports = async (req, res) => {
       Prefer: "return=representation"
     };
 
-    // Confere a autorização do agente
+    // 1. Verifica a autorização do agente.
     const deviceResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/devices` +
       `?id=eq.${deviceId}` +
-      `&agent_token_hash=eq.${tokenHash}&select=id,user_id`,
+      `&agent_token_hash=eq.${tokenHash}` +
+      `&select=id,user_id`,
       { headers }
     );
 
@@ -67,31 +57,64 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Confere se o comando pertence ao dispositivo
+    const device = devices[0];
+
+    // 2. Confere se o comando pertence ao dispositivo.
     const commandResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?id=eq.${commandId}` +
       `&device_id=eq.${deviceId}` +
-      `&user_id=eq.${devices[0].user_id}` +
-      `&command=eq.unlink&status=eq.pending&select=id`,
+      `&user_id=eq.${device.user_id}` +
+      `&command=eq.unlink` +
+      `&select=id,status`,
       { headers }
     );
 
     if (!commandResponse.ok) {
-      throw new Error("Falha ao verificar comando.");
+      throw new Error("Falha ao consultar comando.");
     }
 
     const commands = await commandResponse.json();
 
-    if (!commands.length) {
+    if (!commands.length || commands[0].status === "failed") {
       return res.status(404).json({
-        error: "Comando não encontrado ou já concluído."
+        error: "Comando não encontrado ou inválido."
       });
     }
 
-    // Confirma a limpeza da sessão
+    // 3. Limpa os registros de sessão do dispositivo.
+    const sessionDelete = await fetch(
+      `${SUPABASE_URL}/rest/v1/bot_sessions` +
+      `?device_id=eq.${deviceId}`,
+      {
+        method: "DELETE",
+        headers
+      }
+    );
+
+    if (!sessionDelete.ok) {
+      throw new Error("Falha ao limpar sessões.");
+    }
+
+    // 4. Limpa os pedidos de conexão desse usuário.
+    const pairingDelete = await fetch(
+      `${SUPABASE_URL}/rest/v1/whatsapp_pairing` +
+      `?user_id=eq.${device.user_id}`,
+      {
+        method: "DELETE",
+        headers
+      }
+    );
+
+    if (!pairingDelete.ok) {
+      throw new Error("Falha ao limpar pedidos de conexão.");
+    }
+
+    // 5. Só confirma o comando depois da limpeza.
     const completeResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/agent_commands?id=eq.${commandId}&status=eq.pending`,
+      `${SUPABASE_URL}/rest/v1/agent_commands` +
+      `?id=eq.${commandId}` +
+      `&device_id=eq.${deviceId}`,
       {
         method: "PATCH",
         headers,
@@ -103,44 +126,18 @@ module.exports = async (req, res) => {
     );
 
     if (!completeResponse.ok) {
-      throw new Error("Não foi possível concluir o comando.");
+      throw new Error("Falha ao concluir comando.");
     }
 
-    // Remove o registro da sessão do WhatsApp
-    const sessionResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/bot_sessions?device_id=eq.${deviceId}`,
-      {
-        method: "DELETE",
-        headers
-      }
-    );
-
-    if (!sessionResponse.ok) {
-      throw new Error("Falha ao remover registro da sessão.");
-    }
-
-    // Remove pedidos antigos de conexão
-    const pairingResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/whatsapp_pairing?device_id=eq.${deviceId}`,
-      {
-        method: "DELETE",
-        headers
-      }
-    );
-
-    if (!pairingResponse.ok) {
-      throw new Error("Falha ao limpar pedidos de conexão.");
-    }
-
-    // Revoga o token antigo
+    // 6. Revoga o token do agente por último.
     const revokeResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/devices?id=eq.${deviceId}&agent_token_hash=eq.${tokenHash}`,
+      `${SUPABASE_URL}/rest/v1/devices?id=eq.${deviceId}`,
       {
         method: "PATCH",
         headers,
         body: JSON.stringify({
-          agent_token_hash: null,
           status: "offline",
+          agent_token_hash: null,
           pairing_code_hash: null,
           pairing_expires_at: null
         })
@@ -148,20 +145,19 @@ module.exports = async (req, res) => {
     );
 
     if (!revokeResponse.ok) {
-      throw new Error("Falha ao revogar autorização.");
+      throw new Error("Falha ao revogar agente.");
     }
 
     return res.status(200).json({
       success: true,
-      unlinked: true,
-      message: "Agente desvinculado e autorização revogada."
+      message: "Desvinculação concluída."
     });
 
   } catch (error) {
     console.error("Command complete error:", error);
 
     return res.status(500).json({
-      error: "Erro interno ao concluir desvinculamento."
+      error: "Erro ao concluir desvinculação."
     });
   }
 };
