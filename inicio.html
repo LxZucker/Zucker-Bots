@@ -15,17 +15,21 @@ body{min-height:100vh;background:var(--bg);color:#fff;padding:20px}
 .z{color:var(--red);text-shadow:0 0 12px red}.b{color:var(--green);text-shadow:0 0 12px var(--green)}
 .brand h2{font-size:23px}.brand h2 span,.welcome h1 span{color:var(--green)}
 .status{border:1px solid #333;border-radius:20px;padding:9px 13px;font-size:12px;color:#aaa}
-.welcome{margin-bottom:25px}.welcome h1{font-size:27px;margin-bottom:8px}.welcome p,.card p,.stat-card p,.account p{color:#888;font-size:13px;line-height:1.6}
+.welcome{margin-bottom:25px}.welcome h1{font-size:27px;margin-bottom:8px}
+.welcome p,.card p,.stat-card p,.account p{color:#888;font-size:13px;line-height:1.6}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
 .stat-card,.card,.account{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:20px}
 .stat-card.red{border-left:3px solid var(--red)}.stat-card.green{border-left:3px solid var(--green)}
 .stat-icon{font-size:26px;margin-bottom:12px}.stat-card h3{font-size:15px;margin-bottom:8px}
-.section-title{font-size:18px;margin:30px 0 14px}.card{margin-bottom:15px}.card.red{border-top:2px solid var(--red)}.card.green{border-top:2px solid var(--green)}
+.section-title{font-size:18px;margin:30px 0 14px}
+.card{margin-bottom:15px}.card.red{border-top:2px solid var(--red)}.card.green{border-top:2px solid var(--green)}
 .card h3{margin-bottom:10px;font-size:16px}.card p{margin-bottom:15px}
 .field{width:100%;padding:14px;background:#080808;border:1px solid #333;border-radius:8px;color:#fff;font-size:16px;margin:8px 0 15px}
 .code-field{text-align:center;font-size:28px;letter-spacing:9px;font-weight:bold}
 .action-btn{width:100%;padding:13px;border:0;border-radius:8px;background:var(--green);color:#000;font-weight:bold;cursor:pointer}
 .action-btn:disabled{opacity:.55;cursor:not-allowed}
+.danger-btn{width:100%;padding:13px;border:1px solid var(--red);border-radius:8px;background:#260909;color:#ff4444;font-weight:bold;cursor:pointer}
+.danger-btn:disabled{opacity:.55;cursor:not-allowed}
 .message{margin-top:13px;color:#aaa;font-size:12px;line-height:1.5;min-height:18px}
 .logout{margin-top:17px;padding:12px 18px;background:transparent;border:1px solid var(--red);color:var(--red);border-radius:8px;font-weight:bold;cursor:pointer}
 .account{margin-top:25px}.account p{margin-top:10px;overflow-wrap:anywhere}
@@ -39,60 +43,69 @@ body{min-height:100vh;background:var(--bg);color:#fff;padding:20px}
 <div id="error" class="hidden" style="text-align:center;color:#ff2020;margin-top:40px">Não foi possível verificar sua sessão. Tente novamente.</div>
 
 <main class="dashboard hidden" id="dashboard">
-  <header class="topbar">
-    <div class="brand"><div class="logo"><span class="z">Z</span><span class="b">B</span></div><h2>Zucker<span>Bot</span></h2></div>
-    <div class="status">● Painel de controle</div>
-  </header>
+<header class="topbar">
+  <div class="brand"><div class="logo"><span class="z">Z</span><span class="b">B</span></div><h2>Zucker<span>Bot</span></h2></div>
+  <div class="status">● Painel de controle</div>
+</header>
 
-  <section class="welcome">
-    <h1>Olá, <span id="username">Usuário</span>!</h1>
-    <p>Bem-vindo ao seu painel de controle.</p>
-  </section>
+<section class="welcome">
+  <h1>Olá, <span id="username">Usuário</span>!</h1>
+  <p>Bem-vindo ao seu painel de controle.</p>
+</section>
 
-  <section class="stats">
-    <div class="stat-card red"><div class="stat-icon">📱</div><h3>WhatsApp</h3><p id="whatsappStatus">Aguardando ativação do bot</p></div>
-    <div class="stat-card green"><div class="stat-icon">🤖</div><h3>Bot</h3><p id="botStatus">Não vinculado</p></div>
-  </section>
+<section class="stats">
+  <div class="stat-card red"><div class="stat-icon">📱</div><h3>WhatsApp</h3><p id="whatsappStatus">Aguardando ativação do bot</p></div>
+  <div class="stat-card green"><div class="stat-icon">🤖</div><h3>Bot</h3><p id="botStatus">Não vinculado</p></div>
+</section>
 
-  <h2 class="section-title">Ativação do ZuckerBot</h2>
-  <section class="card green" id="activationCard">
-    <h3>🔐 Vincular seu bot</h3>
-    <p>1. Inicie o bot pelo Termux.<br>2. Ele mostrará um código de 6 números.<br>3. Digite o código abaixo. Ele vale por apenas 3 minutos e só pode ser usado uma vez.</p>
-    <label for="activationCode" style="display:block;color:#ccc;font-size:13px">Código de ativação</label>
-    <input class="field code-field" id="activationCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
-    <button class="action-btn" id="activationButton" type="button">VALIDAR E VINCULAR BOT</button>
-    <p class="message" id="activationMessage" aria-live="polite">Aguardando o código do Termux.</p>
-  </section>
+<h2 class="section-title">Ativação do ZuckerBot</h2>
+<section class="card green" id="activationCard">
+  <h3>🔐 Vincular seu bot</h3>
+  <p>1. Inicie o bot pelo Termux.<br>2. Ele mostrará um código de 6 números.<br>3. Digite o código abaixo. Ele vale por apenas 3 minutos e só pode ser usado uma vez.</p>
+  <label for="activationCode" style="display:block;color:#ccc;font-size:13px">Código de ativação</label>
+  <input class="field code-field" id="activationCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+  <button class="action-btn" id="activationButton" type="button">VALIDAR E VINCULAR BOT</button>
+  <p class="message" id="activationMessage" aria-live="polite">Aguardando o código do Termux.</p>
+</section>
 
-  <section id="whatsappSection" class="hidden">
-    <h2 class="section-title">Conexão WhatsApp</h2>
-    <section class="card red">
-      <h3>📱 Conectar seu WhatsApp</h3>
-      <p>Informe seu número com DDI e DDD para gerar seu código de conexão.</p>
-      <label for="whatsappNumber" style="display:block;color:#ccc;font-size:13px">Número com DDI e DDD</label>
-      <input class="field" type="tel" id="whatsappNumber" placeholder="Ex: 5511999999999" maxlength="15">
-      <button class="action-btn" id="pairingButton" type="button">GERAR CÓDIGO DE CONEXÃO</button>
-      <div id="pairingResult" class="hidden" style="margin-top:20px">
-        <p style="color:#aaa;text-align:center">Seu código de conexão:</p>
-        <h2 id="pairingCode" class="pairing-code">--------</h2>
-      </div>
-      <p class="message" id="pairingMessage">Aguardando conexão.</p>
-    </section>
+<section id="linkedSection" class="hidden">
+  <section class="card red">
+    <h3>🔌 Desvincular dispositivo</h3>
+    <p>Ao confirmar, o ZuckerBot solicitará o encerramento da conexão e a remoção dos registros deste dispositivo. Sua conta e outros dispositivos não serão apagados.</p>
+    <button class="danger-btn" id="unlinkButton" type="button">DESCONECTAR DO BOT</button>
+    <p class="message" id="unlinkMessage" aria-live="polite"></p>
   </section>
+</section>
 
-  <section class="card green">
-    <h3>⚙️ Configurações do bot</h3>
-    <p>Aqui ficarão as opções para personalizar o funcionamento do seu bot.</p>
-    <button class="action-btn" disabled>CONFIGURAÇÕES EM BREVE</button>
+<section id="whatsappSection" class="hidden">
+  <h2 class="section-title">Conexão WhatsApp</h2>
+  <section class="card red">
+    <h3>📱 Conectar seu WhatsApp</h3>
+    <p>Informe seu número com DDI e DDD para gerar seu código de conexão.</p>
+    <label for="whatsappNumber" style="display:block;color:#ccc;font-size:13px">Número com DDI e DDD</label>
+    <input class="field" type="tel" id="whatsappNumber" placeholder="Ex: 5511999999999" maxlength="15">
+    <button class="action-btn" id="pairingButton" type="button">GERAR CÓDIGO DE CONEXÃO</button>
+    <div id="pairingResult" class="hidden" style="margin-top:20px">
+      <p style="color:#aaa;text-align:center">Seu código de conexão:</p>
+      <h2 id="pairingCode" class="pairing-code">--------</h2>
+    </div>
+    <p class="message" id="pairingMessage">Aguardando conexão.</p>
   </section>
+</section>
 
-  <section class="account">
-    <h3>👤 Minha conta</h3>
-    <p>Usuário: <strong id="accountUsername">-</strong></p>
-    <p id="accountEmail"></p>
-    <button class="logout" id="logoutButton">SAIR DA CONTA</button>
-  </section>
-  <footer class="footer">ZUCKERBOT © 2026</footer>
+<section class="card green">
+  <h3>⚙️ Configurações do bot</h3>
+  <p>Aqui ficarão as opções para personalizar o funcionamento do seu bot.</p>
+  <button class="action-btn" disabled>CONFIGURAÇÕES EM BREVE</button>
+</section>
+
+<section class="account">
+  <h3>👤 Minha conta</h3>
+  <p>Usuário: <strong id="accountUsername">-</strong></p>
+  <p id="accountEmail"></p>
+  <button class="logout" id="logoutButton">SAIR DA CONTA</button>
+</section>
+<footer class="footer">ZUCKERBOT © 2026</footer>
 </main>
 
 <script>
@@ -100,15 +113,16 @@ const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
 const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0-O-Sg_RbMJMumQ";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 let pairingTimer = null;
 let currentDeviceId = null;
 let accessToken = null;
+let refreshing = false;
 
 async function getSession() {
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error) throw error;
-  if (!data.session) {
+  const {data,error} = await supabaseClient.auth.getSession();
+  if(error) throw error;
+  if(!data.session) {
     window.location.replace("index.html");
     return null;
   }
@@ -117,41 +131,64 @@ async function getSession() {
 }
 
 async function refreshDeviceStatus() {
-  const response = await fetch("/api/agent/activation-claim", {
-    method: "GET",
-    headers: { "Authorization": "Bearer " + accessToken }
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Falha ao consultar seu bot.");
+  if(refreshing) return;
+  refreshing = true;
 
-  if (data.linked && data.device) {
-    currentDeviceId = data.device.id;
-    $("activationCard").classList.add("hidden");
-    $("whatsappSection").classList.remove("hidden");
-    $("botStatus").textContent = data.device.status === "online" ? "Conectado" : "Vinculado";
-    $("whatsappStatus").textContent = "Bot vinculado; aguardando WhatsApp";
-  } else {
-    currentDeviceId = null;
-    $("activationCard").classList.remove("hidden");
-    $("whatsappSection").classList.add("hidden");
-    $("botStatus").textContent = "Aguardando ativação";
-    $("whatsappStatus").textContent = "Não conectado";
+  try {
+    const response = await fetch("/api/agent/activation-claim", {
+      method:"GET",
+      headers:{Authorization:"Bearer "+accessToken}
+    });
+    const data = await response.json();
+    if(!response.ok) throw new Error(data.error || "Falha ao consultar dispositivo.");
+
+    if(data.linked && data.device) {
+      currentDeviceId = data.device.id;
+      $("activationCard").classList.add("hidden");
+      $("linkedSection").classList.remove("hidden");
+      $("whatsappSection").classList.remove("hidden");
+
+      if(data.device.status === "unlink_pending") {
+        $("botStatus").textContent = "Desvinculação em andamento";
+        $("whatsappStatus").textContent = "Aguardando encerramento";
+        $("unlinkButton").disabled = true;
+        $("unlinkButton").textContent = "DESVINCULAÇÃO EM ANDAMENTO";
+        $("unlinkMessage").textContent = "O pedido foi enviado. Aguarde o agente processar.";
+      } else {
+        $("botStatus").textContent = data.device.status === "online" ? "Conectado" : "Vinculado";
+        $("whatsappStatus").textContent = "Bot vinculado; aguardando WhatsApp";
+        $("unlinkButton").disabled = false;
+        $("unlinkButton").textContent = "DESCONECTAR DO BOT";
+      }
+    } else {
+      currentDeviceId = null;
+      $("activationCard").classList.remove("hidden");
+      $("linkedSection").classList.add("hidden");
+      $("whatsappSection").classList.add("hidden");
+      $("botStatus").textContent = "Aguardando ativação";
+      $("whatsappStatus").textContent = "Não conectado";
+      $("unlinkMessage").textContent = "";
+    }
+  } finally {
+    refreshing = false;
   }
 }
 
 async function checkSession() {
   try {
     const session = await getSession();
-    if (!session) return;
+    if(!session) return;
+
     const user = session.user;
     const name = user.user_metadata?.username || user.email?.split("@")[0] || "Usuário";
     $("username").textContent = name;
     $("accountUsername").textContent = name;
-    $("accountEmail").textContent = "Conta: " + (user.email || "Conta ZuckerBot");
+    $("accountEmail").textContent = "Conta: "+(user.email || "Conta ZuckerBot");
+
     $("loading").classList.add("hidden");
     $("dashboard").classList.remove("hidden");
     await refreshDeviceStatus();
-  } catch (error) {
+  } catch(error) {
     console.error(error);
     $("loading").classList.add("hidden");
     $("error").classList.remove("hidden");
@@ -161,36 +198,76 @@ async function checkSession() {
 async function validateActivation() {
   const button = $("activationButton");
   const message = $("activationMessage");
-  const code = $("activationCode").value.replace(/\D/g, "");
-  if (!/^\d{6}$/.test(code)) {
+  const code = $("activationCode").value.replace(/\D/g,"");
+
+  if(!/^\d{6}$/.test(code)) {
     message.textContent = "Digite os 6 números do código.";
     return;
   }
 
   button.disabled = true;
   button.textContent = "VALIDANDO...";
-  message.textContent = "Consultando o banco de dados e verificando a validade...";
+  message.textContent = "Verificando código...";
 
   try {
     const response = await fetch("/api/agent/activation-claim", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + accessToken
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        Authorization:"Bearer "+accessToken
       },
-      body: JSON.stringify({ activationCode: code })
+      body:JSON.stringify({activationCode:code})
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Código não aprovado.");
+    if(!response.ok) throw new Error(data.error || "Código não aprovado.");
 
     message.textContent = "Bot vinculado! Atualizando painel...";
     $("activationCode").value = "";
     await refreshDeviceStatus();
-  } catch (error) {
+  } catch(error) {
     message.textContent = error.message;
   } finally {
     button.disabled = false;
     button.textContent = "VALIDAR E VINCULAR BOT";
+  }
+}
+
+async function requestUnlink() {
+  if(!currentDeviceId) {
+    $("unlinkMessage").textContent = "Nenhum dispositivo vinculado.";
+    return;
+  }
+
+  const confirmed = confirm(
+    "Tem certeza que deseja desconectar este bot? Os registros deste dispositivo serão apagados. Sua conta ZuckerBots continuará existindo."
+  );
+  if(!confirmed) return;
+
+  const button = $("unlinkButton");
+  button.disabled = true;
+  button.textContent = "SOLICITANDO...";
+  $("unlinkMessage").textContent = "Enviando pedido de desvinculação...";
+
+  try {
+    const response = await fetch("/api/agent/unlink-request", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        Authorization:"Bearer "+accessToken
+      },
+      body:JSON.stringify({deviceId:currentDeviceId})
+    });
+    const data = await response.json();
+    if(!response.ok) throw new Error(data.error || "Não foi possível solicitar a desvinculação.");
+
+    $("unlinkMessage").textContent =
+      "Pedido enviado! O Termux precisa estar ligado para receber o comando.";
+    button.textContent = "AGUARDANDO AGENTE";
+    await refreshDeviceStatus();
+  } catch(error) {
+    $("unlinkMessage").textContent = error.message;
+    button.disabled = false;
+    button.textContent = "TENTAR NOVAMENTE";
   }
 }
 
@@ -199,14 +276,14 @@ async function solicitarCodigoWhatsApp() {
   const message = $("pairingMessage");
   const result = $("pairingResult");
   const codeElement = $("pairingCode");
-  const phone = $("whatsappNumber").value.replace(/\D/g, "");
+  const phone = $("whatsappNumber").value.replace(/\D/g,"");
 
-  if (!/^\d{12,13}$/.test(phone)) {
+  if(!/^\d{12,13}$/.test(phone)) {
     message.textContent = "Número inválido. Use DDI + DDD + número.";
     return;
   }
-  if (pairingTimer) clearInterval(pairingTimer);
 
+  if(pairingTimer) clearInterval(pairingTimer);
   button.disabled = true;
   button.textContent = "SOLICITANDO...";
   result.classList.add("hidden");
@@ -215,73 +292,86 @@ async function solicitarCodigoWhatsApp() {
 
   try {
     const response = await fetch("/api/whatsapp/request-code", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + accessToken
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        Authorization:"Bearer "+accessToken
       },
-      body: JSON.stringify({ phone })
+      body:JSON.stringify({phone})
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Não foi possível solicitar o código.");
+    if(!response.ok) throw new Error(data.error || "Não foi possível solicitar o código.");
 
     const requestId = data.requestId;
-    const expiresAt = data.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 5 * 60 * 1000;
-    message.textContent = "Solicitação recebida! Aguardando o agente gerar seu código...";
+    const expiresAt = data.expiresAt ? new Date(data.expiresAt).getTime() : Date.now()+300000;
+    message.textContent = "Solicitação recebida! Aguardando o agente...";
 
     pairingTimer = setInterval(async () => {
       try {
-        if (Date.now() >= expiresAt) {
-          clearInterval(pairingTimer); pairingTimer = null;
-          button.disabled = false; button.textContent = "GERAR NOVO CÓDIGO";
+        if(Date.now() >= expiresAt) {
+          clearInterval(pairingTimer);
+          pairingTimer = null;
+          button.disabled = false;
+          button.textContent = "GERAR NOVO CÓDIGO";
           message.textContent = "Tempo esgotado. Solicite um novo código.";
           return;
         }
-        const { data: pairing, error } = await supabaseClient
+
+        const {data:pairing,error} = await supabaseClient
           .from("whatsapp_pairing")
           .select("status,pairing_code,expires_at")
-          .eq("id", requestId)
+          .eq("id",requestId)
           .maybeSingle();
-        if (error) throw error;
-        if (!pairing) return;
 
-        if (pairing.status === "generated" && pairing.pairing_code) {
-          clearInterval(pairingTimer); pairingTimer = null;
+        if(error) throw error;
+        if(!pairing) return;
+
+        if(pairing.status === "generated" && pairing.pairing_code) {
+          clearInterval(pairingTimer);
+          pairingTimer = null;
           codeElement.textContent = pairing.pairing_code;
           result.classList.remove("hidden");
-          message.textContent = "Código gerado! Digite-o no WhatsApp para conectar.";
-          button.disabled = false; button.textContent = "GERAR NOVO CÓDIGO";
-        } else if (pairing.status === "connected") {
-          clearInterval(pairingTimer); pairingTimer = null;
+          message.textContent = "Código gerado! Digite-o no WhatsApp.";
+          button.disabled = false;
+          button.textContent = "GERAR NOVO CÓDIGO";
+        } else if(pairing.status === "connected") {
+          clearInterval(pairingTimer);
+          pairingTimer = null;
           message.textContent = "WhatsApp conectado com sucesso!";
-          button.disabled = false; button.textContent = "CONECTADO";
-        } else if (pairing.status === "error") {
-          clearInterval(pairingTimer); pairingTimer = null;
+          button.disabled = false;
+          button.textContent = "CONECTADO";
+        } else if(pairing.status === "error") {
+          clearInterval(pairingTimer);
+          pairingTimer = null;
           message.textContent = "Erro ao gerar o código. Tente novamente.";
-          button.disabled = false; button.textContent = "TENTAR NOVAMENTE";
+          button.disabled = false;
+          button.textContent = "TENTAR NOVAMENTE";
         }
-      } catch (error) {
-        console.error("Erro ao consultar pareamento:", error);
+      } catch(error) {
+        console.error("Erro ao consultar pareamento:",error);
       }
-    }, 2000);
-  } catch (error) {
+    },2000);
+  } catch(error) {
     message.textContent = error.message;
     button.disabled = false;
     button.textContent = "TENTAR NOVAMENTE";
   }
 }
 
-$("activationButton").addEventListener("click", validateActivation);
-$("activationCode").addEventListener("input", () => {
-  $("activationCode").value = $("activationCode").value.replace(/\D/g, "").slice(0, 6);
+$("activationButton").addEventListener("click",validateActivation);
+$("activationCode").addEventListener("input",() => {
+  $("activationCode").value = $("activationCode").value.replace(/\D/g,"").slice(0,6);
 });
-$("pairingButton").addEventListener("click", solicitarCodigoWhatsApp);
-$("logoutButton").addEventListener("click", async () => {
+$("unlinkButton").addEventListener("click",requestUnlink);
+$("pairingButton").addEventListener("click",solicitarCodigoWhatsApp);
+
+$("logoutButton").addEventListener("click",async () => {
   const button = $("logoutButton");
   button.disabled = true;
   button.textContent = "SAINDO...";
-  const { error } = await supabaseClient.auth.signOut();
-  if (error) {
+  const {error} = await supabaseClient.auth.signOut();
+
+  if(error) {
     alert("Não foi possível sair da conta. Tente novamente.");
     button.disabled = false;
     button.textContent = "SAIR DA CONTA";
@@ -289,10 +379,17 @@ $("logoutButton").addEventListener("click", async () => {
   }
   window.location.replace("index.html");
 });
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT" || !session) window.location.replace("index.html");
+
+supabaseClient.auth.onAuthStateChange((event,session) => {
+  if(event === "SIGNED_OUT" || !session) window.location.replace("index.html");
 });
+
 checkSession();
+setInterval(() => {
+  if(accessToken && currentDeviceId) {
+    refreshDeviceStatus().catch(error => console.error(error));
+  }
+},5000);
 </script>
 </body>
 </html>
