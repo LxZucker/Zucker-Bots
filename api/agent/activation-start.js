@@ -1,28 +1,37 @@
 const crypto = require("crypto");
 
-const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL =
+  "https://khkjlodngoahevxkxswj.supabase.co";
+
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método não permitido" });
+    return res.status(405).json({
+      error: "Método não permitido"
+    });
   }
 
   try {
     if (!SUPABASE_KEY) {
-      return res.status(500).json({ error: "Servidor não configurado" });
+      return res.status(500).json({
+        error: "Servidor não configurado"
+      });
     }
 
-    // Código curto que o usuário vai digitar no site
-    const activationCode = crypto
-      .randomBytes(5)
-      .toString("hex")
-      .toUpperCase();
+    const activationCode = String(
+      req.body?.activationCode || ""
+    ).trim();
 
-    // Segredo longo usado somente pelo agente
-    const activationSecret = crypto
-      .randomBytes(32)
-      .toString("hex");
+    if (!/^\d{6}$/.test(activationCode)) {
+      return res.status(400).json({
+        error: "O código precisa ter exatamente 6 números."
+      });
+    }
+
+    const activationSecret =
+      crypto.randomBytes(32).toString("hex");
 
     const codeHash = crypto
       .createHash("sha256")
@@ -34,7 +43,9 @@ module.exports = async (req, res) => {
       .update(activationSecret)
       .digest("hex");
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const expiresAt = new Date(
+      Date.now() + 3 * 60 * 1000
+    ).toISOString();
 
     const response = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_activations`,
@@ -57,24 +68,23 @@ module.exports = async (req, res) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
+    if (!response.ok || !data.length) {
       console.error("Erro Supabase:", data);
+
       return res.status(500).json({
-        error: "Não foi possível iniciar a ativação."
+        error: "Não foi possível registrar o código."
       });
     }
 
     return res.status(200).json({
       success: true,
       requestId: data[0].id,
-      activationCode,
       activationSecret,
-      expiresAt,
-      message: "Retorne ao site e informe o código de ativação."
+      expiresAt
     });
 
   } catch (error) {
-    console.error("Activation error:", error);
+    console.error(error);
 
     return res.status(500).json({
       error: "Erro interno ao iniciar ativação."
