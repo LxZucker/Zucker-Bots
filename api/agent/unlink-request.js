@@ -45,27 +45,63 @@ module.exports = async (req, res) => {
       Prefer: "return=representation"
     };
 
+    // Busca o dispositivo pertencente ao usuário.
     const deviceResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/devices?id=eq.${deviceId}&user_id=eq.${user.id}&select=id,status`,
+      `${SUPABASE_URL}/rest/v1/devices` +
+      `?id=eq.${deviceId}` +
+      `&user_id=eq.${user.id}` +
+      `&select=id,status`,
       { headers }
     );
 
     if (!deviceResponse.ok) {
-      throw new Error("Falha ao consultar dispositivo");
+      throw new Error("Falha ao consultar dispositivo.");
     }
 
     const devices = await deviceResponse.json();
 
     if (!devices.length) {
-      return res.status(404).json({ error: "Dispositivo não encontrado" });
+      return res.status(404).json({
+        error: "Dispositivo não encontrado."
+      });
     }
 
-    if (devices[0].status === "unlink_pending") {
+    const previousStatus = devices[0].status;
+
+    if (previousStatus === "unlink_pending") {
       return res.status(409).json({
         error: "Já existe uma desvinculação pendente."
       });
     }
 
+    // Reserva a desvinculação antes de criar o comando.
+    const lockResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/devices` +
+      `?id=eq.${deviceId}` +
+      `&user_id=eq.${user.id}` +
+      `&status=neq.unlink_pending`,
+      {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          status: "unlink_pending"
+        })
+      }
+    );
+
+    if (!lockResponse.ok) {
+      throw new Error("Falha ao reservar desvinculação.");
+    }
+
+    const lockedDevices = await lockResponse.json();
+
+    if (!lockedDevices.length) {
+      return res.status(409).json({
+        error: "A desvinculação já foi solicitada."
+      });
+    }
+
+    // Cria o comando para o agente.
     const commandResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands`,
       {
@@ -81,30 +117,27 @@ module.exports = async (req, res) => {
     );
 
     if (!commandResponse.ok) {
-      throw new Error("Falha ao criar comando");
-    }
+      // Se falhar, tenta restaurar o status anterior.
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/devices` +
+        `?id=eq.${deviceId}` +
+        `&user_id=eq.${user.id}` +
+        `&status=eq.unlink_pending`,
+        {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({
+            status: previousStatus
+          })
+        }
+      );
 
-    const updateResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/devices?id=eq.${deviceId}&user_id=eq.${user.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          ...headers,
-          Prefer: "return=minimal"
-        },
-        body: JSON.stringify({
-          status: "unlink_pending"
-        })
-      }
-    );
-
-    if (!updateResponse.ok) {
-      throw new Error("Falha ao atualizar dispositivo");
+      throw new Error("Falha ao criar comando.");
     }
 
     return res.status(200).json({
       success: true,
-      message: "Pedido de desvinculação enviado. Aguardando o agente."
+      message: "Pedido enviado. Aguardando o agente."
     });
 
   } catch (error) {
