@@ -9,21 +9,31 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
 :root{--red:#ff2020;--green:#00ff55;--bg:#080808;--card:#111;--border:#292929}
 body{min-height:100vh;background:var(--bg);color:#fff;padding:20px}
-.hidden{display:none!important}.dashboard{max-width:850px;margin:auto}
+.hidden{display:none!important}
+.dashboard{max-width:850px;margin:auto}
 .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;margin-bottom:35px}
-.brand{display:flex;align-items:center;gap:12px}.logo{font-size:42px;font-weight:900;letter-spacing:-6px}
-.z{color:var(--red);text-shadow:0 0 12px red}.b{color:var(--green);text-shadow:0 0 12px var(--green)}
-.brand h2{font-size:23px}.brand h2 span,.welcome h1 span{color:var(--green)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{font-size:42px;font-weight:900;letter-spacing:-6px}
+.z{color:var(--red);text-shadow:0 0 12px red}
+.b{color:var(--green);text-shadow:0 0 12px var(--green)}
+.brand h2{font-size:23px}
+.brand h2 span,.welcome h1 span{color:var(--green)}
 .status{border:1px solid #333;border-radius:20px;padding:9px 13px;font-size:12px;color:#aaa}
-.welcome{margin-bottom:25px}.welcome h1{font-size:27px;margin-bottom:8px}
+.welcome{margin-bottom:25px}
+.welcome h1{font-size:27px;margin-bottom:8px}
 .welcome p,.card p,.stat-card p,.account p{color:#888;font-size:13px;line-height:1.6}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
 .stat-card,.card,.account{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:20px}
-.stat-card.red{border-left:3px solid var(--red)}.stat-card.green{border-left:3px solid var(--green)}
-.stat-icon{font-size:26px;margin-bottom:12px}.stat-card h3{font-size:15px;margin-bottom:8px}
+.stat-card.red{border-left:3px solid var(--red)}
+.stat-card.green{border-left:3px solid var(--green)}
+.stat-icon{font-size:26px;margin-bottom:12px}
+.stat-card h3{font-size:15px;margin-bottom:8px}
 .section-title{font-size:18px;margin:30px 0 14px}
-.card{margin-bottom:15px}.card.red{border-top:2px solid var(--red)}.card.green{border-top:2px solid var(--green)}
-.card h3{margin-bottom:10px;font-size:16px}.card p{margin-bottom:15px}
+.card{margin-bottom:15px}
+.card.red{border-top:2px solid var(--red)}
+.card.green{border-top:2px solid var(--green)}
+.card h3{margin-bottom:10px;font-size:16px}
+.card p{margin-bottom:15px}
 .field{width:100%;padding:14px;background:#080808;border:1px solid #333;border-radius:8px;color:#fff;font-size:16px;margin:8px 0 15px}
 .code-field{text-align:center;font-size:28px;letter-spacing:9px;font-weight:bold}
 .action-btn{width:100%;padding:13px;border:0;border-radius:8px;background:var(--green);color:#000;font-weight:bold;cursor:pointer}
@@ -31,20 +41,32 @@ body{min-height:100vh;background:var(--bg);color:#fff;padding:20px}
 .danger-btn{width:100%;padding:13px;border:1px solid var(--red);border-radius:8px;background:#260909;color:#ff4444;font-weight:bold;cursor:pointer}
 .danger-btn:disabled{opacity:.55;cursor:not-allowed}
 .message{margin-top:13px;color:#aaa;font-size:12px;line-height:1.5;min-height:18px}
+.message.offline{color:#ff3333;font-weight:bold}
 .logout{margin-top:17px;padding:12px 18px;background:transparent;border:1px solid var(--red);color:var(--red);border-radius:8px;font-weight:bold;cursor:pointer}
-.account{margin-top:25px}.account p{margin-top:10px;overflow-wrap:anywhere}
+.account{margin-top:25px}
+.account p{margin-top:10px;overflow-wrap:anywhere}
 .footer{text-align:center;color:#444;font-size:11px;margin-top:30px}
 .pairing-code{color:var(--green);letter-spacing:5px;text-align:center;font-size:27px;margin:15px 0}
-@media(max-width:450px){body{padding:15px}.stats{gap:9px}.stat-card{padding:14px}.welcome h1{font-size:23px}}
+@media(max-width:450px){
+  body{padding:15px}
+  .stats{gap:9px}
+  .stat-card{padding:14px}
+  .welcome h1{font-size:23px}
+}
 </style>
 </head>
 <body>
+
 <div id="loading" style="text-align:center;margin-top:100px;color:#888">Verificando acesso...</div>
 <div id="error" class="hidden" style="text-align:center;color:#ff2020;margin-top:40px">Não foi possível verificar sua sessão. Tente novamente.</div>
 
 <main class="dashboard hidden" id="dashboard">
+
 <header class="topbar">
-  <div class="brand"><div class="logo"><span class="z">Z</span><span class="b">B</span></div><h2>Zucker<span>Bot</span></h2></div>
+  <div class="brand">
+    <div class="logo"><span class="z">Z</span><span class="b">B</span></div>
+    <h2>Zucker<span>Bot</span></h2>
+  </div>
   <div class="status">● Painel de controle</div>
 </header>
 
@@ -54,14 +76,27 @@ body{min-height:100vh;background:var(--bg);color:#fff;padding:20px}
 </section>
 
 <section class="stats">
-  <div class="stat-card red"><div class="stat-icon">📱</div><h3>WhatsApp</h3><p id="whatsappStatus">Aguardando ativação do bot</p></div>
-  <div class="stat-card green"><div class="stat-icon">🤖</div><h3>Bot</h3><p id="botStatus">Não vinculado</p></div>
+  <div class="stat-card red">
+    <div class="stat-icon">📱</div>
+    <h3>WhatsApp</h3>
+    <p id="whatsappStatus">Aguardando ativação do bot</p>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon">🤖</div>
+    <h3>Bot</h3>
+    <p id="botStatus">Não vinculado</p>
+  </div>
 </section>
 
 <h2 class="section-title">Ativação do ZuckerBot</h2>
+
 <section class="card green" id="activationCard">
   <h3>🔐 Vincular seu bot</h3>
-  <p>1. Inicie o bot pelo Termux.<br>2. Ele mostrará um código de 6 números.<br>3. Digite o código abaixo. Ele vale por apenas 3 minutos e só pode ser usado uma vez.</p>
+  <p>
+    1. Inicie o bot pelo Termux.<br>
+    2. Ele mostrará um código de 6 números.<br>
+    3. Digite o código abaixo. Ele vale por apenas 3 minutos e só pode ser usado uma vez.
+  </p>
   <label for="activationCode" style="display:block;color:#ccc;font-size:13px">Código de ativação</label>
   <input class="field code-field" id="activationCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
   <button class="action-btn" id="activationButton" type="button">VALIDAR E VINCULAR BOT</button>
@@ -82,14 +117,18 @@ body{min-height:100vh;background:var(--bg);color:#fff;padding:20px}
   <section class="card red">
     <h3>📱 Conectar seu WhatsApp</h3>
     <p>Informe seu número com DDI e DDD para gerar seu código de conexão.</p>
+
     <label for="whatsappNumber" style="display:block;color:#ccc;font-size:13px">Número com DDI e DDD</label>
     <input class="field" type="tel" id="whatsappNumber" placeholder="Ex: 5511999999999" maxlength="15">
+
     <button class="action-btn" id="pairingButton" type="button">GERAR CÓDIGO DE CONEXÃO</button>
+
     <div id="pairingResult" class="hidden" style="margin-top:20px">
       <p style="color:#aaa;text-align:center">Seu código de conexão:</p>
       <h2 id="pairingCode" class="pairing-code">--------</h2>
     </div>
-    <p class="message" id="pairingMessage">Aguardando conexão.</p>
+
+    <p class="message" id="pairingMessage" aria-live="polite">Aguardando conexão.</p>
   </section>
 </section>
 
@@ -105,6 +144,7 @@ body{min-height:100vh;background:var(--bg);color:#fff;padding:20px}
   <p id="accountEmail"></p>
   <button class="logout" id="logoutButton">SAIR DA CONTA</button>
 </section>
+
 <footer class="footer">ZUCKERBOT © 2026</footer>
 </main>
 
@@ -114,24 +154,67 @@ const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0-O-Sg_RbMJMumQ";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = id => document.getElementById(id);
+
 let pairingTimer = null;
 let currentDeviceId = null;
 let accessToken = null;
 let refreshing = false;
+let pairingActive = false;
+
+const AGENT_TIMEOUT = 90000;
+
+function agentIsOnline(device) {
+  if(!device || device.status !== "online") return false;
+
+  if(device.last_seen) {
+    const lastSeen = new Date(device.last_seen).getTime();
+
+    if(!Number.isFinite(lastSeen)) return false;
+    if(Date.now() - lastSeen > AGENT_TIMEOUT) return false;
+  }
+
+  return true;
+}
+
+function stopPairingAsOffline() {
+  if(pairingTimer) {
+    clearInterval(pairingTimer);
+    pairingTimer = null;
+  }
+
+  pairingActive = false;
+
+  $("pairingResult").classList.add("hidden");
+  $("pairingCode").textContent = "--------";
+
+  const message = $("pairingMessage");
+  message.textContent = "O AGENTE DESLIGOU. Ligue novamente o Termux e tente gerar outro código.";
+  message.classList.add("offline");
+
+  $("pairingButton").disabled = false;
+  $("pairingButton").textContent = "TENTAR NOVAMENTE";
+
+  $("botStatus").textContent = "O AGENTE DESLIGOU";
+  $("whatsappStatus").textContent = "Agente offline";
+}
 
 async function getSession() {
   const {data,error} = await supabaseClient.auth.getSession();
+
   if(error) throw error;
+
   if(!data.session) {
     window.location.replace("index.html");
     return null;
   }
+
   accessToken = data.session.access_token;
   return data.session;
 }
 
 async function refreshDeviceStatus() {
   if(refreshing) return;
+
   refreshing = true;
 
   try {
@@ -139,14 +222,21 @@ async function refreshDeviceStatus() {
       method:"GET",
       headers:{Authorization:"Bearer "+accessToken}
     });
+
     const data = await response.json();
-    if(!response.ok) throw new Error(data.error || "Falha ao consultar dispositivo.");
+
+    if(!response.ok) {
+      throw new Error(data.error || "Falha ao consultar dispositivo.");
+    }
 
     if(data.linked && data.device) {
       currentDeviceId = data.device.id;
+
       $("activationCard").classList.add("hidden");
       $("linkedSection").classList.remove("hidden");
       $("whatsappSection").classList.remove("hidden");
+
+      const online = agentIsOnline(data.device);
 
       if(data.device.status === "unlink_pending") {
         $("botStatus").textContent = "Desvinculação em andamento";
@@ -155,19 +245,28 @@ async function refreshDeviceStatus() {
         $("unlinkButton").textContent = "DESVINCULAÇÃO EM ANDAMENTO";
         $("unlinkMessage").textContent = "O pedido foi enviado. Aguarde o agente processar.";
       } else {
-        $("botStatus").textContent = data.device.status === "online" ? "Conectado" : "Vinculado";
-        $("whatsappStatus").textContent = "Bot vinculado; aguardando WhatsApp";
+        $("botStatus").textContent = online ? "Conectado" : "O AGENTE DESLIGOU";
+        $("whatsappStatus").textContent = online ? "Bot online; aguardando WhatsApp" : "Agente offline";
+
         $("unlinkButton").disabled = false;
         $("unlinkButton").textContent = "DESCONECTAR DO BOT";
+
+        if(pairingActive && !online) {
+          stopPairingAsOffline();
+        }
       }
     } else {
       currentDeviceId = null;
+
       $("activationCard").classList.remove("hidden");
       $("linkedSection").classList.add("hidden");
       $("whatsappSection").classList.add("hidden");
+
       $("botStatus").textContent = "Aguardando ativação";
       $("whatsappStatus").textContent = "Não conectado";
       $("unlinkMessage").textContent = "";
+
+      if(pairingActive) stopPairingAsOffline();
     }
   } finally {
     refreshing = false;
@@ -177,19 +276,23 @@ async function refreshDeviceStatus() {
 async function checkSession() {
   try {
     const session = await getSession();
+
     if(!session) return;
 
     const user = session.user;
     const name = user.user_metadata?.username || user.email?.split("@")[0] || "Usuário";
+
     $("username").textContent = name;
     $("accountUsername").textContent = name;
     $("accountEmail").textContent = "Conta: "+(user.email || "Conta ZuckerBot");
 
     $("loading").classList.add("hidden");
     $("dashboard").classList.remove("hidden");
+
     await refreshDeviceStatus();
   } catch(error) {
     console.error(error);
+
     $("loading").classList.add("hidden");
     $("error").classList.remove("hidden");
   }
@@ -218,11 +321,16 @@ async function validateActivation() {
       },
       body:JSON.stringify({activationCode:code})
     });
+
     const data = await response.json();
-    if(!response.ok) throw new Error(data.error || "Código não aprovado.");
+
+    if(!response.ok) {
+      throw new Error(data.error || "Código não aprovado.");
+    }
 
     message.textContent = "Bot vinculado! Atualizando painel...";
     $("activationCode").value = "";
+
     await refreshDeviceStatus();
   } catch(error) {
     message.textContent = error.message;
@@ -241,9 +349,11 @@ async function requestUnlink() {
   const confirmed = confirm(
     "Tem certeza que deseja desconectar este bot? Os registros deste dispositivo serão apagados. Sua conta ZuckerBots continuará existindo."
   );
+
   if(!confirmed) return;
 
   const button = $("unlinkButton");
+
   button.disabled = true;
   button.textContent = "SOLICITANDO...";
   $("unlinkMessage").textContent = "Enviando pedido de desvinculação...";
@@ -257,18 +367,44 @@ async function requestUnlink() {
       },
       body:JSON.stringify({deviceId:currentDeviceId})
     });
+
     const data = await response.json();
-    if(!response.ok) throw new Error(data.error || "Não foi possível solicitar a desvinculação.");
+
+    if(!response.ok) {
+      throw new Error(data.error || "Não foi possível solicitar a desvinculação.");
+    }
 
     $("unlinkMessage").textContent =
       "Pedido enviado! O Termux precisa estar ligado para receber o comando.";
+
     button.textContent = "AGUARDANDO AGENTE";
+
     await refreshDeviceStatus();
   } catch(error) {
     $("unlinkMessage").textContent = error.message;
     button.disabled = false;
     button.textContent = "TENTAR NOVAMENTE";
   }
+}
+
+async function verificarAgenteDurantePedido() {
+  const response = await fetch("/api/agent/activation-claim", {
+    method:"GET",
+    headers:{Authorization:"Bearer "+accessToken}
+  });
+
+  const data = await response.json();
+
+  if(!response.ok) {
+    throw new Error(data.error || "Falha ao consultar o agente.");
+  }
+
+  if(!data.linked || !data.device || !agentIsOnline(data.device)) {
+    stopPairingAsOffline();
+    return false;
+  }
+
+  return true;
 }
 
 async function solicitarCodigoWhatsApp() {
@@ -280,17 +416,32 @@ async function solicitarCodigoWhatsApp() {
 
   if(!/^\d{12,13}$/.test(phone)) {
     message.textContent = "Número inválido. Use DDI + DDD + número.";
+    message.classList.remove("offline");
     return;
   }
 
-  if(pairingTimer) clearInterval(pairingTimer);
+  if(pairingTimer) {
+    clearInterval(pairingTimer);
+    pairingTimer = null;
+  }
+
+  pairingActive = false;
+  message.classList.remove("offline");
+
   button.disabled = true;
   button.textContent = "SOLICITANDO...";
+
   result.classList.add("hidden");
   codeElement.textContent = "--------";
-  message.textContent = "Enviando solicitação ao agente...";
+  message.textContent = "Verificando comunicação com o agente...";
 
   try {
+    const online = await verificarAgenteDurantePedido();
+
+    if(!online) return;
+
+    message.textContent = "Enviando solicitação ao agente...";
+
     const response = await fetch("/api/whatsapp/request-code", {
       method:"POST",
       headers:{
@@ -299,11 +450,22 @@ async function solicitarCodigoWhatsApp() {
       },
       body:JSON.stringify({phone})
     });
+
     const data = await response.json();
-    if(!response.ok) throw new Error(data.error || "Não foi possível solicitar o código.");
+
+    if(!response.ok) {
+      throw new Error(data.error || "Não foi possível solicitar o código.");
+    }
 
     const requestId = data.requestId;
-    const expiresAt = data.expiresAt ? new Date(data.expiresAt).getTime() : Date.now()+300000;
+    const expiresAt = data.expiresAt
+      ? new Date(data.expiresAt).getTime()
+      : Date.now()+300000;
+
+    let consecutiveErrors = 0;
+    let lastAgentCheck = 0;
+
+    pairingActive = true;
     message.textContent = "Solicitação recebida! Aguardando o agente...";
 
     pairingTimer = setInterval(async () => {
@@ -311,10 +473,33 @@ async function solicitarCodigoWhatsApp() {
         if(Date.now() >= expiresAt) {
           clearInterval(pairingTimer);
           pairingTimer = null;
+          pairingActive = false;
+
           button.disabled = false;
           button.textContent = "GERAR NOVO CÓDIGO";
           message.textContent = "Tempo esgotado. Solicite um novo código.";
           return;
+        }
+
+        // Verifica o sinal do agente periodicamente.
+        if(Date.now() - lastAgentCheck >= 8000) {
+          lastAgentCheck = Date.now();
+
+          try {
+            const online = await verificarAgenteDurantePedido();
+
+            if(!online) return;
+
+            consecutiveErrors = 0;
+          } catch(agentError) {
+            console.error("Falha ao verificar agente:",agentError);
+            consecutiveErrors++;
+
+            if(consecutiveErrors >= 3) {
+              stopPairingAsOffline();
+              return;
+            }
+          }
         }
 
         const {data:pairing,error} = await supabaseClient
@@ -323,34 +508,53 @@ async function solicitarCodigoWhatsApp() {
           .eq("id",requestId)
           .maybeSingle();
 
-        if(error) throw error;
+        if(error) {
+          throw error;
+        }
+
         if(!pairing) return;
 
         if(pairing.status === "generated" && pairing.pairing_code) {
           clearInterval(pairingTimer);
           pairingTimer = null;
+          pairingActive = false;
+
           codeElement.textContent = pairing.pairing_code;
           result.classList.remove("hidden");
+
           message.textContent = "Código gerado! Digite-o no WhatsApp.";
+          message.classList.remove("offline");
+
           button.disabled = false;
           button.textContent = "GERAR NOVO CÓDIGO";
+
         } else if(pairing.status === "connected") {
           clearInterval(pairingTimer);
           pairingTimer = null;
+          pairingActive = false;
+
           message.textContent = "WhatsApp conectado com sucesso!";
+          message.classList.remove("offline");
+
           button.disabled = false;
           button.textContent = "CONECTADO";
+
         } else if(pairing.status === "error") {
           clearInterval(pairingTimer);
           pairingTimer = null;
+          pairingActive = false;
+
           message.textContent = "Erro ao gerar o código. Tente novamente.";
           button.disabled = false;
           button.textContent = "TENTAR NOVAMENTE";
         }
+
       } catch(error) {
         console.error("Erro ao consultar pareamento:",error);
+        message.textContent = "Erro ao consultar o código: " + error.message;
       }
     },2000);
+
   } catch(error) {
     message.textContent = error.message;
     button.disabled = false;
@@ -359,16 +563,22 @@ async function solicitarCodigoWhatsApp() {
 }
 
 $("activationButton").addEventListener("click",validateActivation);
+
 $("activationCode").addEventListener("input",() => {
   $("activationCode").value = $("activationCode").value.replace(/\D/g,"").slice(0,6);
 });
+
 $("unlinkButton").addEventListener("click",requestUnlink);
 $("pairingButton").addEventListener("click",solicitarCodigoWhatsApp);
 
 $("logoutButton").addEventListener("click",async () => {
   const button = $("logoutButton");
+
   button.disabled = true;
   button.textContent = "SAINDO...";
+
+  if(pairingTimer) clearInterval(pairingTimer);
+
   const {error} = await supabaseClient.auth.signOut();
 
   if(error) {
@@ -377,19 +587,24 @@ $("logoutButton").addEventListener("click",async () => {
     button.textContent = "SAIR DA CONTA";
     return;
   }
+
   window.location.replace("index.html");
 });
 
 supabaseClient.auth.onAuthStateChange((event,session) => {
-  if(event === "SIGNED_OUT" || !session) window.location.replace("index.html");
+  if(event === "SIGNED_OUT" || !session) {
+    window.location.replace("index.html");
+  }
 });
 
 checkSession();
+
 setInterval(() => {
   if(accessToken && currentDeviceId) {
     refreshDeviceStatus().catch(error => console.error(error));
   }
 },5000);
 </script>
+
 </body>
-</html>
+    </html>
