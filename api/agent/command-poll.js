@@ -13,22 +13,13 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: "Servidor não configurado" });
     }
 
-    const auth = req.headers.authorization || "";
-    const token = auth.startsWith("Bearer ")
-      ? auth.slice(7).trim()
-      : "";
+    const deviceId = String(req.body?.deviceId || "");
+    const token = String(req.headers.authorization || "")
+      .replace(/^Bearer\s+/i, "");
 
-    const { deviceId } = req.body || {};
-
-    if (!token || !deviceId) {
-      return res.status(401).json({
-        error: "Autenticação ausente."
-      });
-    }
-
-    if (!/^[0-9a-f-]{36}$/i.test(deviceId)) {
+    if (!deviceId || !token) {
       return res.status(400).json({
-        error: "ID de dispositivo inválido."
+        error: "Dados obrigatórios ausentes."
       });
     }
 
@@ -39,14 +30,16 @@ module.exports = async (req, res) => {
 
     const headers = {
       apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json"
     };
 
-    // Confere se o agente está autorizado
+    // 1. Confere a autorização do agente.
     const deviceResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/devices` +
-      `?id=eq.${encodeURIComponent(deviceId)}` +
-      `&agent_token_hash=eq.${tokenHash}&select=id`,
+      `?id=eq.${deviceId}` +
+      `&agent_token_hash=eq.${tokenHash}` +
+      `&select=id,user_id,status`,
       { headers }
     );
 
@@ -62,12 +55,17 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Procura comandos pendentes
+    const device = devices[0];
+
+    // 2. Procura comandos pendentes desse dispositivo.
     const commandResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
-      `?device_id=eq.${encodeURIComponent(deviceId)}` +
+      `?device_id=eq.${deviceId}` +
+      `&user_id=eq.${device.user_id}` +
       `&status=eq.pending` +
-      `&order=created_at.asc&limit=1&select=id,command`,
+      `&select=id,command,created_at` +
+      `&order=created_at.asc` +
+      `&limit=1`,
       { headers }
     );
 
@@ -80,21 +78,22 @@ module.exports = async (req, res) => {
     if (!commands.length) {
       return res.status(200).json({
         success: true,
-        command: null
+        hasCommand: false
       });
     }
 
     return res.status(200).json({
       success: true,
-      command: commands[0].command,
-      commandId: commands[0].id
+      hasCommand: true,
+      commandId: commands[0].id,
+      command: commands[0].command
     });
 
   } catch (error) {
     console.error("Command poll error:", error);
 
     return res.status(500).json({
-      error: "Erro interno ao consultar comandos."
+      error: "Erro ao consultar comandos."
     });
   }
 };
