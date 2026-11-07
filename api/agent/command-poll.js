@@ -22,10 +22,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Dados obrigatórios ausentes." });
     }
 
-    const tokenHash = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
     const headers = {
       apikey: SUPABASE_KEY,
@@ -49,14 +46,12 @@ module.exports = async (req, res) => {
     const devices = await deviceResponse.json();
 
     if (!devices.length) {
-      return res.status(401).json({
-        error: "Agente não autorizado."
-      });
+      return res.status(401).json({ error: "Agente não autorizado." });
     }
 
     const device = devices[0];
 
-    // 2. Recebe e registra um log de comando.
+    // 2. Recebe e registra logs.
     if (req.body?.action === "log") {
       const command = String(req.body.command || "").trim().toLowerCase();
       const status = String(req.body.status || "");
@@ -73,10 +68,7 @@ module.exports = async (req, res) => {
         `${SUPABASE_URL}/rest/v1/command_logs`,
         {
           method: "POST",
-          headers: {
-            ...headers,
-            Prefer: "return=minimal"
-          },
+          headers: { ...headers, Prefer: "return=minimal" },
           body: JSON.stringify({
             user_id: device.user_id,
             device_id: device.id,
@@ -87,38 +79,55 @@ module.exports = async (req, res) => {
       );
 
       if (!logResponse.ok) {
-        console.error("Erro ao salvar log:", await logResponse.text());
         throw new Error("Não foi possível salvar o log.");
       }
 
       return res.status(200).json({ success: true });
     }
 
-    // 3. Busca o prefixo salvo na conta.
+    // 3. Busca configurações e comandos personalizados pendentes.
     let prefix = "#";
+    let ownerNumber = null;
+    let settingsSync = null;
 
     const settingsResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/bot_settings` +
       `?user_id=eq.${encodeURIComponent(device.user_id)}` +
-      `&select=prefix&limit=1`,
+      `&select=prefix,owner_number,custom_functions,updated_at&limit=1`,
       { headers }
     );
 
-    if (settingsResponse.ok) {
-      const settings = await settingsResponse.json();
+    if (!settingsResponse.ok) {
+      throw new Error("Falha ao consultar configurações.");
+    }
+
+    const settings = await settingsResponse.json();
+
+    if (settings.length) {
+      const saved = settings[0];
 
       if (
-        settings.length &&
-        typeof settings[0].prefix === "string" &&
-        settings[0].prefix.length > 0 &&
-        settings[0].prefix.length <= 3 &&
-        !/\s/.test(settings[0].prefix)
+        typeof saved.prefix === "string" &&
+        saved.prefix.length > 0 &&
+        saved.prefix.length <= 3 &&
+        !/\s/.test(saved.prefix)
       ) {
-        prefix = settings[0].prefix;
+        prefix = saved.prefix;
+      }
+
+      ownerNumber = saved.owner_number || null;
+
+      // Até mesmo [] é uma sincronização válida: permite apagar
+      // comandos antigos do arquivo local quando o usuário limpar tudo.
+      if (Array.isArray(saved.custom_functions) && saved.updated_at) {
+        settingsSync = {
+          revision: saved.updated_at,
+          customFunctions: saved.custom_functions
+        };
       }
     }
 
-    // 4. Procura comandos pendentes.
+    // 4. Procura comandos pendentes do dispositivo.
     const commandResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?device_id=eq.${encodeURIComponent(deviceId)}` +
@@ -135,20 +144,18 @@ module.exports = async (req, res) => {
 
     const commands = await commandResponse.json();
 
-    if (!commands.length) {
-      return res.status(200).json({
-        success: true,
-        hasCommand: false,
-        prefix
-      });
-    }
-
     return res.status(200).json({
       success: true,
-      hasCommand: true,
-      commandId: commands[0].id,
-      command: commands[0].command,
-      prefix
+      hasCommand: commands.length > 0,
+      ...(commands.length
+        ? {
+            commandId: commands[0].id,
+            command: commands[0].command
+          }
+        : {}),
+      prefix,
+      ownerNumber,
+      settingsSync
     });
 
   } catch (error) {
