@@ -52,7 +52,27 @@ module.exports = async (req, res) => {
       Authorization: `Bearer ${SUPABASE_KEY}`,
       Prefer: "return=representation"
     };
-     
+         if (req.method === "GET") {
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/devices` +
+        `?user_id=eq.${user.id}` +
+        `&agent_token_hash=not.is.null` +
+        `&status=neq.unlinked` +
+        `&select=id,status,last_seen,whatsapp_connected&limit=1`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error("Falha ao consultar dispositivo.");
+      }
+
+      const devices = await response.json();
+
+      return res.status(200).json({
+        linked: devices.length > 0,
+        device: devices[0] || null
+      });
+         }
     }
     if (req.method !== "POST") {
       return res.status(405).json({
