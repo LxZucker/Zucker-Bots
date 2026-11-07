@@ -2,244 +2,549 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZuckerBots - Configurações</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #080808;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      padding: 25px 15px;
-    }
-    .container { max-width: 650px; margin: auto; }
-    header { margin-bottom: 25px; }
-    h1 { margin: 0 0 8px; font-size: 27px; }
-    h1 span { color: #ff3030; }
-    .subtitle { color: #888; font-size: 14px; }
-    .card {
-      background: #111;
-      border: 1px solid #292929;
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    h2 { font-size: 17px; margin: 0 0 18px; }
-    label {
-      display: block;
-      color: #ccc;
-      font-size: 13px;
-      margin-bottom: 9px;
-    }
-    input {
-      width: 100%;
-      background: #080808;
-      border: 1px solid #383838;
-      border-radius: 9px;
-      padding: 14px;
-      color: white;
-      font-size: 16px;
-      outline: none;
-    }
-    input:focus { border-color: #ff3030; }
-    button, .back {
-      display: inline-block;
-      border: 0;
-      border-radius: 9px;
-      padding: 13px 18px;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: none;
-      text-align: center;
-    }
-    button {
-      width: 100%;
-      margin-top: 16px;
-      background: #e32636;
-      color: white;
-    }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    .back {
-      background: #191919;
-      color: #ddd;
-      border: 1px solid #333;
-      margin-bottom: 20px;
-    }
-    .status { color: #aaa; font-size: 13px; margin-top: 12px; }
-    .locked {
-      border: 1px solid #713030;
-      background: #190d0d;
-      border-radius: 12px;
-      padding: 28px 18px;
-      text-align: center;
-      color: #ff5555;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    .hint { color: #777; font-size: 12px; margin-top: 9px; }
-    .hidden { display: none !important; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZuckerBots - Configurações</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;background:#080808;color:white;
+  font-family:Arial,sans-serif;padding:25px 15px
+}
+.container{max-width:700px;margin:auto}
+header{margin-bottom:25px}
+h1{margin:0 0 8px;font-size:27px}
+h1 span{color:#ff3030}
+.subtitle{color:#888;font-size:14px}
+.card{
+  background:#111;border:1px solid #292929;
+  border-radius:14px;padding:20px;margin-bottom:16px
+}
+h2{font-size:17px;margin:0 0 18px}
+label{
+  display:block;color:#ccc;font-size:13px;
+  margin:14px 0 8px
+}
+input,select,textarea{
+  width:100%;background:#080808;border:1px solid #383838;
+  border-radius:9px;padding:13px;color:white;
+  font-size:15px;outline:none
+}
+textarea{min-height:95px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:#ff3030}
+button,.back{
+  display:inline-block;border:0;border-radius:9px;
+  padding:13px 18px;font-weight:bold;cursor:pointer;
+  text-decoration:none;text-align:center
+}
+button{background:#e32636;color:white}
+button:disabled{opacity:.5;cursor:not-allowed}
+.back{
+  background:#191919;color:#ddd;border:1px solid #333;
+  margin-bottom:20px
+}
+.primary{width:100%;margin-top:16px}
+.secondary{
+  background:#222;border:1px solid #444;color:white;
+  width:100%;margin-top:10px
+}
+.danger{
+  background:#391313;border:1px solid #722;
+  color:#ff7777
+}
+.status{color:#aaa;font-size:13px;margin-top:12px}
+.hint{color:#777;font-size:12px;margin-top:8px}
+.locked{
+  border:1px solid #713030;background:#190d0d;
+  border-radius:12px;padding:28px 18px;text-align:center;
+  color:#ff5555;font-weight:bold;letter-spacing:1px
+}
+.hidden{display:none!important}
+.function-item{
+  background:#090909;border:1px solid #303030;
+  padding:15px;border-radius:10px;margin-top:12px
+}
+.function-title{
+  font-weight:bold;color:#ff5555;margin-bottom:8px;
+  overflow-wrap:anywhere
+}
+.function-info{font-size:13px;color:#aaa;line-height:1.7}
+.actions{display:flex;gap:8px;margin-top:12px}
+.actions button{flex:1;margin:0;padding:11px 8px}
+.section-divider{border:0;border-top:1px solid #292929;margin:20px 0}
+.badge{
+  display:inline-block;background:#242424;color:#ddd;
+  padding:5px 8px;border-radius:6px;font-size:11px;
+  margin-right:5px
+}
+</style>
 </head>
+
 <body>
-  <main class="container">
-    <a class="back" href="inicio.html">← Voltar ao painel</a>
+<main class="container">
 
-    <header>
-      <h1>Zucker<span>Bots</span></h1>
-      <div class="subtitle">Configurações do seu bot</div>
-    </header>
+<a class="back" href="inicio.html">← Voltar ao painel</a>
 
-    <section id="locked" class="locked">
-      CONECTE A UM BOT PRIMEIRO
-    </section>
+<header>
+  <h1>Zucker<span>Bots</span></h1>
+  <div class="subtitle">Configurações do seu bot</div>
+</header>
 
-    <section id="settings" class="hidden">
-      <div class="card">
-        <h2>⚙️ Configurações gerais</h2>
+<section id="locked" class="locked">
+  CONECTE A UM BOT PRIMEIRO
+</section>
 
-        <label for="prefix">Prefixo dos comandos</label>
-        <input id="prefix" maxlength="3" placeholder="#">
-        <div class="hint">Exemplo: #ping, !ping ou .ping</div>
+<section id="settings" class="hidden">
 
-        <button id="saveButton" onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button>
-        <div id="saveStatus" class="status"></div>
-      </div>
-    </section>
-  </main>
+  <div class="card">
+    <h2>⚙️ Configurações gerais</h2>
 
-  <script>
-    const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
+    <label for="prefix">Prefixo dos comandos</label>
+    <input id="prefix" maxlength="3" placeholder="#">
+    <div class="hint">Exemplo: #ping, !ping ou .ping</div>
 
-    const supabaseClient = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+    <label for="ownerNumber">Número do dono</label>
+    <input id="ownerNumber" type="tel"
+      placeholder="Exemplo: 5511999999999">
+    <div class="hint">
+      Informe o número com DDI e DDD. Esse número poderá ser alterado quando quiser.
+    </div>
 
-    let accessToken = null;
-    let currentUser = null;
-    let linked = false;
-    let checking = false;
+    <button class="primary" id="saveButton"
+      onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button>
 
-    const locked = document.getElementById("locked");
-    const settings = document.getElementById("settings");
-    const prefixInput = document.getElementById("prefix");
-    const saveButton = document.getElementById("saveButton");
-    const saveStatus = document.getElementById("saveStatus");
+    <div id="saveStatus" class="status"></div>
+  </div>
 
-    async function loadSettings() {
-      const { data, error } = await supabaseClient
-        .from("bot_settings")
-        .select("prefix")
-        .eq("user_id", currentUser.id)
-        .maybeSingle();
+  <div class="card">
+    <h2>🛠️ Criar nova função</h2>
 
-      if (error) {
-  saveStatus.textContent = "Erro: " + error.message;
-  console.error("[ERRO AO SALVAR CONFIGURAÇÕES]", error);
-  return;
-      }
+    <label for="functionType">Tipo de função</label>
+    <select id="functionType" onchange="updateFunctionFields()">
+      <option value="reply">RESPONDER</option>
+      <option value="store">GUARDAR</option>
+      <option value="show">MOSTRAR</option>
+      <option value="delete">APAGAR</option>
+    </select>
 
-      prefixInput.value = data?.prefix || "#";
-    }
+    <label for="functionCommand">Comando personalizado</label>
+    <input id="functionCommand" maxlength="40"
+      placeholder="Exemplo: #ola">
 
-    async function checkDevice() {
-      if (checking) return;
-      checking = true;
+    <div id="slotField">
+      <label for="functionSlot">Slot de armazenamento</label>
+      <select id="functionSlot">
+        <option value="1">Slot 1</option>
+        <option value="2">Slot 2</option>
+        <option value="3">Slot 3</option>
+        <option value="4">Slot 4</option>
+        <option value="5">Slot 5</option>
+        <option value="6">Slot 6</option>
+        <option value="7">Slot 7</option>
+        <option value="8">Slot 8</option>
+        <option value="9">Slot 9</option>
+        <option value="10">Slot 10</option>
+      </select>
+    </div>
 
-      try {
-        const response = await fetch("/api/agent/activation-claim", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
-        });
+    <div id="responseField" class="hidden">
+      <label for="functionResponse">Mensagem da resposta</label>
+      <textarea id="functionResponse"
+        placeholder="Digite o que o bot deverá responder..."></textarea>
+    </div>
 
-        if (!response.ok) throw new Error("Falha ao consultar o bot.");
+    <label for="functionPermission">Quem poderá usar?</label>
+    <select id="functionPermission">
+      <option value="owner">SOMENTE O DONO</option>
+      <option value="all">TODOS</option>
+    </select>
 
-        const data = await response.json();
-        const wasLinked = linked;
-        linked = data.linked === true;
+    <button class="primary" id="addFunctionButton"
+      onclick="addFunction()">ADICIONAR FUNÇÃO</button>
 
-        if (!linked) {
-          locked.classList.remove("hidden");
-          settings.classList.add("hidden");
-          prefixInput.value = "";
-          saveStatus.textContent = "";
-        } else {
-          locked.classList.add("hidden");
-          settings.classList.remove("hidden");
+    <button class="secondary hidden" id="cancelEditButton"
+      onclick="cancelEdit()">CANCELAR EDIÇÃO</button>
 
-          if (!wasLinked) await loadSettings();
-        }
-      } catch (error) {
-        console.error(error);
-        locked.classList.remove("hidden");
-        settings.classList.add("hidden");
-        linked = false;
-      } finally {
-        checking = false;
-      }
-    }
+    <div id="functionStatus" class="status"></div>
+  </div>
 
-    async function saveSettings() {
-      if (!linked) return;
+  <div class="card">
+    <h2>📋 Minhas funções</h2>
+    <div id="functionList">
+      <div class="hint">Nenhuma função criada ainda.</div>
+    </div>
+  </div>
 
-      const prefix = prefixInput.value.trim();
+  <div class="card">
+    <h2>📦 Sobre os slots</h2>
+    <div class="hint">
+      Cada usuário terá até 10 slots próprios para guardar textos e imagens
+      com descrição. Os conteúdos serão armazenados nos arquivos locais
+      do agente, sem backup na nuvem.
+      <br><br>
+      Se os arquivos do aparelho forem perdidos, os conteúdos salvos
+      também poderão ser perdidos.
+    </div>
+  </div>
 
-      if (!prefix || /\s/.test(prefix)) {
-        saveStatus.textContent = "Digite um prefixo válido, sem espaços.";
-        return;
-      }
+</section>
+</main>
 
-      saveButton.disabled = true;
-      saveStatus.textContent = "Salvando...";
+<script>
+const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
 
-      const { error } = await supabaseClient
-        .from("bot_settings")
-        .upsert({
-          user_id: currentUser.id,
-          prefix: prefix,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: "user_id"
-        });
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
-      saveButton.disabled = false;
+let accessToken = null;
+let currentUser = null;
+let linked = false;
+let checking = false;
+let customFunctions = [];
+let editingId = null;
 
-      if (error) {
-  saveStatus.textContent = "Erro: " + error.message;
-  console.error("[ERRO AO SALVAR]", error);
-  return;
+const locked = document.getElementById("locked");
+const settings = document.getElementById("settings");
+const prefixInput = document.getElementById("prefix");
+const ownerInput = document.getElementById("ownerNumber");
+const saveButton = document.getElementById("saveButton");
+const saveStatus = document.getElementById("saveStatus");
+const functionStatus = document.getElementById("functionStatus");
+
+async function loadSettings() {
+  const { data, error } = await supabaseClient
+    .from("bot_settings")
+    .select("prefix,owner_number,custom_functions")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+
+  if (error) {
+    saveStatus.textContent = "Erro ao carregar: " + error.message;
+    console.error(error);
+    return;
+  }
+
+  prefixInput.value = data?.prefix || "#";
+  ownerInput.value = data?.owner_number || "";
+
+  customFunctions = Array.isArray(data?.custom_functions)
+    ? data.custom_functions
+    : [];
+
+  renderFunctions();
 }
 
-      saveStatus.textContent = "✓ Configurações salvas!";
-    }
+async function checkDevice() {
+  if (checking) return;
+  checking = true;
 
-    async function start() {
-      const { data, error } = await supabaseClient.auth.getSession();
-
-      if (error || !data.session) {
-        location.href = "index.html";
-        return;
+  try {
+    const response = await fetch("/api/agent/activation-claim", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`
       }
+    });
 
-      accessToken = data.session.access_token;
-      currentUser = data.session.user;
+    if (!response.ok) throw new Error("Falha ao consultar o bot.");
 
-      await checkDevice();
+    const data = await response.json();
+    const wasLinked = linked;
+    linked = data.linked === true;
 
-      setInterval(checkDevice, 5000);
+    if (!linked) {
+      locked.classList.remove("hidden");
+      settings.classList.add("hidden");
+      prefixInput.value = "";
+      ownerInput.value = "";
+      saveStatus.textContent = "";
+    } else {
+      locked.classList.add("hidden");
+      settings.classList.remove("hidden");
 
-      window.addEventListener("focus", checkDevice);
+      if (!wasLinked) await loadSettings();
     }
+  } catch (error) {
+    console.error(error);
+    locked.classList.remove("hidden");
+    settings.classList.add("hidden");
+    linked = false;
+  } finally {
+    checking = false;
+  }
+}
 
-    start();
-  </script>
+async function saveSettings() {
+  if (!linked) return;
+
+  const prefix = prefixInput.value.trim();
+  const ownerNumber = ownerInput.value.replace(/\D/g, "");
+
+  if (!prefix || /\s/.test(prefix)) {
+    saveStatus.textContent = "Digite um prefixo válido, sem espaços.";
+    return;
+  }
+
+  if (ownerInput.value.trim() && ownerNumber.length < 10) {
+    saveStatus.textContent = "Digite um número válido com DDI e DDD.";
+    return;
+  }
+
+  saveButton.disabled = true;
+  saveStatus.textContent = "Salvando...";
+
+  const { error } = await supabaseClient
+    .from("bot_settings")
+    .upsert({
+      user_id: currentUser.id,
+      prefix: prefix,
+      owner_number: ownerNumber || null,
+      custom_functions: customFunctions,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: "user_id"
+    });
+
+  saveButton.disabled = false;
+
+  if (error) {
+    saveStatus.textContent = "Erro: " + error.message;
+    console.error("[ERRO AO SALVAR]", error);
+    return;
+  }
+
+  saveStatus.textContent = "✓ Configurações salvas!";
+}
+
+function updateFunctionFields() {
+  const type = document.getElementById("functionType").value;
+  const slotField = document.getElementById("slotField");
+  const responseField = document.getElementById("responseField");
+
+  slotField.classList.toggle("hidden", type === "reply");
+  responseField.classList.toggle("hidden", type !== "reply");
+}
+
+function addFunction() {
+  if (!linked) return;
+
+  const type = document.getElementById("functionType").value;
+  const command = document.getElementById("functionCommand")
+    .value.trim();
+  const permission = document.getElementById("functionPermission").value;
+  const slot = Number(document.getElementById("functionSlot").value);
+  const response = document.getElementById("functionResponse")
+    .value.trim();
+
+  functionStatus.textContent = "";
+
+  if (!command) {
+    functionStatus.textContent = "Digite o comando.";
+    return;
+  }
+
+  if (/\s/.test(command)) {
+    functionStatus.textContent = "O comando não pode conter espaços.";
+    return;
+  }
+
+  if (type === "reply" && !response) {
+    functionStatus.textContent = "Digite a mensagem da resposta.";
+    return;
+  }
+
+  if (type !== "reply" && (!Number.isInteger(slot) || slot < 1 || slot > 10)) {
+    functionStatus.textContent = "Escolha um slot válido.";
+    return;
+  }
+
+  const duplicate = customFunctions.some(item =>
+    item.command.toLowerCase() === command.toLowerCase() &&
+    item.id !== editingId
+  );
+
+  if (duplicate) {
+    functionStatus.textContent = "Esse comando já está cadastrado.";
+    return;
+  }
+
+  if (type !== "reply") {
+    const slotUsed = customFunctions.some(item =>
+      item.type === type &&
+      Number(item.slot) === slot &&
+      item.id !== editingId
+    );
+
+    if (slotUsed) {
+      functionStatus.textContent =
+        "Já existe uma função desse tipo nesse slot.";
+      return;
+    }
+  }
+
+  const functionData = {
+    id: editingId || (
+      Date.now().toString(36) +
+      Math.random().toString(36).slice(2, 8)
+    ),
+    type,
+    command,
+    permission,
+    ...(type === "reply" ? { response } : { slot })
+  };
+
+  if (editingId) {
+    customFunctions = customFunctions.map(item =>
+      item.id === editingId ? functionData : item
+    );
+  } else {
+    customFunctions.push(functionData);
+  }
+
+  renderFunctions();
+  resetFunctionForm();
+
+  functionStatus.textContent =
+    "Função adicionada. Clique em SALVAR CONFIGURAÇÕES para gravar.";
+}
+
+function renderFunctions() {
+  const list = document.getElementById("functionList");
+  list.innerHTML = "";
+
+  if (!customFunctions.length) {
+    list.textContent = "Nenhuma função criada ainda.";
+    list.className = "hint";
+    return;
+  }
+
+  list.className = "";
+
+  customFunctions.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "function-item";
+
+    const title = document.createElement("div");
+    title.className = "function-title";
+    title.textContent = item.command;
+
+    const info = document.createElement("div");
+    info.className = "function-info";
+
+    const types = {
+      reply: "RESPONDER",
+      store: "GUARDAR",
+      show: "MOSTRAR",
+      delete: "APAGAR"
+    };
+
+    info.textContent =
+      "Tipo: " + (types[item.type] || item.type) +
+      (item.slot ? " | Slot: " + item.slot : "") +
+      " | Permissão: " +
+      (item.permission === "owner" ? "DONO" : "TODOS") +
+      (item.response ? " | Resposta: " + item.response : "");
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const edit = document.createElement("button");
+    edit.textContent = "EDITAR";
+    edit.onclick = () => editFunction(item.id);
+
+    const remove = document.createElement("button");
+    remove.textContent = "EXCLUIR";
+    remove.className = "danger";
+    remove.onclick = () => removeFunction(item.id);
+
+    actions.append(edit, remove);
+    card.append(title, info, actions);
+    list.appendChild(card);
+  });
+}
+
+function editFunction(id) {
+  const item = customFunctions.find(f => f.id === id);
+  if (!item) return;
+
+  editingId = id;
+
+  document.getElementById("functionType").value = item.type;
+  document.getElementById("functionCommand").value = item.command;
+  document.getElementById("functionPermission").value = item.permission;
+  document.getElementById("functionSlot").value = item.slot || "1";
+  document.getElementById("functionResponse").value = item.response || "";
+
+  updateFunctionFields();
+
+  document.getElementById("addFunctionButton").textContent =
+    "SALVAR ALTERAÇÕES";
+
+  document.getElementById("cancelEditButton").classList.remove("hidden");
+
+  functionStatus.textContent = "Editando função.";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function removeFunction(id) {
+  if (!confirm("Deseja excluir esta função?")) return;
+
+  customFunctions = customFunctions.filter(item => item.id !== id);
+
+  if (editingId === id) resetFunctionForm();
+
+  renderFunctions();
+  functionStatus.textContent =
+    "Função removida. Salve as configurações para confirmar.";
+}
+
+function resetFunctionForm() {
+  editingId = null;
+
+  document.getElementById("functionType").value = "reply";
+  document.getElementById("functionCommand").value = "";
+  document.getElementById("functionPermission").value = "owner";
+  document.getElementById("functionSlot").value = "1";
+  document.getElementById("functionResponse").value = "";
+
+  document.getElementById("addFunctionButton").textContent =
+    "ADICIONAR FUNÇÃO";
+
+  document.getElementById("cancelEditButton").classList.add("hidden");
+
+  updateFunctionFields();
+}
+
+function cancelEdit() {
+  resetFunctionForm();
+  functionStatus.textContent = "";
+}
+
+async function start() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error || !data.session) {
+    location.href = "index.html";
+    return;
+  }
+
+  accessToken = data.session.access_token;
+  currentUser = data.session.user;
+
+  await checkDevice();
+
+  setInterval(checkDevice, 5000);
+  window.addEventListener("focus", checkDevice);
+}
+
+updateFunctionFields();
+start();
+</script>
 </body>
   </html>
   
