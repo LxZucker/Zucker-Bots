@@ -531,15 +531,30 @@ async function pollPairing(requestId) {
       }
     }
 
-    const { data, error } = await supabaseClient
-      .from("whatsapp_pairing")
-      .select("status,pairing_code,expires_at")
-      .eq("id", requestId)
-      .maybeSingle();
+    // Consulta o código pela API autenticada
+    const response = await fetch(
+      `/api/whatsapp/request-code?requestId=${encodeURIComponent(requestId)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + accessToken
+        }
+      }
+    );
 
-    if (error) throw error;
+    const result = await response.json();
 
-    if (!data) return;
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.error || "Falha ao consultar código."
+      );
+    }
+
+    const data = {
+      status: result.status,
+      pairing_code: result.pairingCode,
+      expires_at: result.expiresAt
+    };
 
     if (data.status === "generated" && data.pairing_code) {
       pairingActive = false;
@@ -566,8 +581,10 @@ async function pollPairing(requestId) {
 
     if (
       data.status === "expired" ||
-      (data.expires_at &&
-       new Date(data.expires_at).getTime() < Date.now())
+      (
+        data.expires_at &&
+        new Date(data.expires_at).getTime() < Date.now()
+      )
     ) {
       pairingActive = false;
 
@@ -580,10 +597,14 @@ async function pollPairing(requestId) {
         "O pedido expirou. Gere um novo código.";
       $("pairingMessage").style.color = "#ff4545";
 
-      setWhatsAppStatus("Solicitação de conexão expirada", "#ff4545");
+      setWhatsAppStatus(
+        "Solicitação de conexão expirada",
+        "#ff4545"
+      );
 
       $("pairingButton").disabled = false;
-      $("pairingButton").textContent = "GERAR CÓDIGO DE CONEXÃO";
+      $("pairingButton").textContent =
+        "GERAR CÓDIGO DE CONEXÃO";
     }
 
   } catch (error) {
