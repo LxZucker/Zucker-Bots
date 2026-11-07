@@ -90,7 +90,7 @@ module.exports = async (req, res) => {
           method: "PATCH",
           headers,
           body: JSON.stringify({
-            custom_functions: null
+            custom_functions: []
           })
         }
       );
