@@ -2,7 +2,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 module.exports = async function handler(req, res) {
-  if (req.method !== "POST") {
+  if (req.method !== "POST" && req.method !== "GET") {
     return res.status(405).json({
       error: "Método não permitido"
     });
@@ -39,6 +39,53 @@ module.exports = async function handler(req, res) {
 
     const user = await userResponse.json();
 
+    // GET: consultar o código de pareamento
+    if (req.method === "GET") {
+      const requestId = String(req.query?.requestId || "");
+
+      if (!requestId) {
+        return res.status(400).json({
+          error: "ID da solicitação ausente."
+        });
+      }
+
+      const pairingResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/whatsapp_pairing` +
+        `?id=eq.${encodeURIComponent(requestId)}` +
+        `&user_id=eq.${encodeURIComponent(user.id)}` +
+        "&select=status,pairing_code,expires_at&limit=1",
+        {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`
+          }
+        }
+      );
+
+      const pairings = await pairingResponse.json();
+
+      if (!pairingResponse.ok) {
+        console.error("Pairing status query failed:", pairings);
+        throw new Error("Falha ao consultar solicitação.");
+      }
+
+      if (!pairings.length) {
+        return res.status(404).json({
+          error: "Solicitação não encontrada."
+        });
+      }
+
+      const pairing = pairings[0];
+
+      return res.status(200).json({
+        success: true,
+        status: pairing.status,
+        pairingCode: pairing.pairing_code,
+        expiresAt: pairing.expires_at
+      });
+    }
+
+    // POST: solicitar um novo código
     const phone = String(req.body?.phone || "")
       .replace(/\D/g, "");
 
