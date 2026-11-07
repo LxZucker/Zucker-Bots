@@ -110,7 +110,7 @@ module.exports = async (req, res) => {
         linked: Boolean(device),
         device
       });
-
+    }
     if (req.method !== "POST") {
       return res.status(405).json({
         error: "Método não permitido"
