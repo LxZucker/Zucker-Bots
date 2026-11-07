@@ -67,13 +67,49 @@ module.exports = async (req, res) => {
         throw new Error("Falha ao consultar dispositivo.");
       }
 
-      const devices = await response.json();
+            const devices = await response.json();
+      const device = devices[0] || null;
+
+      // Consulta os logs usando a chave segura do servidor.
+      if (req.query?.logs === "1") {
+        if (!device) {
+          return res.status(200).json({
+            linked: false,
+            device: null,
+            logs: []
+          });
+        }
+
+        const logsResponse = await fetch(
+          `${SUPABASE_URL}/rest/v1/command_logs` +
+          `?user_id=eq.${user.id}` +
+          `&device_id=eq.${device.id}` +
+          `&select=command,status,created_at` +
+          `&order=created_at.desc&limit=50`,
+          { headers }
+        );
+
+        if (!logsResponse.ok) {
+          console.error(
+            "Erro ao consultar logs:",
+            await logsResponse.text()
+          );
+          throw new Error("Falha ao consultar os logs.");
+        }
+
+        const logs = await logsResponse.json();
+
+        return res.status(200).json({
+          linked: true,
+          device,
+          logs
+        });
+      }
 
       return res.status(200).json({
-        linked: devices.length > 0,
-        device: devices[0] || null
+        linked: Boolean(device),
+        device
       });
-    }
 
     if (req.method !== "POST") {
       return res.status(405).json({
