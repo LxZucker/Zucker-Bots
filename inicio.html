@@ -298,10 +298,12 @@ async function loadDevice() {
   $("linkedSection").classList.toggle("hidden", !linked);
   $("whatsappSection").classList.toggle("hidden", !linked);
 
-  if (linked) {
+    if (linked) {
     const online = showAgentStatus(device);
 
-    if (pairingActive && online) {
+    if (device.whatsapp_connected === true) {
+      setWhatsAppStatus("WHATSAPP CONECTADO", "#00ff88");
+    } else if (pairingActive && online) {
       setWhatsAppStatus("Aguardando código de conexão...", "#f0ad4e");
     } else {
       setWhatsAppStatus(
