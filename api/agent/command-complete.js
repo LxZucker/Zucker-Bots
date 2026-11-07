@@ -19,11 +19,12 @@ module.exports = async (req, res) => {
 
     const deviceId = String(req.body?.deviceId || "");
     const commandId = String(req.body?.commandId || "");
+    const action = String(req.body?.action || "");
     const token = String(req.headers.authorization || "")
       .replace(/^Bearer\s+/i, "")
       .trim();
 
-    if (!deviceId || !commandId || !token) {
+    if (!deviceId || !token) {
       return res.status(400).json({
         error: "Dados obrigatórios ausentes."
       });
@@ -70,7 +71,56 @@ module.exports = async (req, res) => {
 
     const device = devices[0];
 
-    // 2. Confere se o comando pertence ao dispositivo.
+    // 2. Confirma a sincronização dos comandos locais.
+    if (action === "settings-sync") {
+      const revision = String(req.body?.revision || "");
+
+      if (!revision) {
+        return res.status(400).json({
+          error: "Revisão da sincronização ausente."
+        });
+      }
+
+      const syncResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/bot_settings` +
+        `?user_id=eq.${encodeURIComponent(device.user_id)}` +
+        `&updated_at=eq.${encodeURIComponent(revision)}` +
+        `&select=user_id`,
+        {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({
+            custom_functions: null
+          })
+        }
+      );
+
+      if (!syncResponse.ok) {
+        throw new Error("Falha ao limpar a cópia temporária.");
+      }
+
+      const updated = await syncResponse.json();
+
+      if (!updated.length) {
+        return res.status(409).json({
+          error: "As configurações mudaram. Sincronize novamente."
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        settingsSynced: true
+      });
+    }
+
+    // 3. A partir daqui, trata somente da desvinculação.
+    if (!commandId) {
+      return res.status(400).json({
+        error: "ID do comando ausente."
+      });
+    }
+
+    // 4. Confere se o comando pertence ao dispositivo.
     const commandResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?id=eq.${encodeURIComponent(commandId)}` +
@@ -93,7 +143,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 3. Apaga as sessões do dispositivo.
+    // 5. Apaga as sessões do dispositivo.
     const sessionDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/bot_sessions` +
       `?device_id=eq.${encodeURIComponent(deviceId)}`,
@@ -107,7 +157,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao apagar sessões do bot.");
     }
 
-    // 4. Apaga os pedidos de pareamento do dispositivo.
+    // 6. Apaga os pedidos de pareamento.
     const pairingDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/whatsapp_pairing` +
       `?user_id=eq.${encodeURIComponent(device.user_id)}` +
@@ -122,7 +172,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao apagar pedidos do WhatsApp.");
     }
 
-    // 5. Apaga os registros de ativação desse dispositivo.
+    // 7. Apaga os registros de ativação.
     const activationDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_activations` +
       `?user_id=eq.${encodeURIComponent(device.user_id)}` +
@@ -137,7 +187,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao apagar registros de ativação.");
     }
 
-    // 6. Marca o comando como concluído.
+    // 8. Marca o comando como concluído.
     const completeResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?id=eq.${encodeURIComponent(commandId)}` +
@@ -156,7 +206,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao concluir comando.");
     }
 
-    // 7. Apaga todos os comandos relacionados ao dispositivo.
+    // 9. Apaga os comandos relacionados ao dispositivo.
     const commandDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?device_id=eq.${encodeURIComponent(deviceId)}` +
@@ -171,7 +221,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao apagar comandos do dispositivo.");
     }
 
-    // 8. Por último, apaga o registro do dispositivo.
+    // 10. Por último, apaga o registro do dispositivo.
     const deviceDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/devices` +
       `?id=eq.${encodeURIComponent(deviceId)}` +
@@ -196,7 +246,7 @@ module.exports = async (req, res) => {
     console.error("Command complete error:", error);
 
     return res.status(500).json({
-      error: error.message || "Erro ao concluir desvinculação."
+      error: error.message || "Erro ao concluir operação."
     });
   }
 };
