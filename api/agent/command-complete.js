@@ -96,7 +96,10 @@ module.exports = async (req, res) => {
       );
 
       if (!syncResponse.ok) {
-        throw new Error("Falha ao limpar a cópia temporária.");
+  const errorDetails = await syncResponse.text();
+  throw new Error(
+    `Falha ao limpar a cópia temporária: ${errorDetails}`
+  );
       }
 
       const updated = await syncResponse.json();
