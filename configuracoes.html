@@ -139,9 +139,9 @@
         .maybeSingle();
 
       if (error) {
-        saveStatus.textContent = "Erro ao carregar configurações.";
-        console.error(error);
-        return;
+  saveStatus.textContent = "Erro: " + error.message;
+  console.error("[ERRO AO SALVAR CONFIGURAÇÕES]", error);
+  return;
       }
 
       prefixInput.value = data?.prefix || "#";
