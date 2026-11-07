@@ -148,9 +148,11 @@ async function carregarLogs() {
 
     const deviceData = await response.json();
 
-    if (!response.ok) {
-      throw new Error("Não foi possível verificar seu dispositivo.");
-    }
+        if (!response.ok) {
+      throw new Error(
+        deviceData.error || "Erro HTTP: " + response.status
+      );
+        }
 
     if (!deviceData.linked || !deviceData.device) {
       logsContainer.innerHTML =
