@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
         `?user_id=eq.${user.id}` +
         `&agent_token_hash=not.is.null` +
         `&status=neq.unlinked` +
-        `&select=id,status,last_seen&limit=1`,
+        `&select=id,status,last_seen,whatsapp_connected&limit=1`,
         { headers }
       );
 
