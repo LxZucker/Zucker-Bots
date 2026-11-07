@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZuckerBots - Configurações</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #080808;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 25px 15px;
+    }
+    .container { max-width: 650px; margin: auto; }
+    header { margin-bottom: 25px; }
+    h1 { margin: 0 0 8px; font-size: 27px; }
+    h1 span { color: #ff3030; }
+    .subtitle { color: #888; font-size: 14px; }
+    .card {
+      background: #111;
+      border: 1px solid #292929;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    h2 { font-size: 17px; margin: 0 0 18px; }
+    label {
+      display: block;
+      color: #ccc;
+      font-size: 13px;
+      margin-bottom: 9px;
+    }
+    input {
+      width: 100%;
+      background: #080808;
+      border: 1px solid #383838;
+      border-radius: 9px;
+      padding: 14px;
+      color: white;
+      font-size: 16px;
+      outline: none;
+    }
+    input:focus { border-color: #ff3030; }
+    button, .back {
+      display: inline-block;
+      border: 0;
+      border-radius: 9px;
+      padding: 13px 18px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+    }
+    button {
+      width: 100%;
+      margin-top: 16px;
+      background: #e32636;
+      color: white;
+    }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .back {
+      background: #191919;
+      color: #ddd;
+      border: 1px solid #333;
+      margin-bottom: 20px;
+    }
+    .status { color: #aaa; font-size: 13px; margin-top: 12px; }
+    .locked {
+      border: 1px solid #713030;
+      background: #190d0d;
+      border-radius: 12px;
+      padding: 28px 18px;
+      text-align: center;
+      color: #ff5555;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .hint { color: #777; font-size: 12px; margin-top: 9px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <a class="back" href="inicio.html">← Voltar ao painel</a>
+
+    <header>
+      <h1>Zucker<span>Bots</span></h1>
+      <div class="subtitle">Configurações do seu bot</div>
+    </header>
+
+    <section id="locked" class="locked">
+      CONECTE A UM BOT PRIMEIRO
+    </section>
+
+    <section id="settings" class="hidden">
+      <div class="card">
+        <h2>⚙️ Configurações gerais</h2>
+
+        <label for="prefix">Prefixo dos comandos</label>
+        <input id="prefix" maxlength="3" placeholder="#">
+        <div class="hint">Exemplo: #ping, !ping ou .ping</div>
+
+        <button id="saveButton" onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button>
+        <div id="saveStatus" class="status"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0-O-Sg_RbMJMumQ";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    let accessToken = null;
+    let currentUser = null;
+    let linked = false;
+    let checking = false;
+
+    const locked = document.getElementById("locked");
+    const settings = document.getElementById("settings");
+    const prefixInput = document.getElementById("prefix");
+    const saveButton = document.getElementById("saveButton");
+    const saveStatus = document.getElementById("saveStatus");
+
+    async function loadSettings() {
+      const { data, error } = await supabaseClient
+        .from("bot_settings")
+        .select("prefix")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (error) {
+        saveStatus.textContent = "Erro ao carregar configurações.";
+        console.error(error);
+        return;
+      }
+
+      prefixInput.value = data?.prefix || "#";
+    }
+
+    async function checkDevice() {
+      if (checking) return;
+      checking = true;
+
+      try {
+        const response = await fetch("/api/agent/activation-claim", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+
+        if (!response.ok) throw new Error("Falha ao consultar o bot.");
+
+        const data = await response.json();
+        const wasLinked = linked;
+        linked = data.linked === true;
+
+        if (!linked) {
+          locked.classList.remove("hidden");
+          settings.classList.add("hidden");
+          prefixInput.value = "";
+          saveStatus.textContent = "";
+        } else {
+          locked.classList.add("hidden");
+          settings.classList.remove("hidden");
+
+          if (!wasLinked) await loadSettings();
+        }
+      } catch (error) {
+        console.error(error);
+        locked.classList.remove("hidden");
+        settings.classList.add("hidden");
+        linked = false;
+      } finally {
+        checking = false;
+      }
+    }
+
+    async function saveSettings() {
+      if (!linked) return;
+
+      const prefix = prefixInput.value.trim();
+
+      if (!prefix || /\s/.test(prefix)) {
+        saveStatus.textContent = "Digite um prefixo válido, sem espaços.";
+        return;
+      }
+
+      saveButton.disabled = true;
+      saveStatus.textContent = "Salvando...";
+
+      const { error } = await supabaseClient
+        .from("bot_settings")
+        .upsert({
+          user_id: currentUser.id,
+          prefix: prefix,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: "user_id"
+        });
+
+      saveButton.disabled = false;
+
+      if (error) {
+        saveStatus.textContent = "Erro ao salvar. Tente novamente.";
+        console.error(error);
+        return;
+      }
+
+      saveStatus.textContent = "✓ Configurações salvas!";
+    }
+
+    async function start() {
+      const { data, error } = await supabaseClient.auth.getSession();
+
+      if (error || !data.session) {
+        location.href = "index.html";
+        return;
+      }
+
+      accessToken = data.session.access_token;
+      currentUser = data.session.user;
+
+      await checkDevice();
+
+      setInterval(checkDevice, 5000);
+
+      window.addEventListener("focus", checkDevice);
+    }
+
+    start();
+  </script>
+</body>
+  </html>
+  
