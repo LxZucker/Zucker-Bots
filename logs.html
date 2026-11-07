@@ -206,9 +206,15 @@ async function carregarLogs() {
     });
 
   } catch (error) {
-    console.error(error);
-    logsContainer.innerHTML =
-      '<p class="message">Erro ao carregar os logs. Tente novamente.</p>';
+    console.error("ERRO REAL DOS LOGS:", error);
+
+    logsContainer.innerHTML = "";
+
+    const mensagem = document.createElement("p");
+    mensagem.className = "message";
+    mensagem.textContent = "Erro: " + error.message;
+
+    logsContainer.appendChild(mensagem);
   }
 }
 
