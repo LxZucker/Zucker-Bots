@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZuckerBots - Logs de Comando</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #080808;
+  color: white;
+  padding: 20px;
+}
+
+.container {
+  max-width: 750px;
+  margin: auto;
+}
+
+header {
+  background: #151515;
+  border: 1px solid #303030;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+h1 {
+  font-size: 23px;
+  color: #ff3030;
+  margin-bottom: 8px;
+}
+
+header p {
+  color: #999;
+  font-size: 13px;
+}
+
+button {
+  width: 100%;
+  padding: 13px;
+  margin-bottom: 20px;
+  background: #bd0000;
+  border: 1px solid #ff4141;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.log {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #151515;
+  border: 1px solid #303030;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+
+.command {
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.date {
+  color: #888;
+  font-size: 11px;
+  margin-top: 7px;
+}
+
+.result {
+  font-size: 20px;
+}
+
+.message {
+  text-align: center;
+  color: #999;
+  padding: 25px 10px;
+  font-size: 13px;
+}
+
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+<header>
+  <h1>📋 LOGS DE COMANDO</h1>
+  <p>Histórico dos comandos utilizados pelo seu ZuckerBots.</p>
+</header>
+
+<button onclick="window.location.href='inicio.html'">
+  ← VOLTAR AO PAINEL
+</button>
+
+<div id="logs">
+  <p class="message">Carregando registros...</p>
+</div>
+
+</main>
+
+<script>
+const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0-O-Sg_RbMJMumQ";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const logsContainer = document.getElementById("logs");
+
+async function carregarLogs() {
+  try {
+    const { data: sessionData, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    const session = sessionData.session;
+
+    if (!session) {
+      window.location.href = "index.html";
+      return;
+    }
+
+    const response = await fetch("/api/agent/activation-claim", {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + session.access_token
+      }
+    });
+
+    const deviceData = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Não foi possível verificar seu dispositivo.");
+    }
+
+    if (!deviceData.linked || !deviceData.device) {
+      logsContainer.innerHTML =
+        '<p class="message">Conecte a um bot primeiro.</p>';
+      return;
+    }
+
+    const deviceId = deviceData.device.id;
+
+    const { data, error } = await supabaseClient
+      .from("command_logs")
+      .select("command, status, created_at")
+      .eq("device_id", deviceId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+
+    logsContainer.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      logsContainer.innerHTML =
+        '<p class="message">Nenhum comando registrado ainda.</p>';
+      return;
+    }
+
+    data.forEach(log => {
+      const item = document.createElement("div");
+      item.className = "log";
+
+      const info = document.createElement("div");
+
+      const command = document.createElement("div");
+      command.className = "command";
+      command.textContent = log.command;
+
+      const date = document.createElement("div");
+      date.className = "date";
+      date.textContent = new Date(log.created_at).toLocaleString("pt-BR");
+
+      info.appendChild(command);
+      info.appendChild(date);
+
+      const result = document.createElement("div");
+      result.className = "result";
+      result.textContent =
+        log.status === "executed" ? "✅" : "❌";
+
+      item.appendChild(info);
+      item.appendChild(result);
+
+      logsContainer.appendChild(item);
+    });
+
+  } catch (error) {
+    console.error(error);
+    logsContainer.innerHTML =
+      '<p class="message">Erro ao carregar os logs. Tente novamente.</p>';
+  }
+}
+
+carregarLogs();
+</script>
+
+</body>
+</html>
