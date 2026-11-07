@@ -297,7 +297,12 @@ async function loadDevice() {
 
   $("activationCard").classList.toggle("hidden", linked);
   $("linkedSection").classList.toggle("hidden", !linked);
-  $("whatsappSection").classList.toggle("hidden", !linked);
+  const whatsappConnected = device?.whatsapp_connected === true;
+
+$("whatsappSection").classList.toggle(
+  "hidden",
+  !linked || whatsappConnected
+);
 
     if (linked) {
     const online = showAgentStatus(device);
