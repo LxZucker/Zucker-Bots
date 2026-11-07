@@ -139,7 +139,7 @@ async function carregarLogs() {
       return;
     }
 
-    const response = await fetch("/api/agent/activation-claim", {
+    const response = await fetch("/api/agent/activation-claim?logs=1", {
       method: "GET",
       headers: {
         Authorization: "Bearer " + session.access_token
