@@ -212,10 +212,10 @@
       saveButton.disabled = false;
 
       if (error) {
-        saveStatus.textContent = "Erro ao salvar. Tente novamente.";
-        console.error(error);
-        return;
-      }
+  saveStatus.textContent = "Erro: " + error.message;
+  console.error("[ERRO AO SALVAR]", error);
+  return;
+}
 
       saveStatus.textContent = "✓ Configurações salvas!";
     }
