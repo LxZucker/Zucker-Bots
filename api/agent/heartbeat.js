@@ -52,7 +52,11 @@ module.exports = async (req, res) => {
       {
         method: "PATCH",
         headers: { ...headers, Prefer: "return=representation" },
-        body: JSON.stringify({ status: "online", last_seen: new Date().toISOString() })
+        body: JSON.stringify({
+  status: "online",
+  last_seen: new Date().toISOString(),
+  whatsapp_connected: req.body?.whatsappConnected === true
+})
       }
     );
     if (!update.ok) throw new Error("Não foi possível atualizar o dispositivo.");
