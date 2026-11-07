@@ -52,64 +52,7 @@ module.exports = async (req, res) => {
       Authorization: `Bearer ${SUPABASE_KEY}`,
       Prefer: "return=representation"
     };
-
-    if (req.method === "GET") {
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/devices` +
-        `?user_id=eq.${user.id}` +
-        `&agent_token_hash=not.is.null` +
-        `&status=neq.unlinked` +
-        `&select=id,status,last_seen,whatsapp_connected&limit=1`,
-        { headers }
-      );
-
-      if (!response.ok) {
-        throw new Error("Falha ao consultar dispositivo.");
-      }
-
-            const devices = await response.json();
-      const device = devices[0] || null;
-
-      // Consulta os logs usando a chave segura do servidor.
-      if (req.query?.logs === "1") {
-        if (!device) {
-          return res.status(200).json({
-            linked: false,
-            device: null,
-            logs: []
-          });
-        }
-
-        const logsResponse = await fetch(
-          `${SUPABASE_URL}/rest/v1/command_logs` +
-          `?user_id=eq.${user.id}` +
-          `&device_id=eq.${device.id}` +
-          `&select=command,status,created_at` +
-          `&order=created_at.desc&limit=50`,
-          { headers }
-        );
-
-        if (!logsResponse.ok) {
-          console.error(
-            "Erro ao consultar logs:",
-            await logsResponse.text()
-          );
-          throw new Error("Falha ao consultar os logs.");
-        }
-
-        const logs = await logsResponse.json();
-
-        return res.status(200).json({
-          linked: true,
-          device,
-          logs
-        });
-      }
-
-      return res.status(200).json({
-        linked: Boolean(device),
-        device
-      });
+     
     }
     if (req.method !== "POST") {
       return res.status(405).json({
