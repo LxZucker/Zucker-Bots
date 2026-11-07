@@ -158,16 +158,7 @@ async function carregarLogs() {
       return;
     }
 
-    const deviceId = deviceData.device.id;
-
-    const { data, error } = await supabaseClient
-      .from("command_logs")
-      .select("command, status, created_at")
-      .eq("device_id", deviceId)
-      .order("created_at", { ascending: false })
-      .limit(50);
-
-    if (error) throw error;
+        const data = deviceData.logs || [];
 
     logsContainer.innerHTML = "";
 
