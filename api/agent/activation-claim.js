@@ -262,3 +262,4 @@ module.exports = async (req, res) => {
       error: error.message || "Erro desconhecido"
     });
   }
+}:
