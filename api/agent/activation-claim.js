@@ -293,11 +293,10 @@ module.exports = async (req, res) => {
       message: "Bot vinculado com sucesso!"
     });
 
-  } catch (error) {
-    console.error(error);
+    } catch (error) {
+    console.error("ERRO DETALHADO:", error);
 
     return res.status(500).json({
-      error: "Erro interno ao validar o código."
+      error: error.message || "Erro desconhecido"
     });
   }
-};
