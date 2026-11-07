@@ -1,4 +1,3 @@
-
 const crypto = require("crypto");
 
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
@@ -16,7 +15,8 @@ module.exports = async (req, res) => {
 
     const deviceId = String(req.body?.deviceId || "");
     const token = String(req.headers.authorization || "")
-      .replace(/^Bearer\s+/i, "");
+      .replace(/^Bearer\s+/i, "")
+      .trim();
 
     if (!deviceId || !token) {
       return res.status(400).json({ error: "Dados obrigatórios ausentes." });
@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
       "Content-Type": "application/json"
     };
 
-    // 1. Confere a autorização do agente.
+    // 1. Confere a autorização do dispositivo.
     const deviceResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/devices` +
       `?id=eq.${encodeURIComponent(deviceId)}` +
@@ -56,7 +56,45 @@ module.exports = async (req, res) => {
 
     const device = devices[0];
 
-    // 2. Busca o prefixo salvo na conta do usuário.
+    // 2. Recebe e registra um log de comando.
+    if (req.body?.action === "log") {
+      const command = String(req.body.command || "").trim().toLowerCase();
+      const status = String(req.body.status || "");
+
+      if (!/^[a-z0-9_-]{1,40}$/.test(command)) {
+        return res.status(400).json({ error: "Comando inválido." });
+      }
+
+      if (!["executed", "failed"].includes(status)) {
+        return res.status(400).json({ error: "Status inválido." });
+      }
+
+      const logResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/command_logs`,
+        {
+          method: "POST",
+          headers: {
+            ...headers,
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            user_id: device.user_id,
+            device_id: device.id,
+            command,
+            status
+          })
+        }
+      );
+
+      if (!logResponse.ok) {
+        console.error("Erro ao salvar log:", await logResponse.text());
+        throw new Error("Não foi possível salvar o log.");
+      }
+
+      return res.status(200).json({ success: true });
+    }
+
+    // 3. Busca o prefixo salvo na conta.
     let prefix = "#";
 
     const settingsResponse = await fetch(
@@ -78,21 +116,16 @@ module.exports = async (req, res) => {
       ) {
         prefix = settings[0].prefix;
       }
-    } else {
-      console.error(
-        "[ZuckerBots] Não foi possível buscar o prefixo."
-      );
     }
 
-    // 3. Procura comandos pendentes desse dispositivo.
+    // 4. Procura comandos pendentes.
     const commandResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?device_id=eq.${encodeURIComponent(deviceId)}` +
       `&user_id=eq.${encodeURIComponent(device.user_id)}` +
       `&status=eq.pending` +
       `&select=id,command,created_at` +
-      `&order=created_at.asc` +
-      `&limit=1`,
+      `&order=created_at.asc&limit=1`,
       { headers }
     );
 
