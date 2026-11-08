@@ -9,76 +9,34 @@
 
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;min-height:100vh;background:#080808;color:white;
-  font-family:Arial,sans-serif;padding:25px 15px
-}
+body{margin:0;min-height:100vh;background:#080808;color:white;font-family:Arial,sans-serif;padding:25px 15px}
 .container{max-width:700px;margin:auto}
 header{margin-bottom:25px}
 h1{margin:0 0 8px;font-size:27px}
 h1 span{color:#ff3030}
 .subtitle{color:#888;font-size:14px}
-.card{
-  background:#111;border:1px solid #292929;
-  border-radius:14px;padding:20px;margin-bottom:16px
-}
+.card{background:#111;border:1px solid #292929;border-radius:14px;padding:20px;margin-bottom:16px}
 h2{font-size:17px;margin:0 0 18px}
-label{
-  display:block;color:#ccc;font-size:13px;
-  margin:14px 0 8px
-}
-input,select,textarea{
-  width:100%;background:#080808;border:1px solid #383838;
-  border-radius:9px;padding:13px;color:white;
-  font-size:15px;outline:none
-}
+label{display:block;color:#ccc;font-size:13px;margin:14px 0 8px}
+input,select,textarea{width:100%;background:#080808;border:1px solid #383838;border-radius:9px;padding:13px;color:white;font-size:15px;outline:none}
 textarea{min-height:95px;resize:vertical}
 input:focus,select:focus,textarea:focus{border-color:#ff3030}
-button,.back{
-  display:inline-block;border:0;border-radius:9px;
-  padding:13px 18px;font-weight:bold;cursor:pointer;
-  text-decoration:none;text-align:center
-}
+button,.back{display:inline-block;border:0;border-radius:9px;padding:13px 18px;font-weight:bold;cursor:pointer;text-decoration:none;text-align:center}
 button{background:#e32636;color:white}
 button:disabled{opacity:.5;cursor:not-allowed}
-.back{
-  background:#191919;color:#ddd;border:1px solid #333;
-  margin-bottom:20px
-}
+.back{background:#191919;color:#ddd;border:1px solid #333;margin-bottom:20px}
 .primary{width:100%;margin-top:16px}
-.secondary{
-  background:#222;border:1px solid #444;color:white;
-  width:100%;margin-top:10px
-}
-.danger{
-  background:#391313;border:1px solid #722;
-  color:#ff7777
-}
+.secondary{background:#222;border:1px solid #444;color:white;width:100%;margin-top:10px}
+.danger{background:#391313;border:1px solid #722;color:#ff7777}
 .status{color:#aaa;font-size:13px;margin-top:12px}
 .hint{color:#777;font-size:12px;margin-top:8px}
-.locked{
-  border:1px solid #713030;background:#190d0d;
-  border-radius:12px;padding:28px 18px;text-align:center;
-  color:#ff5555;font-weight:bold;letter-spacing:1px
-}
+.locked{border:1px solid #713030;background:#190d0d;border-radius:12px;padding:28px 18px;text-align:center;color:#ff5555;font-weight:bold;letter-spacing:1px}
 .hidden{display:none!important}
-.function-item{
-  background:#090909;border:1px solid #303030;
-  padding:15px;border-radius:10px;margin-top:12px
-}
-.function-title{
-  font-weight:bold;color:#ff5555;margin-bottom:8px;
-  overflow-wrap:anywhere
-}
+.function-item{background:#090909;border:1px solid #303030;padding:15px;border-radius:10px;margin-top:12px}
+.function-title{font-weight:bold;color:#ff5555;margin-bottom:8px;overflow-wrap:anywhere}
 .function-info{font-size:13px;color:#aaa;line-height:1.7}
 .actions{display:flex;gap:8px;margin-top:12px}
 .actions button{flex:1;margin:0;padding:11px 8px}
-.section-divider{border:0;border-top:1px solid #292929;margin:20px 0}
-.badge{
-  display:inline-block;background:#242424;color:#ddd;
-  padding:5px 8px;border-radius:6px;font-size:11px;
-  margin-right:5px
-}
 </style>
 </head>
 
@@ -88,106 +46,95 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <a class="back" href="inicio.html">← Voltar ao painel</a>
 
 <header>
-  <h1>Zucker<span>Bots</span></h1>
-  <div class="subtitle">Configurações do seu bot</div>
+<h1>Zucker<span>Bots</span></h1>
+<div class="subtitle">Configurações do seu bot</div>
 </header>
 
 <section id="locked" class="locked">
-  CONECTE A UM BOT PRIMEIRO
+CONECTE A UM BOT PRIMEIRO
 </section>
 
 <section id="settings" class="hidden">
 
-  <div class="card">
-    <h2>⚙️ Configurações gerais</h2>
+<div class="card">
+<h2>⚙️ Configurações gerais</h2>
 
-    <label for="prefix">Prefixo dos comandos</label>
-    <input id="prefix" maxlength="3" placeholder="#">
-    <div class="hint">Exemplo: #ping, !ping ou .ping</div>
+<label for="prefix">Prefixo dos comandos</label>
+<input id="prefix" maxlength="3" placeholder="#">
+<div class="hint">Exemplo: #ping, !ping ou .ping</div>
 
-    <label for="ownerNumber">Número do dono</label>
-    <input id="ownerNumber" type="tel"
-      placeholder="Exemplo: 5511999999999">
-    <div class="hint">
-      Informe o número com DDI e DDD.
-    </div>
+<label for="ownerNumber">Número do dono</label>
+<input id="ownerNumber" type="tel" placeholder="Exemplo: 5511999999999">
+<div class="hint">Informe o número com DDI e DDD.</div>
 
-    <button class="primary" id="saveButton"
-      onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button>
+<button class="primary" id="saveButton" onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button>
+<div id="saveStatus" class="status"></div>
+</div>
 
-    <div id="saveStatus" class="status"></div>
-  </div>
+<div class="card">
+<h2>🛠️ Criar nova função</h2>
 
-  <div class="card">
-    <h2>🛠️ Criar nova função</h2>
+<label for="functionType">Tipo de função</label>
+<select id="functionType" onchange="updateFunctionFields()">
+<option value="reply">RESPONDER</option>
+<option value="store">GUARDAR</option>
+<option value="show">MOSTRAR</option>
+<option value="delete">APAGAR</option>
+</select>
 
-    <label for="functionType">Tipo de função</label>
-    <select id="functionType" onchange="updateFunctionFields()">
-      <option value="reply">RESPONDER</option>
-      <option value="store">GUARDAR</option>
-      <option value="show">MOSTRAR</option>
-      <option value="delete">APAGAR</option>
-    </select>
+<label for="functionCommand">Nome do comando</label>
+<input id="functionCommand" maxlength="40" placeholder="Exemplo: ola">
+<div class="hint" id="commandPreview">Comando: #ola</div>
 
-    <label for="functionCommand">Comando personalizado</label>
-    <input id="functionCommand" maxlength="40"
-      placeholder="Exemplo: #ola">
+<div id="slotField">
+<label for="functionSlot">Slot de armazenamento</label>
+<select id="functionSlot">
+<option value="1">Slot 1</option>
+<option value="2">Slot 2</option>
+<option value="3">Slot 3</option>
+<option value="4">Slot 4</option>
+<option value="5">Slot 5</option>
+<option value="6">Slot 6</option>
+<option value="7">Slot 7</option>
+<option value="8">Slot 8</option>
+<option value="9">Slot 9</option>
+<option value="10">Slot 10</option>
+</select>
+</div>
 
-    <div id="slotField">
-      <label for="functionSlot">Slot de armazenamento</label>
-      <select id="functionSlot">
-        <option value="1">Slot 1</option>
-        <option value="2">Slot 2</option>
-        <option value="3">Slot 3</option>
-        <option value="4">Slot 4</option>
-        <option value="5">Slot 5</option>
-        <option value="6">Slot 6</option>
-        <option value="7">Slot 7</option>
-        <option value="8">Slot 8</option>
-        <option value="9">Slot 9</option>
-        <option value="10">Slot 10</option>
-      </select>
-    </div>
+<div id="responseField">
+<label for="functionResponse">Mensagem da resposta</label>
+<textarea id="functionResponse" placeholder="Digite o que o bot deverá responder..."></textarea>
+</div>
 
-    <div id="responseField" class="hidden">
-      <label for="functionResponse">Mensagem da resposta</label>
-      <textarea id="functionResponse"
-        placeholder="Digite o que o bot deverá responder..."></textarea>
-    </div>
+<label for="functionPermission">Quem poderá usar?</label>
+<select id="functionPermission">
+<option value="owner">SOMENTE O DONO</option>
+<option value="all">TODOS</option>
+</select>
 
-    <label for="functionPermission">Quem poderá usar?</label>
-    <select id="functionPermission">
-      <option value="owner">SOMENTE O DONO</option>
-      <option value="all">TODOS</option>
-    </select>
+<button class="primary" id="addFunctionButton" onclick="addFunction()">ADICIONAR FUNÇÃO</button>
+<button class="secondary hidden" id="cancelEditButton" onclick="cancelEdit()">CANCELAR EDIÇÃO</button>
 
-    <button class="primary" id="addFunctionButton"
-      onclick="addFunction()">ADICIONAR FUNÇÃO</button>
+<div id="functionStatus" class="status"></div>
+</div>
 
-    <button class="secondary hidden" id="cancelEditButton"
-      onclick="cancelEdit()">CANCELAR EDIÇÃO</button>
+<div class="card">
+<h2>📋 Minhas funções</h2>
+<div id="functionList">
+<div class="hint">Nenhuma função criada ainda.</div>
+</div>
+</div>
 
-    <div id="functionStatus" class="status"></div>
-  </div>
-
-  <div class="card">
-    <h2>📋 Minhas funções</h2>
-    <div id="functionList">
-      <div class="hint">Nenhuma função criada ainda.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>📦 Sobre os slots</h2>
-    <div class="hint">
-      Cada usuário terá até 10 slots próprios para guardar textos e imagens
-      com descrição. Os conteúdos serão armazenados nos arquivos locais
-      do agente, sem backup na nuvem.
-      <br><br>
-      Se os arquivos do aparelho forem perdidos, os conteúdos salvos
-      também poderão ser perdidos.
-    </div>
-  </div>
+<div class="card">
+<h2>📦 Sobre os slots</h2>
+<div class="hint">
+Cada usuário terá até 10 slots próprios para guardar textos e imagens com descrição.
+Os conteúdos serão armazenados nos arquivos locais do agente, sem backup na nuvem.
+<br><br>
+Se os arquivos do aparelho forem perdidos, os conteúdos salvos também poderão ser perdidos.
+</div>
+</div>
 
 </section>
 </main>
@@ -196,10 +143,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
 const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let accessToken = null;
 let currentUser = null;
@@ -216,6 +160,23 @@ const ownerInput = document.getElementById("ownerNumber");
 const saveButton = document.getElementById("saveButton");
 const saveStatus = document.getElementById("saveStatus");
 const functionStatus = document.getElementById("functionStatus");
+const commandInput = document.getElementById("functionCommand");
+const commandPreview = document.getElementById("commandPreview");
+
+function getPrefix() {
+  return prefixInput.value.trim() || "#";
+}
+
+function normalizeCommand(value) {
+  let command = String(value || "").trim();
+  const prefix = getPrefix();
+
+  if (command.startsWith(prefix)) {
+    command = command.slice(prefix.length);
+  }
+
+  return command.trim().toLowerCase();
+}
 
 function getCacheKey() {
   return currentUser
@@ -232,8 +193,6 @@ function saveLocalFunctions() {
     return true;
   } catch (error) {
     console.error("[ZuckerBots] Erro no armazenamento local:", error);
-    functionStatus.textContent =
-      "Erro ao guardar os comandos neste navegador.";
     return false;
   }
 }
@@ -249,10 +208,20 @@ function loadLocalFunctions() {
     const parsed = JSON.parse(saved);
     return Array.isArray(parsed) ? parsed : null;
   } catch (error) {
-    console.error("[ZuckerBots] Erro ao carregar comandos locais:", error);
+    console.error("[ZuckerBots] Erro ao carregar comandos:", error);
     return null;
   }
 }
+
+function updateCommandPreview() {
+  const command = normalizeCommand(commandInput.value);
+  commandPreview.textContent = command
+    ? "Comando: " + getPrefix() + command
+    : "Comando: " + getPrefix() + "...";
+}
+
+prefixInput.addEventListener("input", updateCommandPreview);
+commandInput.addEventListener("input", updateCommandPreview);
 
 async function loadSettings() {
   const { data, error } = await supabaseClient
@@ -287,6 +256,7 @@ async function loadSettings() {
   }
 
   renderFunctions();
+  updateCommandPreview();
 }
 
 async function checkDevice() {
@@ -296,9 +266,7 @@ async function checkDevice() {
   try {
     const response = await fetch("/api/agent/activation-claim", {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
+      headers: { Authorization: `Bearer ${accessToken}` }
     });
 
     if (!response.ok) throw new Error("Falha ao consultar o bot.");
@@ -380,10 +348,9 @@ async function saveFunctionsAutomatically() {
   renderFunctions();
 
   functionStatus.textContent = "Salvando função...";
-
   await saveSettings();
 
-  if (!saving) {
+  if (!saving && saveStatus.textContent === "✓ Configurações salvas!") {
     functionStatus.textContent =
       "✓ Função salva! Aguardando transferência para o celular.";
   }
@@ -391,28 +358,27 @@ async function saveFunctionsAutomatically() {
 
 function updateFunctionFields() {
   const type = document.getElementById("functionType").value;
-  const slotField = document.getElementById("slotField");
-  const responseField = document.getElementById("responseField");
 
-  slotField.classList.toggle("hidden", type === "reply");
-  responseField.classList.toggle("hidden", type !== "reply");
+  document.getElementById("slotField")
+    .classList.toggle("hidden", type === "reply");
+
+  document.getElementById("responseField")
+    .classList.toggle("hidden", type !== "reply");
 }
 
 async function addFunction() {
   if (!linked) return;
 
   const type = document.getElementById("functionType").value;
-  const command = document.getElementById("functionCommand")
-    .value.trim();
+  const command = normalizeCommand(commandInput.value);
   const permission = document.getElementById("functionPermission").value;
   const slot = Number(document.getElementById("functionSlot").value);
-  const response = document.getElementById("functionResponse")
-    .value.trim();
+  const response = document.getElementById("functionResponse").value.trim();
 
   functionStatus.textContent = "";
 
   if (!command) {
-    functionStatus.textContent = "Digite o comando.";
+    functionStatus.textContent = "Digite o nome do comando.";
     return;
   }
 
@@ -432,7 +398,7 @@ async function addFunction() {
   }
 
   const duplicate = customFunctions.some(item =>
-    item.command.toLowerCase() === command.toLowerCase() &&
+    normalizeCommand(item.command) === command &&
     item.id !== editingId
   );
 
@@ -496,7 +462,7 @@ function renderFunctions() {
 
     const title = document.createElement("div");
     title.className = "function-title";
-    title.textContent = item.command;
+    title.textContent = getPrefix() + normalizeCommand(item.command);
 
     const info = document.createElement("div");
     info.className = "function-info";
@@ -540,16 +506,15 @@ function editFunction(id) {
   editingId = id;
 
   document.getElementById("functionType").value = item.type;
-  document.getElementById("functionCommand").value = item.command;
+  commandInput.value = normalizeCommand(item.command);
   document.getElementById("functionPermission").value = item.permission;
   document.getElementById("functionSlot").value = item.slot || "1";
   document.getElementById("functionResponse").value = item.response || "";
 
   updateFunctionFields();
+  updateCommandPreview();
 
-  document.getElementById("addFunctionButton").textContent =
-    "SALVAR ALTERAÇÕES";
-
+  document.getElementById("addFunctionButton").textContent = "SALVAR ALTERAÇÕES";
   document.getElementById("cancelEditButton").classList.remove("hidden");
 
   functionStatus.textContent = "Editando função.";
@@ -570,17 +535,16 @@ function resetFunctionForm() {
   editingId = null;
 
   document.getElementById("functionType").value = "reply";
-  document.getElementById("functionCommand").value = "";
+  commandInput.value = "";
   document.getElementById("functionPermission").value = "owner";
   document.getElementById("functionSlot").value = "1";
   document.getElementById("functionResponse").value = "";
 
-  document.getElementById("addFunctionButton").textContent =
-    "ADICIONAR FUNÇÃO";
-
+  document.getElementById("addFunctionButton").textContent = "ADICIONAR FUNÇÃO";
   document.getElementById("cancelEditButton").classList.add("hidden");
 
   updateFunctionFields();
+  updateCommandPreview();
 }
 
 function cancelEdit() {
@@ -606,7 +570,9 @@ async function start() {
 }
 
 updateFunctionFields();
+updateCommandPreview();
 start();
 </script>
 </body>
-</html>
+  </html>
+  
