@@ -1,3 +1,4 @@
+
 const crypto = require("crypto");
 
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
@@ -71,7 +72,7 @@ module.exports = async (req, res) => {
 
     const device = devices[0];
 
-    // 2. Confirma a sincronização dos comandos locais.
+    // 2. Confirma a sincronização sem apagar os comandos da nuvem.
     if (action === "settings-sync") {
       const revision = String(req.body?.revision || "");
 
@@ -81,30 +82,22 @@ module.exports = async (req, res) => {
         });
       }
 
+      // Confere se a configuração ainda é a mesma.
       const syncResponse = await fetch(
         `${SUPABASE_URL}/rest/v1/bot_settings` +
         `?user_id=eq.${encodeURIComponent(device.user_id)}` +
         `&updated_at=eq.${encodeURIComponent(revision)}` +
-        `&select=user_id`,
-        {
-          method: "PATCH",
-          headers,
-          body: JSON.stringify({
-            custom_functions: []
-          })
-        }
+        `&select=user_id&limit=1`,
+        { headers }
       );
 
       if (!syncResponse.ok) {
-  const errorDetails = await syncResponse.text();
-  throw new Error(
-    `Falha ao limpar a cópia temporária: ${errorDetails}`
-  );
+        throw new Error("Falha ao confirmar sincronização.");
       }
 
-      const updated = await syncResponse.json();
+      const currentSettings = await syncResponse.json();
 
-      if (!updated.length) {
+      if (!currentSettings.length) {
         return res.status(409).json({
           error: "As configurações mudaram. Sincronize novamente."
         });
@@ -253,3 +246,4 @@ module.exports = async (req, res) => {
     });
   }
 };
+      
