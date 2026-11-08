@@ -109,7 +109,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <input id="ownerNumber" type="tel"
       placeholder="Exemplo: 5511999999999">
     <div class="hint">
-      Informe o número com DDI e DDD. Esse número poderá ser alterado quando quiser.
+      Informe o número com DDI e DDD.
     </div>
 
     <button class="primary" id="saveButton"
@@ -207,6 +207,7 @@ let linked = false;
 let checking = false;
 let customFunctions = [];
 let editingId = null;
+let saving = false;
 
 const locked = document.getElementById("locked");
 const settings = document.getElementById("settings");
@@ -215,6 +216,43 @@ const ownerInput = document.getElementById("ownerNumber");
 const saveButton = document.getElementById("saveButton");
 const saveStatus = document.getElementById("saveStatus");
 const functionStatus = document.getElementById("functionStatus");
+
+function getCacheKey() {
+  return currentUser
+    ? "zuckerbots_custom_functions_" + currentUser.id
+    : null;
+}
+
+function saveLocalFunctions() {
+  try {
+    const key = getCacheKey();
+    if (!key) return false;
+
+    localStorage.setItem(key, JSON.stringify(customFunctions));
+    return true;
+  } catch (error) {
+    console.error("[ZuckerBots] Erro no armazenamento local:", error);
+    functionStatus.textContent =
+      "Erro ao guardar os comandos neste navegador.";
+    return false;
+  }
+}
+
+function loadLocalFunctions() {
+  try {
+    const key = getCacheKey();
+    if (!key) return null;
+
+    const saved = localStorage.getItem(key);
+    if (saved === null) return null;
+
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (error) {
+    console.error("[ZuckerBots] Erro ao carregar comandos locais:", error);
+    return null;
+  }
+}
 
 async function loadSettings() {
   const { data, error } = await supabaseClient
@@ -232,9 +270,21 @@ async function loadSettings() {
   prefixInput.value = data?.prefix || "#";
   ownerInput.value = data?.owner_number || "";
 
-  customFunctions = Array.isArray(data?.custom_functions)
+  const remoteFunctions = Array.isArray(data?.custom_functions)
     ? data.custom_functions
     : [];
+
+  const localFunctions = loadLocalFunctions();
+
+  if (remoteFunctions.length > 0) {
+    customFunctions = remoteFunctions;
+    saveLocalFunctions();
+  } else if (localFunctions !== null) {
+    customFunctions = localFunctions;
+  } else {
+    customFunctions = [];
+    saveLocalFunctions();
+  }
 
   renderFunctions();
 }
@@ -280,7 +330,7 @@ async function checkDevice() {
 }
 
 async function saveSettings() {
-  if (!linked) return;
+  if (!linked || !currentUser || saving) return;
 
   const prefix = prefixInput.value.trim();
   const ownerNumber = ownerInput.value.replace(/\D/g, "");
@@ -295,8 +345,11 @@ async function saveSettings() {
     return;
   }
 
+  saving = true;
   saveButton.disabled = true;
   saveStatus.textContent = "Salvando...";
+
+  saveLocalFunctions();
 
   const { error } = await supabaseClient
     .from("bot_settings")
@@ -310,6 +363,7 @@ async function saveSettings() {
       onConflict: "user_id"
     });
 
+  saving = false;
   saveButton.disabled = false;
 
   if (error) {
@@ -321,6 +375,20 @@ async function saveSettings() {
   saveStatus.textContent = "✓ Configurações salvas!";
 }
 
+async function saveFunctionsAutomatically() {
+  saveLocalFunctions();
+  renderFunctions();
+
+  functionStatus.textContent = "Salvando função...";
+
+  await saveSettings();
+
+  if (!saving) {
+    functionStatus.textContent =
+      "✓ Função salva! Aguardando transferência para o celular.";
+  }
+}
+
 function updateFunctionFields() {
   const type = document.getElementById("functionType").value;
   const slotField = document.getElementById("slotField");
@@ -330,7 +398,7 @@ function updateFunctionFields() {
   responseField.classList.toggle("hidden", type !== "reply");
 }
 
-function addFunction() {
+async function addFunction() {
   if (!linked) return;
 
   const type = document.getElementById("functionType").value;
@@ -406,11 +474,8 @@ function addFunction() {
     customFunctions.push(functionData);
   }
 
-  renderFunctions();
   resetFunctionForm();
-
-  functionStatus.textContent =
-    "Função adicionada. Clique em SALVAR CONFIGURAÇÕES para gravar.";
+  await saveFunctionsAutomatically();
 }
 
 function renderFunctions() {
@@ -491,16 +556,14 @@ function editFunction(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function removeFunction(id) {
+async function removeFunction(id) {
   if (!confirm("Deseja excluir esta função?")) return;
 
   customFunctions = customFunctions.filter(item => item.id !== id);
 
   if (editingId === id) resetFunctionForm();
 
-  renderFunctions();
-  functionStatus.textContent =
-    "Função removida. Salve as configurações para confirmar.";
+  await saveFunctionsAutomatically();
 }
 
 function resetFunctionForm() {
