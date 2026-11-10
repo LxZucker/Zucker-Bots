@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,813 +5,102 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZuckerBots - Configurações</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:#080808;color:white;font-family:Arial,sans-serif;padding:25px 15px}
-.container{max-width:700px;margin:auto}
-header{margin-bottom:25px}
-h1{margin:0 0 8px;font-size:27px}
-h1 span{color:#ff3030}
-.subtitle{color:#888;font-size:14px}
-.card{background:#111;border:1px solid #292929;border-radius:14px;padding:20px;margin-bottom:16px}
-h2{font-size:17px;margin:0 0 18px}
-label{display:block;color:#ccc;font-size:13px;margin:14px 0 8px}
-input,select,textarea{width:100%;background:#080808;border:1px solid #383838;border-radius:9px;padding:13px;color:white;font-size:15px;outline:none}
-textarea{min-height:95px;resize:vertical}
-input:focus,select:focus,textarea:focus{border-color:#ff3030}
-button,.back{display:inline-block;border:0;border-radius:9px;padding:13px 18px;font-weight:bold;cursor:pointer;text-decoration:none;text-align:center}
-button{background:#e32636;color:white}
-button:disabled{opacity:.5;cursor:not-allowed}
-.back{background:#191919;color:#ddd;border:1px solid #333;margin-bottom:20px}
-.primary{width:100%;margin-top:16px}
-.secondary{background:#222;border:1px solid #444;color:white;width:100%;margin-top:10px}
-.danger{background:#391313;border:1px solid #722;color:#ff7777}
-.status{color:#aaa;font-size:13px;margin-top:12px}
-.hint{color:#777;font-size:12px;margin-top:8px}
-.locked{border:1px solid #713030;background:#190d0d;border-radius:12px;padding:28px 18px;text-align:center;color:#ff5555;font-weight:bold;letter-spacing:1px}
-.hidden{display:none!important}
-.function-item{background:#090909;border:1px solid #303030;padding:15px;border-radius:10px;margin-top:12px}
-.function-title{font-weight:bold;color:#ff5555;margin-bottom:8px;overflow-wrap:anywhere}
-.function-info{font-size:13px;color:#aaa;line-height:1.7}
-.actions{display:flex;gap:8px;margin-top:12px}
-.actions button{flex:1;margin:0;padding:11px 8px}
-
-.multi-toggle{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  background:#090909;
-  border:1px solid #383838;
-  border-radius:10px;
-  padding:14px;
-  margin-top:15px;
-}
-.multi-toggle label{
-  margin:0;
-  color:white;
-  font-weight:bold;
-  font-size:14px;
-}
-.multi-toggle input{
-  width:20px;
-  height:20px;
-  accent-color:#e32636;
-  cursor:pointer;
-}
-.multi-slots{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:9px;
-  margin-top:12px;
-}
-.multi-slot-option{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  background:#090909;
-  border:1px solid #303030;
-  border-radius:9px;
-  padding:12px;
-  margin:0;
-  cursor:pointer;
-}
-.multi-slot-option input{
-  width:18px;
-  height:18px;
-  margin:0;
-  accent-color:#e32636;
-}
-.multi-slot-option span{
-  color:#ddd;
-  font-size:13px;
-}
-.multi-description{
-  color:#888;
-  font-size:12px;
-  margin-top:9px;
-  line-height:1.5;
-}
-.warning{
-  background:#241b0b;
-  border:1px solid #806020;
-  border-radius:9px;
-  padding:12px;
-  color:#ffd477;
-  font-size:12px;
-  line-height:1.5;
-  margin-top:12px;
-}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080808;color:#fff;font-family:Arial,sans-serif;padding:25px 15px}.container{max-width:700px;margin:auto}header{margin-bottom:25px}h1{margin:0 0 8px;font-size:27px}h1 span{color:#ff3030}.subtitle{color:#888;font-size:14px}.card{background:#111;border:1px solid #292929;border-radius:14px;padding:20px;margin-bottom:16px}h2{font-size:17px;margin:0 0 18px}label{display:block;color:#ccc;font-size:13px;margin:14px 0 8px}input,select,textarea{width:100%;background:#080808;border:1px solid #383838;border-radius:9px;padding:13px;color:white;font-size:15px;outline:none}textarea{min-height:95px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:#ff3030}button,.back{display:inline-block;border:0;border-radius:9px;padding:13px 18px;font-weight:bold;cursor:pointer;text-decoration:none;text-align:center}button{background:#e32636;color:white}button:disabled{opacity:.5;cursor:not-allowed}.back{background:#191919;color:#ddd;border:1px solid #333;margin-bottom:20px}.primary{width:100%;margin-top:16px}.secondary{background:#222;border:1px solid #444;color:white;width:100%;margin-top:10px}.danger{background:#391313;border:1px solid #722;color:#ff7777}.status{color:#aaa;font-size:13px;margin-top:12px}.hint{color:#777;font-size:12px;margin-top:8px}.locked{border:1px solid #713030;background:#190d0d;border-radius:12px;padding:28px 18px;text-align:center;color:#ff5555;font-weight:bold;letter-spacing:1px}.hidden{display:none!important}.function-item{background:#090909;border:1px solid #303030;padding:15px;border-radius:10px;margin-top:12px}.function-title{font-weight:bold;color:#ff5555;margin-bottom:8px;overflow-wrap:anywhere}.function-info{font-size:13px;color:#aaa;line-height:1.7}.actions{display:flex;gap:8px;margin-top:12px}.actions button{flex:1;margin:0;padding:11px 8px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}.tab{background:#171717;border:1px solid #393939;color:#aaa}.tab.active{background:#351010;border-color:#e32636;color:#fff}.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#090909;border:1px solid #383838;border-radius:10px;padding:14px;margin:12px 0}.toggle-row label{margin:0;color:#fff;font-weight:bold}.toggle-row input,.group-option input,.multi-slot-option input{width:19px;height:19px;margin:0;accent-color:#e32636}.group-option,.multi-slot-option{display:flex;align-items:center;gap:10px;background:#090909;border:1px solid #303030;border-radius:9px;padding:12px;margin:8px 0;cursor:pointer}.group-option span,.multi-slot-option span{color:#ddd;font-size:13px;overflow-wrap:anywhere}.group-list{max-height:260px;overflow:auto;margin-top:10px}.multi-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#090909;border:1px solid #383838;border-radius:10px;padding:14px;margin-top:15px}.multi-toggle label{margin:0;color:white;font-weight:bold;font-size:14px}.multi-toggle input{width:20px;height:20px;accent-color:#e32636}.multi-slots{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}.multi-description{color:#888;font-size:12px;margin-top:9px;line-height:1.5}.warning{background:#241b0b;border:1px solid #806020;border-radius:9px;padding:12px;color:#ffd477;font-size:12px;line-height:1.5;margin-top:12px}
 </style>
 </head>
-
 <body>
 <main class="container">
-
 <a class="back" href="inicio.html">← Voltar ao painel</a>
-
-<header>
-<h1>Zucker<span>Bots</span></h1>
-<div class="subtitle">Configurações do seu bot</div>
-</header>
-
-<section id="locked" class="locked">
-CONECTE A UM BOT PRIMEIRO
-</section>
-
+<header><h1>Zucker<span>Bots</span></h1><div class="subtitle">Configurações do seu bot</div></header>
+<section id="locked" class="locked">CONECTE A UM BOT PRIMEIRO</section>
 <section id="settings" class="hidden">
-
-<div class="card">
-<h2>⚙️ Configurações gerais</h2>
-
-<label for="prefix">Prefixo dos comandos</label>
-<input id="prefix" maxlength="3" placeholder="#">
-<div class="hint">Exemplo: #ping, !ping ou .ping</div>
-
-<label for="ownerNumber">Número do dono</label>
-<input id="ownerNumber" type="tel" placeholder="Exemplo: 5511999999999">
-<div class="hint">Informe o número com DDI e DDD.</div>
-
-<button class="primary" id="saveButton" onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button>
-<div id="saveStatus" class="status"></div>
-</div>
-
-<div class="card">
-<h2>🛠️ Criar nova função</h2>
-
-<label for="functionType">Tipo de função</label>
-<select id="functionType" onchange="updateFunctionFields()">
-<option value="reply">RESPONDER</option>
-<option value="store">GUARDAR</option>
-<option value="show">MOSTRAR</option>
-<option value="delete">APAGAR</option>
-</select>
-
-<label for="functionCommand">Nome do comando</label>
-<input id="functionCommand" maxlength="40" placeholder="Exemplo: ola">
-<div class="hint" id="commandPreview">Comando: #ola</div>
-
-<!-- MULTI SLOT -->
-<div id="multiSlotToggle" class="multi-toggle hidden">
-  <label for="multiSlotEnabled">MULTI SLOT</label>
-  <input type="checkbox" id="multiSlotEnabled" onchange="updateMultiSlotFields()">
-</div>
-
-<div id="slotField">
-<label for="functionSlot">Slot de armazenamento</label>
-<select id="functionSlot">
-<option value="1">Slot 1</option>
-<option value="2">Slot 2</option>
-<option value="3">Slot 3</option>
-<option value="4">Slot 4</option>
-<option value="5">Slot 5</option>
-<option value="6">Slot 6</option>
-<option value="7">Slot 7</option>
-<option value="8">Slot 8</option>
-<option value="9">Slot 9</option>
-<option value="10">Slot 10</option>
-</select>
-</div>
-
-<div id="multiSlotField" class="hidden">
-<label>Selecione os slots que serão mostrados</label>
-<div class="multi-slots" id="multiSlotOptions"></div>
-<div class="multi-description">
-Você pode selecionar de 1 até 10 slots. O comando mostrará somente os slots selecionados.
-</div>
-</div>
-
-<!-- RESPOSTA -->
-<div id="responseField">
-<label for="functionResponse">Mensagem da resposta</label>
-<textarea id="functionResponse" placeholder="Digite o que o bot deverá responder..."></textarea>
-
-<label for="repeatCount">Quantidade de envios</label>
-<input id="repeatCount" type="number" min="1" step="1" value="1" placeholder="Exemplo: 5">
-<div class="hint">Escolha quantas vezes a mensagem será enviada.</div>
-
-<div id="repeatWarning" class="warning hidden">
-⚠️ Atenção: quantidades acima de 30 envios podem resultar na suspensão do número do WhatsApp. O uso é de responsabilidade do usuário. O ZuckerBots não se responsabiliza por eventuais punições.
-</div>
-
-<label for="intervalMs">Intervalo entre mensagens (milissegundos)</label>
-<input id="intervalMs" type="number" min="600" max="10000" step="1" value="1000" placeholder="Exemplo: 2000">
-<div class="hint">Você escolhe o intervalo. Mínimo: 600 ms. Máximo: 10000 ms (10 segundos).</div>
-</div>
-
-<label for="functionPermission">Quem poderá usar?</label>
-<select id="functionPermission">
-<option value="owner">SOMENTE O DONO</option>
-<option value="all">TODOS</option>
-</select>
-
-<button class="primary" id="addFunctionButton" onclick="addFunction()">ADICIONAR FUNÇÃO</button>
-<button class="secondary hidden" id="cancelEditButton" onclick="cancelEdit()">CANCELAR EDIÇÃO</button>
-
-<div id="functionStatus" class="status"></div>
-</div>
-
-<div class="card">
-<h2>📋 Minhas funções</h2>
-<div id="functionList">
-<div class="hint">Nenhuma função criada ainda.</div>
-</div>
-</div>
-
-<div class="card">
-<h2>📦 Sobre os slots</h2>
-<div class="hint">
-Cada usuário terá até 10 slots próprios para guardar textos e imagens com descrição.
-Os conteúdos serão armazenados nos arquivos locais do agente, sem backup na nuvem.
-<br><br>
-Se os arquivos do aparelho forem perdidos, os conteúdos salvos também poderão ser perdidos.
-</div>
-</div>
-
+  <div class="card">
+    <h2>⚙️ Configurações gerais</h2>
+    <label for="prefix">Prefixo dos comandos</label><input id="prefix" maxlength="3" placeholder="#"><div class="hint">Exemplo: #ping, !ping ou .ping</div>
+    <label for="ownerNumber">Número do dono</label><input id="ownerNumber" type="tel" placeholder="Exemplo: 5511999999999"><div class="hint">Informe o número com DDI e DDD.</div>
+    <button class="primary" id="saveButton" onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button><div id="saveStatus" class="status"></div>
+  </div>
+  <div class="tabs"><button id="pvTab" class="tab active" onclick="switchMode('pv')">BOT PV</button><button id="gpTab" class="tab" onclick="switchMode('gp')">BOT GP</button></div>
+  <div class="card">
+    <h2 id="modeTitle">🤖 Configurações do Bot PV</h2>
+    <div class="toggle-row"><label id="enabledLabel" for="modeEnabled">ATIVAR BOT PV</label><input id="modeEnabled" type="checkbox" checked></div>
+    <label id="unknownLabel" for="unknownMessage">Mensagem para comando inexistente</label>
+    <textarea id="unknownMessage" placeholder="Deixe vazio para o bot não responder quando o comando não existir."></textarea>
+    <div class="hint">Se ficar em branco, o bot ficará em silêncio quando alguém usar um comando desconhecido.</div>
+    <h2 style="margin-top:22px">⏱️ Cooldown dos comandos</h2>
+    <label for="ownerCooldown">Cooldown do dono (segundos)</label><input id="ownerCooldown" type="number" min="1" max="25" step="1" value="1">
+    <label for="userCooldown">Cooldown dos demais usuários (segundos)</label><input id="userCooldown" type="number" min="1" max="25" step="1" value="1">
+    <div class="hint">O tempo é individual por pessoa. O cooldown do dono é separado do cooldown dos demais usuários. Mínimo: 1 segundo. Máximo: 25 segundos.</div>
+  </div>
+  <div id="groupsCard" class="card hidden">
+    <h2>👥 Grupos permitidos</h2>
+    <div class="toggle-row"><label for="allGroups">ATIVAR EM TODOS OS GRUPOS</label><input id="allGroups" type="checkbox" checked onchange="toggleGroupSelection()"></div>
+    <div id="specificGroupsArea" class="hidden"><div class="hint">Desative a opção acima para escolher em quais grupos o bot poderá responder.</div><div id="groupList" class="group-list"><div class="hint">Aguardando a lista de grupos do WhatsApp...</div></div></div>
+    <div class="hint">A lista será preenchida quando o agente enviar os grupos encontrados no WhatsApp.</div>
+  </div>
+  <div class="card">
+    <h2>🛠️ Criar novo comando</h2>
+    <label for="functionType">Tipo de função</label><select id="functionType" onchange="updateFunctionFields()"><option value="reply">RESPONDER</option><option value="store">GUARDAR</option><option value="show">MOSTRAR</option><option value="delete">APAGAR</option></select>
+    <label for="functionCommand">Nome do comando</label><input id="functionCommand" maxlength="40" placeholder="Exemplo: ola"><div class="hint" id="commandPreview">Comando: #ola</div>
+    <div id="multiSlotToggle" class="multi-toggle hidden"><label for="multiSlotEnabled">MULTI SLOT</label><input type="checkbox" id="multiSlotEnabled" onchange="updateMultiSlotFields()"></div>
+    <div id="slotField"><label for="functionSlot">Slot de armazenamento</label><select id="functionSlot"><option value="1">Slot 1</option><option value="2">Slot 2</option><option value="3">Slot 3</option><option value="4">Slot 4</option><option value="5">Slot 5</option><option value="6">Slot 6</option><option value="7">Slot 7</option><option value="8">Slot 8</option><option value="9">Slot 9</option><option value="10">Slot 10</option></select></div>
+    <div id="multiSlotField" class="hidden"><label>Selecione os slots que serão mostrados</label><div class="multi-slots" id="multiSlotOptions"></div><div class="multi-description">Você pode selecionar de 1 até 10 slots. O comando mostrará somente os slots selecionados.</div></div>
+    <div id="responseField"><label for="functionResponse">Mensagem da resposta</label><textarea id="functionResponse" placeholder="Digite o que o bot deverá responder..."></textarea>
+      <label for="repeatCount">Quantidade de envios</label><input id="repeatCount" type="number" min="1" step="1" value="1"><div class="hint">Escolha quantas vezes a mensagem será enviada.</div>
+      <div id="repeatWarning" class="warning hidden">⚠️ Atenção: quantidades acima de 30 envios podem resultar na suspensão do número do WhatsApp. O uso é de responsabilidade do usuário.</div>
+      <label for="intervalMs">Intervalo entre mensagens (milissegundos)</label><input id="intervalMs" type="number" min="600" max="10000" step="1" value="1000"><div class="hint">Mínimo: 600 ms. Máximo: 10000 ms (10 segundos).</div>
+    </div>
+    <label for="functionPermission">Quem poderá usar?</label><select id="functionPermission"><option value="owner">SOMENTE O DONO</option><option value="all">TODOS</option></select>
+    <button class="primary" id="addFunctionButton" onclick="addFunction()">ADICIONAR FUNÇÃO</button><button class="secondary hidden" id="cancelEditButton" onclick="cancelEdit()">CANCELAR EDIÇÃO</button><div id="functionStatus" class="status"></div>
+  </div>
+  <div class="card"><h2 id="listTitle">📋 Comandos do Bot PV</h2><div id="functionList"><div class="hint">Nenhuma função criada ainda.</div></div></div>
+  <div class="card"><h2>📦 Sobre os slots</h2><div class="hint">Cada modalidade possui seus próprios 10 slots. Os conteúdos serão armazenados nos arquivos locais do agente, sem backup na nuvem. Se os arquivos do aparelho forem perdidos, os conteúdos salvos também poderão ser perdidos.</div></div>
 </section>
 </main>
-
 <script>
-const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let accessToken = null;
-let currentUser = null;
-let linked = false;
-let checking = false;
-let customFunctions = [];
-let editingId = null;
-let saving = false;
-
-const locked = document.getElementById("locked");
-const settings = document.getElementById("settings");
-const prefixInput = document.getElementById("prefix");
-const ownerInput = document.getElementById("ownerNumber");
-const saveButton = document.getElementById("saveButton");
-const saveStatus = document.getElementById("saveStatus");
-const functionStatus = document.getElementById("functionStatus");
-const commandInput = document.getElementById("functionCommand");
-const commandPreview = document.getElementById("commandPreview");
-
-function getPrefix() {
-  return prefixInput.value.trim() || "#";
-}
-
-function normalizeCommand(value) {
-  let command = String(value || "").trim();
-  const prefix = getPrefix();
-
-  if (command.startsWith(prefix)) {
-    command = command.slice(prefix.length);
-  }
-
-  return command.trim().toLowerCase();
-}
-
-function getCacheKey() {
-  return currentUser
-    ? "zuckerbots_custom_functions_" + currentUser.id
-    : null;
-}
-
-function saveLocalFunctions() {
-  try {
-    const key = getCacheKey();
-    if (!key) return false;
-
-    localStorage.setItem(key, JSON.stringify(customFunctions));
-    return true;
-  } catch (error) {
-    console.error("[ZuckerBots] Erro no armazenamento local:", error);
-    return false;
-  }
-}
-
-function loadLocalFunctions() {
-  try {
-    const key = getCacheKey();
-    if (!key) return null;
-
-    const saved = localStorage.getItem(key);
-    if (saved === null) return null;
-
-    const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : null;
-  } catch (error) {
-    console.error("[ZuckerBots] Erro ao carregar comandos:", error);
-    return null;
-  }
-}
-
-function updateCommandPreview() {
-  const command = normalizeCommand(commandInput.value);
-  commandPreview.textContent = command
-    ? "Comando: " + getPrefix() + command
-    : "Comando: " + getPrefix() + "...";
-}
-
-prefixInput.addEventListener("input", updateCommandPreview);
-commandInput.addEventListener("input", updateCommandPreview);
-
-function createMultiSlotOptions() {
-  const container = document.getElementById("multiSlotOptions");
-  container.innerHTML = "";
-
-  for (let slot = 1; slot <= 10; slot++) {
-    const label = document.createElement("label");
-    label.className = "multi-slot-option";
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.value = String(slot);
-    checkbox.className = "multi-slot-checkbox";
-
-    const text = document.createElement("span");
-    text.textContent = "Slot " + slot;
-
-    label.append(checkbox, text);
-    container.appendChild(label);
-  }
-}
-
-function getSelectedSlots() {
-  return Array.from(
-    document.querySelectorAll(".multi-slot-checkbox:checked")
-  ).map(input => Number(input.value));
-}
-
-function setSelectedSlots(slots) {
-  const selected = Array.isArray(slots)
-    ? slots.map(Number)
-    : [];
-
-  document.querySelectorAll(".multi-slot-checkbox").forEach(input => {
-    input.checked = selected.includes(Number(input.value));
-  });
-}
-
-function updateMultiSlotFields() {
-  const type = document.getElementById("functionType").value;
-  const enabled =
-    type === "show" &&
-    document.getElementById("multiSlotEnabled").checked;
-
-  document.getElementById("slotField")
-    .classList.toggle("hidden", type === "reply" || enabled);
-
-  document.getElementById("multiSlotField")
-    .classList.toggle("hidden", type !== "show" || !enabled);
-}
-
-document.getElementById("repeatCount").addEventListener("input", () => {
-  const quantity = Number(document.getElementById("repeatCount").value);
-  document.getElementById("repeatWarning")
-    .classList.toggle("hidden", !(quantity > 30));
-});
-
-async function loadSettings() {
-  const { data, error } = await supabaseClient
-    .from("bot_settings")
-    .select("prefix,owner_number,custom_functions")
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
-
-  if (error) {
-    saveStatus.textContent = "Erro ao carregar: " + error.message;
-    console.error(error);
-    return;
-  }
-
-  prefixInput.value = data?.prefix || "#";
-  ownerInput.value = data?.owner_number || "";
-
-  const remoteFunctions = Array.isArray(data?.custom_functions)
-    ? data.custom_functions
-    : [];
-
-  const localFunctions = loadLocalFunctions();
-
-  if (remoteFunctions.length > 0) {
-    customFunctions = remoteFunctions;
-    saveLocalFunctions();
-  } else if (localFunctions !== null) {
-    customFunctions = localFunctions;
-  } else {
-    customFunctions = [];
-    saveLocalFunctions();
-  }
-
-  renderFunctions();
-  updateCommandPreview();
-}
-
-async function checkDevice() {
-  if (checking) return;
-  checking = true;
-
-  try {
-    const response = await fetch("/api/agent/activation-claim", {
-      method: "GET",
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-
-    if (!response.ok) throw new Error("Falha ao consultar o bot.");
-
-    const data = await response.json();
-    const wasLinked = linked;
-    linked = data.linked === true;
-
-    if (!linked) {
-      locked.classList.remove("hidden");
-      settings.classList.add("hidden");
-      prefixInput.value = "";
-      ownerInput.value = "";
-      saveStatus.textContent = "";
-    } else {
-      locked.classList.add("hidden");
-      settings.classList.remove("hidden");
-
-      if (!wasLinked) await loadSettings();
-    }
-  } catch (error) {
-    console.error(error);
-    locked.classList.remove("hidden");
-    settings.classList.add("hidden");
-    linked = false;
-  } finally {
-    checking = false;
-  }
-}
-
-async function saveSettings() {
-  if (!linked || !currentUser || saving) return;
-
-  const prefix = prefixInput.value.trim();
-  const ownerNumber = ownerInput.value.replace(/\D/g, "");
-
-  if (!prefix || /\s/.test(prefix)) {
-    saveStatus.textContent = "Digite um prefixo válido, sem espaços.";
-    return;
-  }
-
-  if (ownerInput.value.trim() && ownerNumber.length < 10) {
-    saveStatus.textContent = "Digite um número válido com DDI e DDD.";
-    return;
-  }
-
-  saving = true;
-  saveButton.disabled = true;
-  saveStatus.textContent = "Salvando...";
-
-  saveLocalFunctions();
-
-  const { error } = await supabaseClient
-    .from("bot_settings")
-    .upsert({
-      user_id: currentUser.id,
-      prefix: prefix,
-      owner_number: ownerNumber || null,
-      custom_functions: customFunctions,
-      updated_at: new Date().toISOString()
-    }, {
-      onConflict: "user_id"
-    });
-
-  saving = false;
-  saveButton.disabled = false;
-
-  if (error) {
-    saveStatus.textContent = "Erro: " + error.message;
-    console.error("[ERRO AO SALVAR]", error);
-    return;
-  }
-
-  saveStatus.textContent = "✓ Configurações salvas!";
-}
-
-async function saveFunctionsAutomatically() {
-  saveLocalFunctions();
-  renderFunctions();
-
-  functionStatus.textContent = "Salvando função...";
-  await saveSettings();
-
-  if (!saving && saveStatus.textContent === "✓ Configurações salvas!") {
-    functionStatus.textContent =
-      "✓ Função salva! Aguardando transferência para o celular.";
-  }
-}
-
-function updateFunctionFields() {
-  const type = document.getElementById("functionType").value;
-  const isShow = type === "show";
-
-  document.getElementById("slotField")
-    .classList.toggle("hidden", type === "reply");
-
-  document.getElementById("responseField")
-    .classList.toggle("hidden", type !== "reply");
-
-  document.getElementById("multiSlotToggle")
-    .classList.toggle("hidden", !isShow);
-
-  if (!isShow) {
-    document.getElementById("multiSlotEnabled").checked = false;
-  }
-
-  updateMultiSlotFields();
-}
-
-async function addFunction() {
-  if (!linked) return;
-
-  const type = document.getElementById("functionType").value;
-  const command = normalizeCommand(commandInput.value);
-  const permission = document.getElementById("functionPermission").value;
-  const slot = Number(document.getElementById("functionSlot").value);
-  const response = document.getElementById("functionResponse").value.trim();
-
-  const multiSlotEnabled =
-    type === "show" &&
-    document.getElementById("multiSlotEnabled").checked;
-
-  const selectedSlots = multiSlotEnabled
-    ? getSelectedSlots()
-    : [];
-
-  const repeatCount = Number(document.getElementById("repeatCount").value);
-  const intervalMs = Number(document.getElementById("intervalMs").value);
-
-  functionStatus.textContent = "";
-
-  if (!command) {
-    functionStatus.textContent = "Digite o nome do comando.";
-    return;
-  }
-
-  if (/\s/.test(command)) {
-    functionStatus.textContent = "O comando não pode conter espaços.";
-    return;
-  }
-
-  if (type === "reply" && !response) {
-    functionStatus.textContent = "Digite a mensagem da resposta.";
-    return;
-  }
-
-  if (type === "reply") {
-    if (!Number.isInteger(repeatCount) || repeatCount < 1) {
-      functionStatus.textContent = "A quantidade de envios deve ser um número inteiro maior que zero.";
-      return;
-    }
-
-    if (!Number.isInteger(intervalMs) || intervalMs < 600 || intervalMs > 10000) {
-      functionStatus.textContent = "O intervalo deve ser de 600 até 10000 milissegundos.";
-      return;
-    }
-  }
-
-  if (multiSlotEnabled && selectedSlots.length === 0) {
-    functionStatus.textContent = "Selecione pelo menos um slot.";
-    return;
-  }
-
-  if (
-    type !== "reply" &&
-    !multiSlotEnabled &&
-    (!Number.isInteger(slot) || slot < 1 || slot > 10)
-  ) {
-    functionStatus.textContent = "Escolha um slot válido.";
-    return;
-  }
-
-  const duplicate = customFunctions.some(item =>
-    normalizeCommand(item.command) === command &&
-    item.id !== editingId
-  );
-
-  if (duplicate) {
-    functionStatus.textContent = "Esse comando já está cadastrado.";
-    return;
-  }
-
-  if (type !== "reply" && !multiSlotEnabled) {
-    const slotUsed = customFunctions.some(item =>
-      item.type === type &&
-      Number(item.slot) === slot &&
-      item.id !== editingId
-    );
-
-    if (slotUsed) {
-      functionStatus.textContent =
-        "Já existe uma função desse tipo nesse slot.";
-      return;
-    }
-  }
-
-  const functionData = {
-    id: editingId || (
-      Date.now().toString(36) +
-      Math.random().toString(36).slice(2, 8)
-    ),
-    type,
-    command,
-    permission,
-    ...(type === "reply"
-      ? {
-          response,
-          repeatCount,
-          intervalMs
-        }
-      : multiSlotEnabled
-        ? { multiSlot: true, slots: selectedSlots }
-        : { slot })
-  };
-
-  if (editingId) {
-    customFunctions = customFunctions.map(item =>
-      item.id === editingId ? functionData : item
-    );
-  } else {
-    customFunctions.push(functionData);
-  }
-
-  resetFunctionForm();
-  await saveFunctionsAutomatically();
-}
-
-function renderFunctions() {
-  const list = document.getElementById("functionList");
-  list.innerHTML = "";
-
-  if (!customFunctions.length) {
-    list.textContent = "Nenhuma função criada ainda.";
-    list.className = "hint";
-    return;
-  }
-
-  list.className = "";
-
-  customFunctions.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "function-item";
-
-    const title = document.createElement("div");
-    title.className = "function-title";
-    title.textContent = getPrefix() + normalizeCommand(item.command);
-
-    const info = document.createElement("div");
-    info.className = "function-info";
-
-    const types = {
-      reply: "RESPONDER",
-      store: "GUARDAR",
-      show: "MOSTRAR",
-      delete: "APAGAR"
-    };
-
-    let slotInfo = "";
-
-    if (item.multiSlot && Array.isArray(item.slots)) {
-      slotInfo = " | Multi Slot: " + item.slots.join(", ");
-    } else if (item.slot) {
-      slotInfo = " | Slot: " + item.slot;
-    }
-
-    let repeatInfo = "";
-
-    if (item.type === "reply") {
-      repeatInfo =
-        " | Envios: " + (item.repeatCount || 1) +
-        " | Intervalo: " + (item.intervalMs || 1000) + " ms";
-    }
-
-    info.textContent =
-      "Tipo: " + (types[item.type] || item.type) +
-      slotInfo +
-      repeatInfo +
-      " | Permissão: " +
-      (item.permission === "owner" ? "DONO" : "TODOS") +
-      (item.response ? " | Resposta: " + item.response : "");
-
-    const actions = document.createElement("div");
-    actions.className = "actions";
-
-    const edit = document.createElement("button");
-    edit.textContent = "EDITAR";
-    edit.onclick = () => editFunction(item.id);
-
-    const remove = document.createElement("button");
-    remove.textContent = "EXCLUIR";
-    remove.className = "danger";
-    remove.onclick = () => removeFunction(item.id);
-
-    actions.append(edit, remove);
-    card.append(title, info, actions);
-    list.appendChild(card);
-  });
-}
-
-function editFunction(id) {
-  const item = customFunctions.find(f => f.id === id);
-  if (!item) return;
-
-  editingId = id;
-
-  document.getElementById("functionType").value = item.type;
-  commandInput.value = normalizeCommand(item.command);
-  document.getElementById("functionPermission").value = item.permission;
-  document.getElementById("functionSlot").value = item.slot || "1";
-  document.getElementById("functionResponse").value = item.response || "";
-
-  document.getElementById("repeatCount").value = item.repeatCount || 1;
-  document.getElementById("intervalMs").value = item.intervalMs || 1000;
-
-  document.getElementById("repeatWarning")
-    .classList.toggle("hidden", !(Number(item.repeatCount || 1) > 30));
-
-  const isMultiSlot =
-    item.type === "show" &&
-    item.multiSlot === true &&
-    Array.isArray(item.slots);
-
-  document.getElementById("multiSlotEnabled").checked = isMultiSlot;
-  setSelectedSlots(isMultiSlot ? item.slots : []);
-
-  updateFunctionFields();
-  updateCommandPreview();
-
-  document.getElementById("addFunctionButton").textContent = "SALVAR ALTERAÇÕES";
-  document.getElementById("cancelEditButton").classList.remove("hidden");
-
-  functionStatus.textContent = "Editando função.";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-async function removeFunction(id) {
-  if (!confirm("Deseja excluir esta função?")) return;
-
-  customFunctions = customFunctions.filter(item => item.id !== id);
-
-  if (editingId === id) resetFunctionForm();
-
-  await saveFunctionsAutomatically();
-}
-
-function resetFunctionForm() {
-  editingId = null;
-
-  document.getElementById("functionType").value = "reply";
-  commandInput.value = "";
-  document.getElementById("functionPermission").value = "owner";
-  document.getElementById("functionSlot").value = "1";
-  document.getElementById("functionResponse").value = "";
-
-  document.getElementById("repeatCount").value = "1";
-  document.getElementById("intervalMs").value = "1000";
-  document.getElementById("repeatWarning").classList.add("hidden");
-
-  document.getElementById("multiSlotEnabled").checked = false;
-  setSelectedSlots([]);
-
-  document.getElementById("addFunctionButton").textContent = "ADICIONAR FUNÇÃO";
-  document.getElementById("cancelEditButton").classList.add("hidden");
-
-  updateFunctionFields();
-  updateCommandPreview();
-}
-
-function cancelEdit() {
-  resetFunctionForm();
-  functionStatus.textContent = "";
-}
-
-async function start() {
-  createMultiSlotOptions();
-
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error || !data.session) {
-    location.href = "index.html";
-    return;
-  }
-
-  accessToken = data.session.access_token;
-  currentUser = data.session.user;
-
-  await checkDevice();
-
-  setInterval(checkDevice, 5000);
-  window.addEventListener("focus", checkDevice);
-}
-
-updateFunctionFields();
-updateCommandPreview();
-start();
+const SUPABASE_URL="https://khkjlodngoahevxkxswj.supabase.co";
+const SUPABASE_KEY="sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let accessToken=null,currentUser=null,linked=false,checking=false,saving=false;
+let activeMode="pv",customFunctions=[],pvFunctions=[],gpFunctions=[],editingId=null;
+let settingsData={bot_pv_enabled:true,bot_gp_enabled:false,pv_unknown_message:"",gp_unknown_message:"",pv_owner_cooldown:1,pv_user_cooldown:1,gp_owner_cooldown:1,gp_user_cooldown:1,gp_all_groups:true,gp_selected_groups:[],available_groups:[]};
+const $=id=>document.getElementById(id);
+const locked=$("locked"),settings=$("settings"),prefixInput=$("prefix"),ownerInput=$("ownerNumber"),saveButton=$("saveButton"),saveStatus=$("saveStatus"),functionStatus=$("functionStatus"),commandInput=$("functionCommand"),commandPreview=$("commandPreview");
+function getPrefix(){return prefixInput.value.trim()||"#"}
+function normalizeCommand(value){let command=String(value||"").trim(),prefix=getPrefix();if(command.startsWith(prefix))command=command.slice(prefix.length);return command.trim().toLowerCase()}
+function cacheKey(mode){return currentUser?(mode==="pv"?`zuckerbots_custom_functions_${currentUser.id}`:`zuckerbots_gp_functions_${currentUser.id}`):null}
+function saveLocalFunctions(){try{if(!currentUser)return;localStorage.setItem(cacheKey("pv"),JSON.stringify(pvFunctions));localStorage.setItem(cacheKey("gp"),JSON.stringify(gpFunctions))}catch(e){console.error("Erro no cache local:",e)}}
+function loadLocalFunctions(mode){try{if(!currentUser)return null;const raw=localStorage.getItem(cacheKey(mode));if(raw===null)return null;const parsed=JSON.parse(raw);return Array.isArray(parsed)?parsed:null}catch(e){console.error(e);return null}}
+function syncActiveFunctions(){if(activeMode==="pv")pvFunctions=customFunctions;else gpFunctions=customFunctions}
+function readModeControls(){settingsData[activeMode==="pv"?"bot_pv_enabled":"bot_gp_enabled"]=$("modeEnabled").checked;settingsData[activeMode+"_unknown_message"]=$("unknownMessage").value;settingsData[activeMode+"_owner_cooldown"]=Number($("ownerCooldown").value);settingsData[activeMode+"_user_cooldown"]=Number($("userCooldown").value);if(activeMode==="gp"){settingsData.gp_all_groups=$("allGroups").checked;settingsData.gp_selected_groups=Array.from(document.querySelectorAll(".group-check:checked")).map(x=>x.value)}}
+function showModeControls(){const pv=activeMode==="pv";$("modeTitle").textContent=pv?"🤖 Configurações do Bot PV":"👥 Configurações do Bot GP";$("enabledLabel").textContent=pv?"ATIVAR BOT PV":"ATIVAR BOT GP";$("modeEnabled").checked=!!settingsData[pv?"bot_pv_enabled":"bot_gp_enabled"];$("unknownMessage").value=settingsData[activeMode+"_unknown_message"]||"";$("ownerCooldown").value=settingsData[activeMode+"_owner_cooldown"]??1;$("userCooldown").value=settingsData[activeMode+"_user_cooldown"]??1;$("groupsCard").classList.toggle("hidden",pv);$("allGroups").checked=!!settingsData.gp_all_groups;renderGroups();toggleGroupSelection();$("listTitle").textContent=pv?"📋 Comandos do Bot PV":"📋 Comandos do Bot GP"}
+function switchMode(mode){if(mode!=="pv"&&mode!=="gp")return;readModeControls();syncActiveFunctions();activeMode=mode;customFunctions=activeMode==="pv"?pvFunctions:gpFunctions;editingId=null;resetFunctionForm(false);$("pvTab").classList.toggle("active",mode==="pv");$("gpTab").classList.toggle("active",mode==="gp");showModeControls();renderFunctions();functionStatus.textContent=""}
+function updateCommandPreview(){const command=normalizeCommand(commandInput.value);commandPreview.textContent=command?"Comando: "+getPrefix()+command:"Comando: "+getPrefix()+"..."}
+prefixInput.addEventListener("input",updateCommandPreview);commandInput.addEventListener("input",updateCommandPreview);
+function createMultiSlotOptions(){const c=$("multiSlotOptions");c.innerHTML="";for(let n=1;n<=10;n++){const label=document.createElement("label");label.className="multi-slot-option";const input=document.createElement("input");input.type="checkbox";input.value=String(n);input.className="multi-slot-checkbox";const span=document.createElement("span");span.textContent="Slot "+n;label.append(input,span);c.appendChild(label)}}
+function getSelectedSlots(){return Array.from(document.querySelectorAll(".multi-slot-checkbox:checked")).map(x=>Number(x.value))}
+function setSelectedSlots(slots){const selected=Array.isArray(slots)?slots.map(Number):[];document.querySelectorAll(".multi-slot-checkbox").forEach(x=>x.checked=selected.includes(Number(x.value)))}
+function updateMultiSlotFields(){const type=$("functionType").value,enabled=type==="show"&&$("multiSlotEnabled").checked;$("slotField").classList.toggle("hidden",type==="reply"||enabled);$("multiSlotField").classList.toggle("hidden",type!=="show"||!enabled)}
+$("repeatCount").addEventListener("input",()=>$("repeatWarning").classList.toggle("hidden",!(Number($("repeatCount").value)>30)));
+function groupId(group){if(typeof group==="string")return group;return String(group?.id||group?.jid||group?.groupJid||"")}
+function groupName(group){if(typeof group==="string")return group;return String(group?.subject||group?.name||group?.title||groupId(group)||"Grupo sem nome")}
+function renderGroups(){const list=$("groupList");list.innerHTML="";const groups=Array.isArray(settingsData.available_groups)?settingsData.available_groups:[];if(!groups.length){list.innerHTML='<div class="hint">Nenhum grupo recebido ainda. Quando o agente sincronizar os grupos, eles aparecerão aqui.</div>';return}const selected=Array.isArray(settingsData.gp_selected_groups)?settingsData.gp_selected_groups:[];groups.forEach(group=>{const id=groupId(group);if(!id)return;const label=document.createElement("label");label.className="group-option";const input=document.createElement("input");input.type="checkbox";input.className="group-check";input.value=id;input.checked=selected.includes(id);const span=document.createElement("span");span.textContent=groupName(group);label.append(input,span);list.appendChild(label)})}
+function toggleGroupSelection(){$("specificGroupsArea").classList.toggle("hidden",$("allGroups").checked)}
+async function loadSettings(){const {data,error}=await supabaseClient.from("bot_settings").select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups").eq("user_id",currentUser.id).maybeSingle();if(error){saveStatus.textContent="Erro ao carregar: "+error.message;console.error(error);return}prefixInput.value=data?.prefix||"#";ownerInput.value=data?.owner_number||"";settingsData={...settingsData,...(data||{})};if(data?.bot_pv_enabled==null)settingsData.bot_pv_enabled=true;if(data?.bot_gp_enabled==null)settingsData.bot_gp_enabled=false;pvFunctions=Array.isArray(data?.custom_functions)?data.custom_functions:[];gpFunctions=Array.isArray(data?.custom_functions_gp)?data.custom_functions_gp:[];const localPv=loadLocalFunctions("pv"),localGp=loadLocalFunctions("gp");if(!pvFunctions.length&&localPv!==null)pvFunctions=localPv;if(!gpFunctions.length&&localGp!==null)gpFunctions=localGp;customFunctions=pvFunctions;saveLocalFunctions();showModeControls();renderFunctions();updateCommandPreview()}
+async function checkDevice(){if(checking)return;checking=true;try{const response=await fetch("/api/agent/activation-claim",{method:"GET",headers:{Authorization:`Bearer ${accessToken}`}});if(!response.ok)throw new Error("Falha ao consultar o bot.");const data=await response.json(),wasLinked=linked;linked=data.linked===true;if(!linked){locked.classList.remove("hidden");settings.classList.add("hidden");prefixInput.value="";ownerInput.value="";saveStatus.textContent=""}else{locked.classList.add("hidden");settings.classList.remove("hidden");if(!wasLinked)await loadSettings()}}catch(e){console.error(e);locked.classList.remove("hidden");settings.classList.add("hidden");linked=false}finally{checking=false}}
+function validateCooldown(id,label){const value=Number($(id).value);if(!Number.isInteger(value)||value<1||value>25){saveStatus.textContent=label+" deve ser um número inteiro entre 1 e 25 segundos.";return null}return value}
+async function saveSettings(){if(!linked||!currentUser||saving)return;readModeControls();const prefix=prefixInput.value.trim(),ownerNumber=ownerInput.value.replace(/\D/g,"");if(!prefix||/\s/.test(prefix)){saveStatus.textContent="Digite um prefixo válido, sem espaços.";return}if(ownerInput.value.trim()&&ownerNumber.length<10){saveStatus.textContent="Digite um número válido com DDI e DDD.";return}for(const mode of ["pv","gp"]){for(const who of ["owner","user"]){const key=mode+"_"+who+"_cooldown",value=Number(settingsData[key]);if(!Number.isInteger(value)||value<1||value>25){saveStatus.textContent=`O cooldown ${who==="owner"?"do dono":"dos usuários"} do ${mode.toUpperCase()} deve ser entre 1 e 25 segundos.`;return}}}syncActiveFunctions();saveLocalFunctions();saving=true;saveButton.disabled=true;saveStatus.textContent="Salvando...";const payload={user_id:currentUser.id,prefix,owner_number:ownerNumber||null,custom_functions:pvFunctions,custom_functions_gp:gpFunctions,bot_pv_enabled:!!settingsData.bot_pv_enabled,bot_gp_enabled:!!settingsData.bot_gp_enabled,pv_unknown_message:settingsData.pv_unknown_message||"",gp_unknown_message:settingsData.gp_unknown_message||"",pv_owner_cooldown:Number(settingsData.pv_owner_cooldown),pv_user_cooldown:Number(settingsData.pv_user_cooldown),gp_owner_cooldown:Number(settingsData.gp_owner_cooldown),gp_user_cooldown:Number(settingsData.gp_user_cooldown),gp_all_groups:!!settingsData.gp_all_groups,gp_selected_groups:Array.isArray(settingsData.gp_selected_groups)?settingsData.gp_selected_groups:[],updated_at:new Date().toISOString()};const {error}=await supabaseClient.from("bot_settings").upsert(payload,{onConflict:"user_id"});saving=false;saveButton.disabled=false;if(error){saveStatus.textContent="Erro: "+error.message;console.error("[ERRO AO SALVAR]",error);return}saveStatus.textContent="✓ Configurações salvas!"}
+async function saveFunctionsAutomatically(){syncActiveFunctions();saveLocalFunctions();renderFunctions();functionStatus.textContent="Salvando comando...";await saveSettings();if(saveStatus.textContent==="✓ Configurações salvas!")functionStatus.textContent="✓ Comando salvo! Aguardando transferência para o celular.";else functionStatus.textContent=saveStatus.textContent}
+function updateFunctionFields(){const type=$("functionType").value,isShow=type==="show";$("slotField").classList.toggle("hidden",type==="reply");$("responseField").classList.toggle("hidden",type!=="reply");$("multiSlotToggle").classList.toggle("hidden",!isShow);if(!isShow)$("multiSlotEnabled").checked=false;updateMultiSlotFields()}
+async function addFunction(){if(!linked)return;const type=$("functionType").value,command=normalizeCommand(commandInput.value),permission=$("functionPermission").value,slot=Number($("functionSlot").value),response=$("functionResponse").value.trim(),multiSlotEnabled=type==="show"&&$("multiSlotEnabled").checked,selectedSlots=multiSlotEnabled?getSelectedSlots():[],repeatCount=Number($("repeatCount").value),intervalMs=Number($("intervalMs").value);functionStatus.textContent="";if(!command){functionStatus.textContent="Digite o nome do comando.";return}if(/\s/.test(command)){functionStatus.textContent="O comando não pode conter espaços.";return}if(type==="reply"&&!response){functionStatus.textContent="Digite a mensagem da resposta.";return}if(type==="reply"&&(!Number.isInteger(repeatCount)||repeatCount<1)){functionStatus.textContent="A quantidade de envios deve ser um número inteiro maior que zero.";return}if(type==="reply"&&(!Number.isInteger(intervalMs)||intervalMs<600||intervalMs>10000)){functionStatus.textContent="O intervalo deve ser de 600 até 10000 milissegundos.";return}if(multiSlotEnabled&&!selectedSlots.length){functionStatus.textContent="Selecione pelo menos um slot.";return}if(type!=="reply"&&!multiSlotEnabled&&(!Number.isInteger(slot)||slot<1||slot>10)){functionStatus.textContent="Escolha um slot válido.";return}if(customFunctions.some(x=>normalizeCommand(x.command)===command&&x.id!==editingId)){functionStatus.textContent="Esse comando já está cadastrado nesta modalidade.";return}if(type!=="reply"&&!multiSlotEnabled&&customFunctions.some(x=>x.type===type&&Number(x.slot)===slot&&x.id!==editingId)){functionStatus.textContent="Já existe uma função desse tipo nesse slot.";return}const item={id:editingId||(Date.now().toString(36)+Math.random().toString(36).slice(2,8)),type,command,permission,...(type==="reply"?{response,repeatCount,intervalMs}:multiSlotEnabled?{multiSlot:true,slots:selectedSlots}:{slot})};if(editingId)customFunctions=customFunctions.map(x=>x.id===editingId?item:x);else customFunctions.push(item);resetFunctionForm();await saveFunctionsAutomatically()}
+function renderFunctions(){const list=$("functionList");list.innerHTML="";if(!customFunctions.length){list.textContent="Nenhuma função criada ainda.";list.className="hint";return}list.className="";customFunctions.forEach(item=>{const card=document.createElement("div");card.className="function-item";const title=document.createElement("div");title.className="function-title";title.textContent=getPrefix()+normalizeCommand(item.command);const info=document.createElement("div");info.className="function-info";const types={reply:"RESPONDER",store:"GUARDAR",show:"MOSTRAR",delete:"APAGAR"};let slotInfo=item.multiSlot&&Array.isArray(item.slots)?" | Multi Slot: "+item.slots.join(", "):item.slot?" | Slot: "+item.slot:"";let repeatInfo=item.type==="reply"?" | Envios: "+(item.repeatCount||1)+" | Intervalo: "+(item.intervalMs||1000)+" ms":"";info.textContent="Tipo: "+(types[item.type]||item.type)+slotInfo+repeatInfo+" | Permissão: "+(item.permission==="owner"?"DONO":"TODOS")+(item.response?" | Resposta: "+item.response:"");const actions=document.createElement("div");actions.className="actions";const edit=document.createElement("button");edit.textContent="EDITAR";edit.onclick=()=>editFunction(item.id);const remove=document.createElement("button");remove.textContent="EXCLUIR";remove.className="danger";remove.onclick=()=>removeFunction(item.id);actions.append(edit,remove);card.append(title,info,actions);list.appendChild(card)})}
+function editFunction(id){const item=customFunctions.find(x=>x.id===id);if(!item)return;editingId=id;$("functionType").value=item.type;commandInput.value=normalizeCommand(item.command);$("functionPermission").value=item.permission||"all";$("functionSlot").value=item.slot||"1";$("functionResponse").value=item.response||"";$("repeatCount").value=item.repeatCount||1;$("intervalMs").value=item.intervalMs||1000;$("repeatWarning").classList.toggle("hidden",!(Number(item.repeatCount||1)>30));const multi=item.type==="show"&&item.multiSlot===true&&Array.isArray(item.slots);$("multiSlotEnabled").checked=multi;setSelectedSlots(multi?item.slots:[]);updateFunctionFields();updateCommandPreview();$("addFunctionButton").textContent="SALVAR ALTERAÇÕES";$("cancelEditButton").classList.remove("hidden");functionStatus.textContent="Editando comando.";window.scrollTo({top:0,behavior:"smooth"})}
+async function removeFunction(id){if(!confirm("Deseja excluir este comando?"))return;customFunctions=customFunctions.filter(x=>x.id!==id);if(editingId===id)resetFunctionForm();await saveFunctionsAutomatically()}
+function resetFunctionForm(clearStatus=true){editingId=null;$("functionType").value="reply";commandInput.value="";$("functionPermission").value="owner";$("functionSlot").value="1";$("functionResponse").value="";$("repeatCount").value="1";$("intervalMs").value="1000";$("repeatWarning").classList.add("hidden");$("multiSlotEnabled").checked=false;setSelectedSlots([]);$("addFunctionButton").textContent="ADICIONAR FUNÇÃO";$("cancelEditButton").classList.add("hidden");updateFunctionFields();updateCommandPreview();if(clearStatus)functionStatus.textContent=""}
+function cancelEdit(){resetFunctionForm()}
+async function start(){createMultiSlotOptions();const {data,error}=await supabaseClient.auth.getSession();if(error||!data.session){location.href="index.html";return}accessToken=data.session.access_token;currentUser=data.session.user;await checkDevice();setInterval(checkDevice,5000);window.addEventListener("focus",checkDevice)}
+updateFunctionFields();updateCommandPreview();start();
 </script>
 </body>
 </html>
-
