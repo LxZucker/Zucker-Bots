@@ -71,7 +71,7 @@ module.exports = async (req, res) => {
 
       const status = String(req.body.status || "");
 
-      if (!/^[a-z0-9_-]{1,40}$/.test(command)) {
+      if (!/^(?:(?:pv|gp):)?[a-z0-9_-]{1,40}$/.test(command)) {
         return res.status(400).json({
           error: "Comando inválido."
         });
