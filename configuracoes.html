@@ -37,6 +37,63 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .function-info{font-size:13px;color:#aaa;line-height:1.7}
 .actions{display:flex;gap:8px;margin-top:12px}
 .actions button{flex:1;margin:0;padding:11px 8px}
+
+.multi-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:#090909;
+  border:1px solid #383838;
+  border-radius:10px;
+  padding:14px;
+  margin-top:15px;
+}
+.multi-toggle label{
+  margin:0;
+  color:white;
+  font-weight:bold;
+  font-size:14px;
+}
+.multi-toggle input{
+  width:20px;
+  height:20px;
+  accent-color:#e32636;
+  cursor:pointer;
+}
+.multi-slots{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+  margin-top:12px;
+}
+.multi-slot-option{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#090909;
+  border:1px solid #303030;
+  border-radius:9px;
+  padding:12px;
+  margin:0;
+  cursor:pointer;
+}
+.multi-slot-option input{
+  width:18px;
+  height:18px;
+  margin:0;
+  accent-color:#e32636;
+}
+.multi-slot-option span{
+  color:#ddd;
+  font-size:13px;
+}
+.multi-description{
+  color:#888;
+  font-size:12px;
+  margin-top:9px;
+  line-height:1.5;
+}
 </style>
 </head>
 
@@ -86,6 +143,11 @@ CONECTE A UM BOT PRIMEIRO
 <input id="functionCommand" maxlength="40" placeholder="Exemplo: ola">
 <div class="hint" id="commandPreview">Comando: #ola</div>
 
+<div id="multiSlotToggle" class="multi-toggle hidden">
+  <label for="multiSlotEnabled">MULTI SLOT</label>
+  <input type="checkbox" id="multiSlotEnabled" onchange="updateMultiSlotFields()">
+</div>
+
 <div id="slotField">
 <label for="functionSlot">Slot de armazenamento</label>
 <select id="functionSlot">
@@ -100,6 +162,17 @@ CONECTE A UM BOT PRIMEIRO
 <option value="9">Slot 9</option>
 <option value="10">Slot 10</option>
 </select>
+</div>
+
+<div id="multiSlotField" class="hidden">
+<label>Selecione os slots que serão mostrados</label>
+
+<div class="multi-slots" id="multiSlotOptions">
+</div>
+
+<div class="multi-description">
+Você pode selecionar de 1 até 10 slots. O comando mostrará somente os slots selecionados.
+</div>
 </div>
 
 <div id="responseField">
@@ -222,6 +295,53 @@ function updateCommandPreview() {
 
 prefixInput.addEventListener("input", updateCommandPreview);
 commandInput.addEventListener("input", updateCommandPreview);
+
+function createMultiSlotOptions() {
+  const container = document.getElementById("multiSlotOptions");
+  container.innerHTML = "";
+
+  for (let slot = 1; slot <= 10; slot++) {
+    const label = document.createElement("label");
+    label.className = "multi-slot-option";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = String(slot);
+    checkbox.className = "multi-slot-checkbox";
+
+    const text = document.createElement("span");
+    text.textContent = "Slot " + slot;
+
+    label.append(checkbox, text);
+    container.appendChild(label);
+  }
+}
+
+function getSelectedSlots() {
+  return Array.from(
+    document.querySelectorAll(".multi-slot-checkbox:checked")
+  ).map(input => Number(input.value));
+}
+
+function setSelectedSlots(slots) {
+  const selected = Array.isArray(slots)
+    ? slots.map(Number)
+    : [];
+
+  document.querySelectorAll(".multi-slot-checkbox").forEach(input => {
+    input.checked = selected.includes(Number(input.value));
+  });
+}
+
+function updateMultiSlotFields() {
+  const enabled = document.getElementById("multiSlotEnabled").checked;
+
+  document.getElementById("slotField")
+    .classList.toggle("hidden", enabled);
+
+  document.getElementById("multiSlotField")
+    .classList.toggle("hidden", !enabled);
+}
 
 async function loadSettings() {
   const { data, error } = await supabaseClient
@@ -358,12 +478,22 @@ async function saveFunctionsAutomatically() {
 
 function updateFunctionFields() {
   const type = document.getElementById("functionType").value;
+  const isShow = type === "show";
 
   document.getElementById("slotField")
     .classList.toggle("hidden", type === "reply");
 
   document.getElementById("responseField")
     .classList.toggle("hidden", type !== "reply");
+
+  document.getElementById("multiSlotToggle")
+    .classList.toggle("hidden", !isShow);
+
+  if (!isShow) {
+    document.getElementById("multiSlotEnabled").checked = false;
+  }
+
+  updateMultiSlotFields();
 }
 
 async function addFunction() {
@@ -374,6 +504,14 @@ async function addFunction() {
   const permission = document.getElementById("functionPermission").value;
   const slot = Number(document.getElementById("functionSlot").value);
   const response = document.getElementById("functionResponse").value.trim();
+
+  const multiSlotEnabled =
+    type === "show" &&
+    document.getElementById("multiSlotEnabled").checked;
+
+  const selectedSlots = multiSlotEnabled
+    ? getSelectedSlots()
+    : [];
 
   functionStatus.textContent = "";
 
@@ -392,7 +530,16 @@ async function addFunction() {
     return;
   }
 
-  if (type !== "reply" && (!Number.isInteger(slot) || slot < 1 || slot > 10)) {
+  if (multiSlotEnabled && selectedSlots.length === 0) {
+    functionStatus.textContent = "Selecione pelo menos um slot.";
+    return;
+  }
+
+  if (
+    type !== "reply" &&
+    !multiSlotEnabled &&
+    (!Number.isInteger(slot) || slot < 1 || slot > 10)
+  ) {
     functionStatus.textContent = "Escolha um slot válido.";
     return;
   }
@@ -407,7 +554,7 @@ async function addFunction() {
     return;
   }
 
-  if (type !== "reply") {
+  if (type !== "reply" && !multiSlotEnabled) {
     const slotUsed = customFunctions.some(item =>
       item.type === type &&
       Number(item.slot) === slot &&
@@ -429,7 +576,11 @@ async function addFunction() {
     type,
     command,
     permission,
-    ...(type === "reply" ? { response } : { slot })
+    ...(type === "reply"
+      ? { response }
+      : multiSlotEnabled
+        ? { multiSlot: true, slots: selectedSlots }
+        : { slot })
   };
 
   if (editingId) {
@@ -474,9 +625,17 @@ function renderFunctions() {
       delete: "APAGAR"
     };
 
+    let slotInfo = "";
+
+    if (item.multiSlot && Array.isArray(item.slots)) {
+      slotInfo = " | Multi Slot: " + item.slots.join(", ");
+    } else if (item.slot) {
+      slotInfo = " | Slot: " + item.slot;
+    }
+
     info.textContent =
       "Tipo: " + (types[item.type] || item.type) +
-      (item.slot ? " | Slot: " + item.slot : "") +
+      slotInfo +
       " | Permissão: " +
       (item.permission === "owner" ? "DONO" : "TODOS") +
       (item.response ? " | Resposta: " + item.response : "");
@@ -511,6 +670,14 @@ function editFunction(id) {
   document.getElementById("functionSlot").value = item.slot || "1";
   document.getElementById("functionResponse").value = item.response || "";
 
+  const isMultiSlot =
+    item.type === "show" &&
+    item.multiSlot === true &&
+    Array.isArray(item.slots);
+
+  document.getElementById("multiSlotEnabled").checked = isMultiSlot;
+  setSelectedSlots(isMultiSlot ? item.slots : []);
+
   updateFunctionFields();
   updateCommandPreview();
 
@@ -540,6 +707,9 @@ function resetFunctionForm() {
   document.getElementById("functionSlot").value = "1";
   document.getElementById("functionResponse").value = "";
 
+  document.getElementById("multiSlotEnabled").checked = false;
+  setSelectedSlots([]);
+
   document.getElementById("addFunctionButton").textContent = "ADICIONAR FUNÇÃO";
   document.getElementById("cancelEditButton").classList.add("hidden");
 
@@ -547,32 +717,4 @@ function resetFunctionForm() {
   updateCommandPreview();
 }
 
-function cancelEdit() {
-  resetFunctionForm();
-  functionStatus.textContent = "";
-}
-
-async function start() {
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error || !data.session) {
-    location.href = "index.html";
-    return;
-  }
-
-  accessToken = data.session.access_token;
-  currentUser = data.session.user;
-
-  await checkDevice();
-
-  setInterval(checkDevice, 5000);
-  window.addEventListener("focus", checkDevice);
-}
-
-updateFunctionFields();
-updateCommandPreview();
-start();
-</script>
-</body>
-  </html>
-  
+funct
