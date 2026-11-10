@@ -1,4 +1,3 @@
-
 const crypto = require("crypto");
 
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
@@ -21,6 +20,7 @@ module.exports = async (req, res) => {
     const deviceId = String(req.body?.deviceId || "");
     const commandId = String(req.body?.commandId || "");
     const action = String(req.body?.action || "");
+
     const token = String(req.headers.authorization || "")
       .replace(/^Bearer\s+/i, "")
       .trim();
@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
 
     const device = devices[0];
 
-    // 2. Confirma a sincronização sem apagar os comandos da nuvem.
+    // 2. Sincronização das configurações.
     if (action === "settings-sync") {
       const revision = String(req.body?.revision || "");
 
@@ -82,7 +82,6 @@ module.exports = async (req, res) => {
         });
       }
 
-      // Confere se a configuração ainda é a mesma.
       const syncResponse = await fetch(
         `${SUPABASE_URL}/rest/v1/bot_settings` +
         `?user_id=eq.${encodeURIComponent(device.user_id)}` +
@@ -98,11 +97,11 @@ module.exports = async (req, res) => {
       const currentSettings = await syncResponse.json();
 
       if (!currentSettings.length) {
-  return res.status(200).json({
-    success: true,
-    settingsSynced: false,
-    retry: true
-  });
+        return res.status(200).json({
+          success: true,
+          settingsSynced: false,
+          retry: true
+        });
       }
 
       return res.status(200).json({
@@ -111,14 +110,79 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 3. A partir daqui, trata somente da desvinculação.
+    // 3. Recebe e salva a lista de grupos.
+    if (action === "groups-sync") {
+      const receivedGroups = req.body?.groups;
+
+      if (!Array.isArray(receivedGroups)) {
+        return res.status(400).json({
+          error: "Lista de grupos inválida."
+        });
+      }
+
+      if (receivedGroups.length > 1000) {
+        return res.status(400).json({
+          error: "Quantidade de grupos excedida."
+        });
+      }
+
+      const groups = [];
+      const seen = new Set();
+
+      for (const group of receivedGroups) {
+        const id = String(group?.id || "").trim();
+        const subject = String(group?.subject || "").trim();
+
+        if (!id.endsWith("@g.us") || id.length > 150) {
+          continue;
+        }
+
+        if (seen.has(id)) {
+          continue;
+        }
+
+        seen.add(id);
+
+        groups.push({
+          id,
+          subject: subject.slice(0, 200) || "Grupo sem nome"
+        });
+      }
+
+      const saveGroups = await fetch(
+        `${SUPABASE_URL}/rest/v1/bot_settings` +
+        `?user_id=eq.${encodeURIComponent(device.user_id)}`,
+        {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({
+            available_groups: groups
+          })
+        }
+      );
+
+      if (!saveGroups.ok) {
+        const errorText = await saveGroups.text();
+        console.error("Erro ao salvar grupos:", errorText);
+
+        throw new Error("Falha ao salvar lista de grupos.");
+      }
+
+      return res.status(200).json({
+        success: true,
+        groupsSynced: true,
+        total: groups.length
+      });
+    }
+
+    // 4. A partir daqui, trata somente da desvinculação.
     if (!commandId) {
       return res.status(400).json({
         error: "ID do comando ausente."
       });
     }
 
-    // 4. Confere se o comando pertence ao dispositivo.
+    // 5. Confere se o comando pertence ao dispositivo.
     const commandResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?id=eq.${encodeURIComponent(commandId)}` +
@@ -141,7 +205,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 5. Apaga as sessões do dispositivo.
+    // 6. Apaga as sessões do dispositivo.
     const sessionDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/bot_sessions` +
       `?device_id=eq.${encodeURIComponent(deviceId)}`,
@@ -155,7 +219,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao apagar sessões do bot.");
     }
 
-    // 6. Apaga os pedidos de pareamento.
+    // 7. Apaga os pedidos de pareamento.
     const pairingDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/whatsapp_pairing` +
       `?user_id=eq.${encodeURIComponent(device.user_id)}` +
@@ -170,7 +234,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao apagar pedidos do WhatsApp.");
     }
 
-    // 7. Apaga os registros de ativação.
+    // 8. Apaga os registros de ativação.
     const activationDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_activations` +
       `?user_id=eq.${encodeURIComponent(device.user_id)}` +
@@ -185,7 +249,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao apagar registros de ativação.");
     }
 
-    // 8. Marca o comando como concluído.
+    // 9. Marca o comando como concluído.
     const completeResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?id=eq.${encodeURIComponent(commandId)}` +
@@ -204,7 +268,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao concluir comando.");
     }
 
-    // 9. Apaga os comandos relacionados ao dispositivo.
+    // 10. Apaga os comandos relacionados ao dispositivo.
     const commandDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?device_id=eq.${encodeURIComponent(deviceId)}` +
@@ -219,7 +283,7 @@ module.exports = async (req, res) => {
       throw new Error("Falha ao apagar comandos do dispositivo.");
     }
 
-    // 10. Por último, apaga o registro do dispositivo.
+    // 11. Por último, apaga o registro do dispositivo.
     const deviceDelete = await fetch(
       `${SUPABASE_URL}/rest/v1/devices` +
       `?id=eq.${encodeURIComponent(deviceId)}` +
@@ -248,4 +312,3 @@ module.exports = async (req, res) => {
     });
   }
 };
-      
