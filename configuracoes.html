@@ -1,3 +1,4 @@
+HTML
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -94,6 +95,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
   margin-top:9px;
   line-height:1.5;
 }
+.warning{
+  background:#241b0b;
+  border:1px solid #806020;
+  border-radius:9px;
+  padding:12px;
+  color:#ffd477;
+  font-size:12px;
+  line-height:1.5;
+  margin-top:12px;
+}
 </style>
 </head>
 
@@ -143,6 +154,7 @@ CONECTE A UM BOT PRIMEIRO
 <input id="functionCommand" maxlength="40" placeholder="Exemplo: ola">
 <div class="hint" id="commandPreview">Comando: #ola</div>
 
+<!-- MULTI SLOT -->
 <div id="multiSlotToggle" class="multi-toggle hidden">
   <label for="multiSlotEnabled">MULTI SLOT</label>
   <input type="checkbox" id="multiSlotEnabled" onchange="updateMultiSlotFields()">
@@ -166,18 +178,28 @@ CONECTE A UM BOT PRIMEIRO
 
 <div id="multiSlotField" class="hidden">
 <label>Selecione os slots que serão mostrados</label>
-
-<div class="multi-slots" id="multiSlotOptions">
-</div>
-
+<div class="multi-slots" id="multiSlotOptions"></div>
 <div class="multi-description">
 Você pode selecionar de 1 até 10 slots. O comando mostrará somente os slots selecionados.
 </div>
 </div>
 
+<!-- RESPOSTA -->
 <div id="responseField">
 <label for="functionResponse">Mensagem da resposta</label>
 <textarea id="functionResponse" placeholder="Digite o que o bot deverá responder..."></textarea>
+
+<label for="repeatCount">Quantidade de envios</label>
+<input id="repeatCount" type="number" min="1" step="1" value="1" placeholder="Exemplo: 5">
+<div class="hint">Escolha quantas vezes a mensagem será enviada.</div>
+
+<div id="repeatWarning" class="warning hidden">
+⚠️ Atenção: quantidades acima de 30 envios podem resultar na suspensão do número do WhatsApp. O uso é de responsabilidade do usuário. O ZuckerBots não se responsabiliza por eventuais punições.
+</div>
+
+<label for="intervalMs">Intervalo entre mensagens (milissegundos)</label>
+<input id="intervalMs" type="number" min="600" max="10000" step="1" value="1000" placeholder="Exemplo: 2000">
+<div class="hint">Você escolhe o intervalo. Mínimo: 600 ms. Máximo: 10000 ms (10 segundos).</div>
 </div>
 
 <label for="functionPermission">Quem poderá usar?</label>
@@ -342,6 +364,12 @@ function updateMultiSlotFields() {
   document.getElementById("multiSlotField")
     .classList.toggle("hidden", !enabled);
 }
+
+document.getElementById("repeatCount").addEventListener("input", () => {
+  const quantity = Number(document.getElementById("repeatCount").value);
+  document.getElementById("repeatWarning")
+    .classList.toggle("hidden", !(quantity > 30));
+});
 
 async function loadSettings() {
   const { data, error } = await supabaseClient
@@ -513,6 +541,9 @@ async function addFunction() {
     ? getSelectedSlots()
     : [];
 
+  const repeatCount = Number(document.getElementById("repeatCount").value);
+  const intervalMs = Number(document.getElementById("intervalMs").value);
+
   functionStatus.textContent = "";
 
   if (!command) {
@@ -528,6 +559,18 @@ async function addFunction() {
   if (type === "reply" && !response) {
     functionStatus.textContent = "Digite a mensagem da resposta.";
     return;
+  }
+
+  if (type === "reply") {
+    if (!Number.isInteger(repeatCount) || repeatCount < 1) {
+      functionStatus.textContent = "A quantidade de envios deve ser um número inteiro maior que zero.";
+      return;
+    }
+
+    if (!Number.isInteger(intervalMs) || intervalMs < 600 || intervalMs > 10000) {
+      functionStatus.textContent = "O intervalo deve ser de 600 até 10000 milissegundos.";
+      return;
+    }
   }
 
   if (multiSlotEnabled && selectedSlots.length === 0) {
@@ -577,7 +620,11 @@ async function addFunction() {
     command,
     permission,
     ...(type === "reply"
-      ? { response }
+      ? {
+          response,
+          repeatCount,
+          intervalMs
+        }
       : multiSlotEnabled
         ? { multiSlot: true, slots: selectedSlots }
         : { slot })
@@ -633,9 +680,18 @@ function renderFunctions() {
       slotInfo = " | Slot: " + item.slot;
     }
 
+    let repeatInfo = "";
+
+    if (item.type === "reply") {
+      repeatInfo =
+        " | Envios: " + (item.repeatCount || 1) +
+        " | Intervalo: " + (item.intervalMs || 1000) + " ms";
+    }
+
     info.textContent =
       "Tipo: " + (types[item.type] || item.type) +
       slotInfo +
+      repeatInfo +
       " | Permissão: " +
       (item.permission === "owner" ? "DONO" : "TODOS") +
       (item.response ? " | Resposta: " + item.response : "");
@@ -669,6 +725,12 @@ function editFunction(id) {
   document.getElementById("functionPermission").value = item.permission;
   document.getElementById("functionSlot").value = item.slot || "1";
   document.getElementById("functionResponse").value = item.response || "";
+
+  document.getElementById("repeatCount").value = item.repeatCount || 1;
+  document.getElementById("intervalMs").value = item.intervalMs || 1000;
+
+  document.getElementById("repeatWarning")
+    .classList.toggle("hidden", !(Number(item.repeatCount || 1) > 30));
 
   const isMultiSlot =
     item.type === "show" &&
@@ -707,6 +769,10 @@ function resetFunctionForm() {
   document.getElementById("functionSlot").value = "1";
   document.getElementById("functionResponse").value = "";
 
+  document.getElementById("repeatCount").value = "1";
+  document.getElementById("intervalMs").value = "1000";
+  document.getElementById("repeatWarning").classList.add("hidden");
+
   document.getElementById("multiSlotEnabled").checked = false;
   setSelectedSlots([]);
 
@@ -717,4 +783,34 @@ function resetFunctionForm() {
   updateCommandPreview();
 }
 
-funct
+function cancelEdit() {
+  resetFunctionForm();
+  functionStatus.textContent = "";
+}
+
+async function start() {
+  createMultiSlotOptions();
+
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error || !data.session) {
+    location.href = "index.html";
+    return;
+  }
+
+  accessToken = data.session.access_token;
+  currentUser = data.session.user;
+
+  await checkDevice();
+
+  setInterval(checkDevice, 5000);
+  window.addEventListener("focus", checkDevice);
+}
+
+updateFunctionFields();
+updateCommandPreview();
+start();
+</script>
+</body>
+</html>
+
