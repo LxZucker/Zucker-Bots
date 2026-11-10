@@ -355,13 +355,16 @@ function setSelectedSlots(slots) {
 }
 
 function updateMultiSlotFields() {
-  const enabled = document.getElementById("multiSlotEnabled").checked;
+  const type = document.getElementById("functionType").value;
+  const enabled =
+    type === "show" &&
+    document.getElementById("multiSlotEnabled").checked;
 
   document.getElementById("slotField")
-    .classList.toggle("hidden", enabled);
+    .classList.toggle("hidden", type === "reply" || enabled);
 
   document.getElementById("multiSlotField")
-    .classList.toggle("hidden", !enabled);
+    .classList.toggle("hidden", type !== "show" || !enabled);
 }
 
 document.getElementById("repeatCount").addEventListener("input", () => {
