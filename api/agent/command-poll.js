@@ -123,7 +123,9 @@ module.exports = async (req, res) => {
       `pv_unknown_message,gp_unknown_message,` +
       `pv_owner_cooldown,pv_user_cooldown,` +
       `gp_owner_cooldown,gp_user_cooldown,` +
-      `gp_all_groups,gp_selected_groups,updated_at` +
+      `gp_all_groups,gp_selected_groups,` +
+`divulgacao_enabled,divulgacao_config,divulgacao_commands,` +
+`divulgacao_updated_at,updated_at` +
       `&limit=1`,
       { headers }
     );
@@ -183,8 +185,23 @@ module.exports = async (req, res) => {
           gpAllGroups: saved.gp_all_groups !== false,
 
           gpSelectedGroups: Array.isArray(saved.gp_selected_groups)
-            ? saved.gp_selected_groups
-            : []
+  ? saved.gp_selected_groups
+  : [],
+
+// Configurações independentes da divulgação.
+divulgacaoEnabled: saved.divulgacao_enabled === true,
+
+divulgacaoConfig:
+  saved.divulgacao_config &&
+  typeof saved.divulgacao_config === "object"
+    ? saved.divulgacao_config
+    : { sections: [] },
+
+divulgacaoCommands: Array.isArray(saved.divulgacao_commands)
+  ? saved.divulgacao_commands
+  : [],
+
+divulgacaoUpdatedAt: saved.divulgacao_updated_at || null
         };
       }
     }
