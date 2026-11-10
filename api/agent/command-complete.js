@@ -98,9 +98,11 @@ module.exports = async (req, res) => {
       const currentSettings = await syncResponse.json();
 
       if (!currentSettings.length) {
-        return res.status(409).json({
-          error: "As configurações mudaram. Sincronize novamente."
-        });
+  return res.status(200).json({
+    success: true,
+    settingsSynced: false,
+    retry: true
+  });
       }
 
       return res.status(200).json({
