@@ -771,7 +771,10 @@ async function addFunction(){
     functionStatus.textContent="Digite o nome do comando.";
     return;
   }
-
+if(!/^[a-z0-9_-]{1,40}$/.test(command)){
+  functionStatus.textContent="Use somente letras, números, _ ou - no comando.";
+  return;
+}
   if(/\s/.test(command)){
     functionStatus.textContent="O comando não pode conter espaços.";
     return;
