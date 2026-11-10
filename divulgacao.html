@@ -14,7 +14,7 @@ h2{font-size:18px;margin:0 0 14px;color:#fff}.hint{color:var(--muted);font-size:
 button{border:0;border-radius:9px;padding:12px 15px;font-weight:bold;cursor:pointer;background:var(--red);color:white}button.secondary{background:#292929}button.green{background:#168a43}button:disabled{opacity:.45;cursor:not-allowed}
 input,select{width:100%;background:#090909;border:1px solid #383838;color:white;border-radius:8px;padding:11px;margin:6px 0 12px;font-size:14px}
 label{display:block;font-size:13px;color:#ddd;margin:8px 0 4px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{display:flex;align-items:center;gap:9px;margin:10px 0}.check input{width:auto;margin:0;accent-color:var(--red)}
-.session{border:1px solid #333;border-radius:12px;padding:14px;margin:12px 0;background:#0d0d0d}.session h3{margin:0 0 10px;color:#ff5555}.group-list{max-height:190px;overflow:auto;border:1px solid #333;border-radius:8px;padding:8px}.group-list .check{margin:8px 2px}
+.session{border:1px solid #333;border-radius:12px;padding:14px;margin:12px 0;background:#0d0d0d}.session h3{margin:0 0 10px;color:#ff5555}.group-list{max-height:220px;overflow:auto;border:1px solid #333;border-radius:8px;padding:8px}.group-list .check{margin:8px 2px}.group-tools{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin:8px 0}.group-search{position:relative}.group-search input{margin:0;padding-left:36px}.group-search span{position:absolute;left:11px;top:10px;color:#aaa;font-size:17px}.group-count{font-size:12px;color:#aaa;margin:7px 0}.back-button{display:inline-block;margin:16px 3% 0;background:#292929;color:#fff;text-decoration:none;padding:10px 14px;border-radius:9px;font-weight:bold}
 .slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.slot{background:#171717;border:1px solid #343434;border-radius:9px;padding:10px;font-size:13px}
 .command{display:grid;grid-template-columns:1fr 100px auto;gap:8px;align-items:end;border-bottom:1px solid #292929;padding:8px 0}
 #status{padding:11px;border-radius:8px;background:#171717;color:#ddd;margin:12px 0;white-space:pre-wrap}.warn{color:#ffc45c}.ok{color:var(--green)}.danger{color:#ff7777}
@@ -23,6 +23,7 @@ footer{text-align:center;color:#777;font-size:12px;padding:20px}
 </style>
 </head>
 <body>
+<a class="back-button" href="configuracoes.html">← VOLTAR PARA CONFIGURAÇÕES</a>
 <header><h1>📣 ZUCKERBOTS — DIVULGAÇÃO</h1><p>Configure mensagens automáticas para seus grupos</p></header>
 <main>
 <div id="status">Carregando configurações...</div>
@@ -90,14 +91,20 @@ function renderSessions(){
   <label>Espaços que serão divulgados</label>
   <div class="slot-grid">${[1,2,3].map(n=>`<label class="check slot"><input type="checkbox" data-slot="${n}" data-i="${i}" ${s.slots.includes(String(n))?"checked":""}> Espaço ${n}</label>`).join("")}</div>
   <label>Grupos de destino</label>
-  <div class="group-list">${groups.length?groups.map(g=>{const jid=g.id||g.jid||g.groupJid||g.value;const name=g.name||g.subject||jid;return `<label class="check"><input type="checkbox" data-group="${escapeHtml(jid)}" data-i="${i}" ${s.groups.includes(jid)?"checked":""}> ${escapeHtml(name)}</label>`;}).join(""):'<span class="hint">Nenhum grupo foi encontrado no painel. Confira a sincronização dos grupos no bot.</span>'}</div>
-  <div style="display:flex;gap:8px;margin-top:10px"><button class="secondary" type="button" data-all="${i}">Selecionar grupos</button><button class="secondary" type="button" data-none="${i}">Limpar grupos</button></div>
+  <div class="group-tools">
+   <div class="group-search"><span>⌕</span><input type="search" placeholder="Buscar grupo pelo nome..." data-search="${i}" aria-label="Buscar grupo"></div>
+   <button class="secondary" type="button" data-all="${i}">Selecionar todos</button>
+   <button class="secondary" type="button" data-none="${i}">Limpar todos</button>
+  </div>
+  <div class="group-count" data-count="${i}">${s.groups.length} grupo(s) selecionado(s)</div>
+  <div class="group-list">${groups.length?groups.map(g=>{const jid=g.id||g.jid||g.groupJid||g.value;const name=g.name||g.subject||jid;return `<label class="check" data-group-row><input type="checkbox" data-group="${escapeHtml(jid)}" data-i="${i}" ${s.groups.includes(jid)?"checked":""}> <span>${escapeHtml(name)}</span></label>`;}).join(""):'<span class="hint">Nenhum grupo foi encontrado no painel. Confira a sincronização dos grupos no bot.</span>'}</div>
  </div>`).join("");
  $("sessions").querySelectorAll("[data-field]").forEach(el=>el.addEventListener("change",()=>{const i=Number(el.dataset.i),f=el.dataset.field;sections[i][f]=f==="enabled"?el.checked:Number(el.value);}));
  $("sessions").querySelectorAll("[data-slot]").forEach(el=>el.addEventListener("change",()=>{const a=sections[Number(el.dataset.i)].slots,n=el.dataset.slot;if(el.checked&&!a.includes(n))a.push(n);if(!el.checked)sections[Number(el.dataset.i)].slots=a.filter(x=>x!==n);}));
- $("sessions").querySelectorAll("[data-group]").forEach(el=>el.addEventListener("change",()=>{const a=sections[Number(el.dataset.i)].groups,n=el.dataset.group;if(el.checked&&!a.includes(n))a.push(n);if(!el.checked)sections[Number(el.dataset.i)].groups=a.filter(x=>x!==n);}));
- $("sessions").querySelectorAll("[data-all]").forEach(el=>el.addEventListener("click",()=>{sections[Number(el.dataset.all)].groups=groups.map(g=>g.id||g.jid||g.groupJid||g.value).filter(Boolean);renderSessions();}));
- $("sessions").querySelectorAll("[data-none]").forEach(el=>el.addEventListener("click",()=>{sections[Number(el.dataset.none)].groups=[];renderSessions();}));
+ $("sessions").querySelectorAll("[data-group]").forEach(el=>el.addEventListener("change",()=>{const i=Number(el.dataset.i),a=sections[i].groups,n=el.dataset.group;if(el.checked&&!a.includes(n))a.push(n);if(!el.checked)sections[i].groups=a.filter(x=>x!==n);const count=$("sessions").querySelector('[data-count="'+i+'"]');if(count)count.textContent=a.length+" grupo(s) selecionado(s)";}));
+ $("sessions").querySelectorAll("[data-search]").forEach(el=>el.addEventListener("input",()=>{const term=el.value.trim().toLocaleLowerCase("pt-BR"),session=el.closest(".session");session.querySelectorAll("[data-group-row]").forEach(row=>{row.style.display=row.textContent.toLocaleLowerCase("pt-BR").includes(term)?"flex":"none";});}));
+ $("sessions").querySelectorAll("[data-all]").forEach(el=>el.addEventListener("click",()=>{const i=Number(el.dataset.all);sections[i].groups=groups.map(g=>g.id||g.jid||g.groupJid||g.value).filter(Boolean);renderSessions();}));
+ $("sessions").querySelectorAll("[data-none]").forEach(el=>el.addEventListener("click",()=>{const i=Number(el.dataset.none);sections[i].groups=[];renderSessions();}));
 }
 async function init(){
  const {data:{session},error}=await supabaseClient.auth.getSession();
@@ -137,4 +144,4 @@ init();
 })();
 </script>
 </body>
-  </html>
+</html>
