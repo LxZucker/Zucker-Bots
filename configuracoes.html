@@ -55,6 +55,25 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .multi-slots{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}
 .multi-description{color:#888;font-size:12px;margin-top:9px;line-height:1.5}
 .warning{background:#241b0b;border:1px solid #806020;border-radius:9px;padding:12px;color:#ffd477;font-size:12px;line-height:1.5;margin-top:12px}
+
+/* BOTÃO ÚNICO PARA SALVAR AS CONFIGURAÇÕES */
+.save-area{
+  background:#111;
+  border:1px solid #383838;
+  border-radius:14px;
+  padding:18px;
+  margin:18px 0 25px;
+}
+.save-area .primary{
+  margin-top:0;
+  padding:16px;
+  font-size:15px;
+  background:linear-gradient(90deg,#c91e2e,#ed3030);
+  box-shadow:0 0 14px rgba(227,38,54,.18);
+}
+.save-area .status{
+  text-align:center;
+}
 </style>
 </head>
 <body>
@@ -63,16 +82,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <header><h1>Zucker<span>Bots</span></h1><div class="subtitle">Configurações do seu bot</div></header>
 <section id="locked" class="locked">CONECTE A UM BOT PRIMEIRO</section>
 <section id="settings" class="hidden">
+
   <div class="card">
     <h2>⚙️ Configurações gerais</h2>
     <label for="prefix">Prefixo dos comandos</label>
     <input id="prefix" maxlength="3" placeholder="#">
     <div class="hint">Exemplo: #ping, !ping ou .ping</div>
+
     <label for="ownerNumber">Número do dono</label>
     <input id="ownerNumber" type="tel" placeholder="Exemplo: 5511999999999">
     <div class="hint">Informe o número com DDI e DDD.</div>
-    <button class="primary" id="saveButton" onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button>
-    <div id="saveStatus" class="status"></div>
   </div>
 
   <div class="tabs">
@@ -82,40 +101,57 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   <div class="card">
     <h2 id="modeTitle">🤖 Configurações do Bot PV</h2>
+
     <div class="toggle-row">
       <label id="enabledLabel" for="modeEnabled">ATIVAR BOT PV</label>
       <input id="modeEnabled" type="checkbox" checked>
     </div>
+
     <label id="unknownLabel" for="unknownMessage">Mensagem para comando inexistente</label>
     <textarea id="unknownMessage" placeholder="Deixe vazio para o bot não responder quando o comando não existir."></textarea>
     <div class="hint">Se ficar em branco, o bot ficará em silêncio quando alguém usar um comando desconhecido.</div>
+
     <h2 style="margin-top:22px">⏱️ Cooldown dos comandos</h2>
+
     <label for="ownerCooldown">Cooldown do dono (segundos)</label>
     <input id="ownerCooldown" type="number" min="1" max="25" step="1" value="1">
+
     <label for="userCooldown">Cooldown dos demais usuários (segundos)</label>
     <input id="userCooldown" type="number" min="1" max="25" step="1" value="1">
+
     <div class="hint">O tempo é individual por pessoa. O cooldown do dono é separado do cooldown dos demais usuários. Mínimo: 1 segundo. Máximo: 25 segundos.</div>
   </div>
 
   <div id="groupsCard" class="card hidden">
     <h2>👥 Grupos permitidos</h2>
     <div class="hint">Marque os grupos em que o bot poderá responder. Você pode selecionar todos e depois desmarcar grupos individualmente.</div>
+
     <div class="group-search">
       <span class="group-search-icon">⌕</span>
       <input id="groupSearch" type="search" placeholder="Pesquisar grupo pelo nome..." oninput="filterGroups()">
     </div>
+
     <div class="group-tools">
       <button type="button" onclick="selectAllGroups()">SELECIONAR TODOS</button>
       <button type="button" class="secondary" onclick="clearGroupSelection()">LIMPAR</button>
     </div>
+
     <div id="groupList" class="group-list">
       <div class="hint">Aguardando a lista de grupos do WhatsApp...</div>
     </div>
+
     <div class="hint">A lista será preenchida quando o agente enviar os grupos encontrados no WhatsApp.</div>
+  </div>
+
+  <!-- BOTÃO DE SALVAR AGORA FICA DEPOIS DAS CONFIGURAÇÕES PV/GP E DOS GRUPOS -->
+  <div class="save-area">
+    <button class="primary" id="saveButton" onclick="saveSettings()">SALVAR TODAS AS CONFIGURAÇÕES</button>
+    <div id="saveStatus" class="status"></div>
   </div>
 
   <div class="card">
     <h2>🛠️ Criar novo comando</h2>
+
     <label for="functionType">Tipo de função</label>
     <select id="functionType" onchange="updateFunctionFields()">
       <option value="reply">RESPONDER</option>
@@ -123,13 +159,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <option value="show">MOSTRAR</option>
       <option value="delete">APAGAR</option>
     </select>
+
     <label for="functionCommand">Nome do comando</label>
     <input id="functionCommand" maxlength="40" placeholder="Exemplo: ola">
     <div class="hint" id="commandPreview">Comando: #ola</div>
+
     <div id="multiSlotToggle" class="multi-toggle hidden">
       <label for="multiSlotEnabled">MULTI SLOT</label>
       <input type="checkbox" id="multiSlotEnabled" onchange="updateMultiSlotFields()">
     </div>
+
     <div id="slotField">
       <label for="functionSlot">Slot de armazenamento</label>
       <select id="functionSlot">
@@ -140,27 +179,34 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <option value="9">Slot 9</option><option value="10">Slot 10</option>
       </select>
     </div>
+
     <div id="multiSlotField" class="hidden">
       <label>Selecione os slots que serão mostrados</label>
       <div class="multi-slots" id="multiSlotOptions"></div>
       <div class="multi-description">Você pode selecionar de 1 até 10 slots. O comando mostrará somente os slots selecionados.</div>
     </div>
+
     <div id="responseField">
       <label for="functionResponse">Mensagem da resposta</label>
       <textarea id="functionResponse" placeholder="Digite o que o bot deverá responder..."></textarea>
+
       <label for="repeatCount">Quantidade de envios</label>
       <input id="repeatCount" type="number" min="1" step="1" value="1">
       <div class="hint">Escolha quantas vezes a mensagem será enviada.</div>
+
       <div id="repeatWarning" class="warning hidden">⚠️ Atenção: quantidades acima de 30 envios podem resultar na suspensão do número do WhatsApp. O uso é de responsabilidade do usuário.</div>
+
       <label for="intervalMs">Intervalo entre mensagens (milissegundos)</label>
       <input id="intervalMs" type="number" min="600" max="10000" step="1" value="1000">
       <div class="hint">Mínimo: 600 ms. Máximo: 10000 ms (10 segundos).</div>
     </div>
+
     <label for="functionPermission">Quem poderá usar?</label>
     <select id="functionPermission">
       <option value="owner">SOMENTE O DONO</option>
       <option value="all">TODOS</option>
     </select>
+
     <button class="primary" id="addFunctionButton" onclick="addFunction()">ADICIONAR FUNÇÃO</button>
     <button class="secondary hidden" id="cancelEditButton" onclick="cancelEdit()">CANCELAR EDIÇÃO</button>
     <div id="functionStatus" class="status"></div>
@@ -170,13 +216,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <h2 id="listTitle">📋 Comandos do Bot PV</h2>
     <div id="functionList"><div class="hint">Nenhuma função criada ainda.</div></div>
   </div>
+
   <div class="card">
     <h2>📦 Sobre os slots</h2>
     <div class="hint">Cada modalidade possui seus próprios 10 slots. Os conteúdos serão armazenados nos arquivos locais do agente, sem backup na nuvem. Se os arquivos do aparelho forem perdidos, os conteúdos salvos também poderão ser perdidos.</div>
   </div>
 </section>
-      </main>
-      <script>
+<script>
 const SUPABASE_URL="https://khkjlodngoahevxkxswj.supabase.co";
 const SUPABASE_KEY="sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
