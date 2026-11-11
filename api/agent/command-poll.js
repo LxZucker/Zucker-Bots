@@ -248,3 +248,4 @@ divulgacaoUpdatedAt: saved.divulgacao_updated_at || null
     });
   }
 };
+      
