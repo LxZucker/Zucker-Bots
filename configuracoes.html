@@ -122,6 +122,24 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div class="hint">O tempo é individual por pessoa. O cooldown do dono é separado do cooldown dos demais usuários. Mínimo: 1 segundo. Máximo: 25 segundos.</div>
   </div>
 
+  <div class="card" id="autoReplyCard" style="border-color:#245c3a">
+    <h2>💬 Resposta automática (somente PV)</h2>
+    <div class="hint">Responde mensagens recebidas no privado sem precisar de prefixo. Não interfere nos comandos existentes e não responde em grupos.</div>
+
+    <div class="toggle-row">
+      <label for="autoReplyEnabled">ATIVAR RESPOSTA AUTOMÁTICA</label>
+      <input id="autoReplyEnabled" type="checkbox">
+    </div>
+
+    <label for="autoReplyMessage">Mensagem automática</label>
+    <textarea id="autoReplyMessage" maxlength="4000" placeholder="Exemplo: Olá! Recebi sua mensagem. Assim que possível vou responder."></textarea>
+    <div class="hint">Máximo de 4.000 caracteres. Deixe desativada para o bot não responder automaticamente.</div>
+
+    <label for="autoReplyCooldownMinutes">Intervalo por contato (minutos)</label>
+    <input id="autoReplyCooldownMinutes" type="number" min="1" max="43200" step="1" value="60">
+    <div class="hint">Cada pessoa terá seu próprio intervalo. Exemplo: 60 = o mesmo contato só recebe outra resposta automática depois de 60 minutos. O intervalo será mantido mesmo se o bot reiniciar.</div>
+  </div>
+
   <div id="groupsCard" class="card hidden">
     <h2>👥 Grupos permitidos</h2>
     <div class="hint">Marque os grupos em que o bot poderá responder. Você pode selecionar todos e depois desmarcar grupos individualmente.</div>
@@ -257,7 +275,10 @@ let settingsData={
   gp_user_cooldown:1,
   gp_all_groups:false,
   gp_selected_groups:[],
-  available_groups:[]
+  available_groups:[],
+  auto_reply_enabled:false,
+  auto_reply_message:"",
+  auto_reply_cooldown_minutes:60
 };
 
 const $=id=>document.getElementById(id);
@@ -543,7 +564,7 @@ function clearGroupSelection(){
 async function loadSettings(){
   const {data,error}=await supabaseClient
     .from("bot_settings")
-    .select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups")
+    .select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups,auto_reply_enabled,auto_reply_message,auto_reply_cooldown_minutes")
     .eq("user_id",currentUser.id)
     .maybeSingle();
 
@@ -560,6 +581,10 @@ async function loadSettings(){
     ...settingsData,
     ...(data||{})
   };
+
+  $("autoReplyEnabled").checked = data?.auto_reply_enabled === true;
+  $("autoReplyMessage").value = data?.auto_reply_message || "";
+  $("autoReplyCooldownMinutes").value = data?.auto_reply_cooldown_minutes ?? 60;
 
   if(data?.bot_pv_enabled==null)
     settingsData.bot_pv_enabled=true;
@@ -683,6 +708,27 @@ async function saveSettings(){
     }
   }
 
+  const autoReplyEnabled = $("autoReplyEnabled").checked;
+  const autoReplyMessage = $("autoReplyMessage").value.trim();
+  const autoReplyCooldownMinutes = Number($("autoReplyCooldownMinutes").value);
+
+  if (!Number.isInteger(autoReplyCooldownMinutes) ||
+      autoReplyCooldownMinutes < 1 ||
+      autoReplyCooldownMinutes > 43200) {
+    saveStatus.textContent = "O intervalo da resposta automática deve ser um número inteiro entre 1 e 43200 minutos.";
+    return;
+  }
+
+  if (autoReplyMessage.length > 4000) {
+    saveStatus.textContent = "A mensagem automática pode ter no máximo 4000 caracteres.";
+    return;
+  }
+
+  if (autoReplyEnabled && !autoReplyMessage) {
+    saveStatus.textContent = "Digite a mensagem automática ou desative a resposta automática.";
+    return;
+  }
+
   syncActiveFunctions();
   saveLocalFunctions();
 
@@ -712,6 +758,10 @@ async function saveSettings(){
 
     gp_selected_groups:Array.isArray(settingsData.gp_selected_groups)?
       settingsData.gp_selected_groups:[],
+
+    auto_reply_enabled:autoReplyEnabled,
+    auto_reply_message:autoReplyMessage,
+    auto_reply_cooldown_minutes:autoReplyCooldownMinutes,
 
     updated_at:new Date().toISOString()
   };
