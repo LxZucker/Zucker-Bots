@@ -124,8 +124,10 @@ module.exports = async (req, res) => {
       `pv_owner_cooldown,pv_user_cooldown,` +
       `gp_owner_cooldown,gp_user_cooldown,` +
       `gp_all_groups,gp_selected_groups,` +
-`divulgacao_enabled,divulgacao_config,divulgacao_commands,` +
-`divulgacao_updated_at,updated_at` +
+      `divulgacao_enabled,divulgacao_config,divulgacao_commands,` +
+      `divulgacao_updated_at,` +
+      `auto_reply_enabled,auto_reply_message,auto_reply_cooldown_minutes,` +
+      `updated_at` +
       `&limit=1`,
       { headers }
     );
@@ -185,23 +187,29 @@ module.exports = async (req, res) => {
           gpAllGroups: saved.gp_all_groups !== false,
 
           gpSelectedGroups: Array.isArray(saved.gp_selected_groups)
-  ? saved.gp_selected_groups
-  : [],
+            ? saved.gp_selected_groups
+            : [],
 
-// Configurações independentes da divulgação.
-divulgacaoEnabled: saved.divulgacao_enabled === true,
+          // Resposta automática em PV.
+          autoReplyEnabled: saved.auto_reply_enabled === true,
+          autoReplyMessage: String(saved.auto_reply_message || ""),
+          autoReplyCooldownMinutes:
+            saved.auto_reply_cooldown_minutes ?? 60,
 
-divulgacaoConfig:
-  saved.divulgacao_config &&
-  typeof saved.divulgacao_config === "object"
-    ? saved.divulgacao_config
-    : { sections: [] },
+          // Configurações independentes da divulgação.
+          divulgacaoEnabled: saved.divulgacao_enabled === true,
 
-divulgacaoCommands: Array.isArray(saved.divulgacao_commands)
-  ? saved.divulgacao_commands
-  : [],
+          divulgacaoConfig:
+            saved.divulgacao_config &&
+            typeof saved.divulgacao_config === "object"
+              ? saved.divulgacao_config
+              : { sections: [] },
 
-divulgacaoUpdatedAt: saved.divulgacao_updated_at || null
+          divulgacaoCommands: Array.isArray(saved.divulgacao_commands)
+            ? saved.divulgacao_commands
+            : [],
+
+          divulgacaoUpdatedAt: saved.divulgacao_updated_at || null
         };
       }
     }
