@@ -6,7 +6,7 @@
 <title>ZuckerBots — Divulgação</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{color-scheme:dark;--bg:#080808;--card:#121212;--line:#292929;--red:#ff3030;--green:#25d366;--muted:#aaa}
+:root{color-scheme:dark;--card:#121212;--line:#292929;--red:#ff3030;--green:#25d366;--muted:#aaa}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#241010 0,#080808 42%);color:#f5f5f5;font:15px Arial,sans-serif;min-height:100vh}
 header{padding:22px 16px;text-align:center;border-bottom:1px solid #291616}header h1{margin:0;color:#ff4141;font-size:25px}header p{color:var(--muted);margin:8px 0 0}
 main{width:min(900px,94%);margin:22px auto 50px}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:18px;margin:14px 0;box-shadow:0 8px 25px #0007}
@@ -15,10 +15,8 @@ button{border:0;border-radius:9px;padding:12px 15px;font-weight:bold;cursor:poin
 input,select{width:100%;background:#090909;border:1px solid #383838;color:white;border-radius:8px;padding:11px;margin:6px 0 12px;font-size:14px}
 label{display:block;font-size:13px;color:#ddd;margin:8px 0 4px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{display:flex;align-items:center;gap:9px;margin:10px 0}.check input{width:auto;margin:0;accent-color:var(--red)}
 .session{border:1px solid #333;border-radius:12px;padding:14px;margin:12px 0;background:#0d0d0d}.session h3{margin:0 0 10px;color:#ff5555}.group-list{max-height:220px;overflow:auto;border:1px solid #333;border-radius:8px;padding:8px}.group-list .check{margin:8px 2px}.group-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;margin:8px 0}.group-search{position:relative;grid-column:1/-1;width:100%}.group-search input{width:100%;margin:0;padding-left:36px}.group-tools button{width:100%}.group-search span{position:absolute;left:11px;top:10px;color:#aaa;font-size:17px}.group-count{font-size:12px;color:#aaa;margin:7px 0}.back-button{display:inline-block;margin:16px 3% 0;background:#292929;color:#fff;text-decoration:none;padding:10px 14px;border-radius:9px;font-weight:bold}
-.slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.slot{background:#171717;border:1px solid #343434;border-radius:9px;padding:10px;font-size:13px}
-.command{display:grid;grid-template-columns:1fr 100px auto;gap:8px;align-items:end;border-bottom:1px solid #292929;padding:8px 0}
-#status{padding:11px;border-radius:8px;background:#171717;color:#ddd;margin:12px 0;white-space:pre-wrap}.warn{color:#ffc45c}.ok{color:var(--green)}.danger{color:#ff7777}
-footer{text-align:center;color:#777;font-size:12px;padding:20px}
+.slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.slot{background:#171717;border:1px solid #343434;border-radius:9px;padding:10px;font-size:13px}.command{display:grid;grid-template-columns:1fr 100px auto;gap:8px;align-items:end;border-bottom:1px solid #292929;padding:8px 0}
+#status{padding:11px;border-radius:8px;background:#171717;color:#ddd;margin:12px 0;white-space:pre-wrap}.warn{color:#ffc45c}.ok{color:var(--green)}.danger{color:#ff7777}footer{text-align:center;color:#777;font-size:12px;padding:20px}
 @media(max-width:600px){.row{grid-template-columns:1fr}.slot-grid{grid-template-columns:1fr}.command{grid-template-columns:1fr 85px}.command button{grid-column:1/-1}}
 </style>
 </head>
@@ -27,119 +25,39 @@ footer{text-align:center;color:#777;font-size:12px;padding:20px}
 <header><h1>📣 ZUCKERBOTS — DIVULGAÇÃO</h1><p>Configure mensagens automáticas para seus grupos</p></header>
 <main>
 <div id="status">Carregando configurações...</div>
-<section class="card">
-<h2>Controle geral</h2>
-<label class="check"><input type="checkbox" id="globalEnabled"> Ativar divulgação automática</label>
-<p class="hint">Quando desligado, nenhuma das três sessões enviará mensagens. Isso não altera as configurações de PV ou GP.</p>
-</section>
-<section class="card">
-<h2>Conteúdos salvos — 3 espaços</h2>
-<p class="hint">Para salvar conteúdo, crie um comando abaixo. No WhatsApp, responda à mensagem ou mídia desejada usando o comando configurado (com o prefixo do bot). O bot guardará o conteúdo no espaço escolhido.</p>
-<div class="slot-grid">
-<div class="slot">📦 <b>Espaço 1</b><br>Conteúdo de divulgação 1</div>
-<div class="slot">📦 <b>Espaço 2</b><br>Conteúdo de divulgação 2</div>
-<div class="slot">📦 <b>Espaço 3</b><br>Conteúdo de divulgação 3</div>
-</div>
-<div id="commands"></div>
-<div class="row">
-<div><label>Nome do comando</label><input id="newCommand" maxlength="40" placeholder="ex: promo1"></div>
-<div><label>Guardar no espaço</label><select id="newSlot"><option value="1">Espaço 1</option><option value="2">Espaço 2</option><option value="3">Espaço 3</option></select></div>
-</div>
-<button type="button" class="secondary" id="addCommand">＋ Adicionar comando</button>
-<p class="hint">Use apenas letras minúsculas, números, _ ou -. O prefixo atual será acrescentado automaticamente no WhatsApp.</p>
-</section>
-<section class="card">
-<h2>Três sessões de divulgação</h2>
-<p class="hint">Cada sessão tem intervalo, espaços de conteúdo e grupos independentes.</p>
-<div id="sessions"></div>
-</section>
-<div class="card">
-<button id="save" class="green" style="width:100%">SALVAR CONFIGURAÇÕES</button>
-<p class="hint">As configurações serão sincronizadas com o agente Termux na próxima atualização.</p>
-</div>
-</main>
-<footer>ZuckerBots • Painel de divulgação</footer>
+<section class="card"><h2>Controle geral</h2><label class="check"><input type="checkbox" id="globalEnabled"> Ativar divulgação automática</label><p class="hint">Quando desligado, nenhuma das três sessões enviará mensagens. Isso não altera as configurações de PV ou GP.</p></section>
+<section class="card"><h2>Conteúdos salvos — 3 espaços</h2><p class="hint">Para salvar conteúdo, crie um comando abaixo. No WhatsApp, responda à mensagem ou mídia desejada usando o comando configurado (com o prefixo do bot). O bot guardará o conteúdo no espaço escolhido.</p>
+<div class="slot-grid"><div class="slot">📦 <b>Espaço 1</b><br>Conteúdo de divulgação 1</div><div class="slot">📦 <b>Espaço 2</b><br>Conteúdo de divulgação 2</div><div class="slot">📦 <b>Espaço 3</b><br>Conteúdo de divulgação 3</div></div>
+<div id="commands"></div><div class="row"><div><label>Nome do comando</label><input id="newCommand" maxlength="40" placeholder="ex: promo1"></div><div><label>Guardar no espaço</label><select id="newSlot"><option value="1">Espaço 1</option><option value="2">Espaço 2</option><option value="3">Espaço 3</option></select></div></div>
+<button type="button" class="secondary" id="addCommand">＋ Adicionar comando</button><p class="hint">Use apenas letras minúsculas, números, _ ou -. O prefixo atual será acrescentado automaticamente no WhatsApp.</p></section>
+<section class="card"><h2>Três sessões de divulgação</h2><p class="hint">Cada sessão tem intervalo, espaços de conteúdo e grupos independentes. O mesmo grupo não receberá duas sessões no mesmo ciclo.</p><div id="sessions"></div></section>
+<div class="card"><button id="save" class="green" style="width:100%">SALVAR CONFIGURAÇÕES</button><p class="hint">As configurações serão sincronizadas com o agente Termux na próxima atualização.</p></div>
+</main><footer>ZuckerBots • Painel de divulgação</footer>
 <script>
 (() => {
-const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const $ = id => document.getElementById(id);
-let currentUser = null, groups = [], commands = [], sections = [];
-let prefix = "#";
-const status = (message, cls="") => { $("status").className=cls; $("status").textContent=message; };
-const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function normalizeSections(data){
- const arr=Array.isArray(data?.sections)?data.sections:[];
- return [0,1,2].map(i=>{const old=arr[i]||{};return {
-  id:String(i+1),enabled:old.enabled===true,intervalMinutes:Math.max(1,Number(old.intervalMinutes)||60),
-  slots:Array.isArray(old.slots)?old.slots.map(String):[],groups:Array.isArray(old.groups)?old.groups.map(String):[]
- };});
-}
-function renderCommands(){
- $("commands").innerHTML = commands.length ? commands.map((c,i)=>`<div class="command"><div><b>${escapeHtml(prefix+c.command)}</b><div class="hint">Salva no espaço ${c.slot}</div></div><div class="hint">Espaço ${c.slot}</div><button class="secondary" data-remove="${i}" type="button">Excluir</button></div>`).join("") : '<p class="hint">Nenhum comando criado ainda.</p>';
- $("commands").querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>{commands.splice(Number(b.dataset.remove),1);renderCommands();}));
-}
+const SUPABASE_URL="https://khkjlodngoahevxkxswj.supabase.co";
+const SUPABASE_KEY="sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+let currentUser=null,groups=[],commands=[],sections=[],prefix="#";
+const status=(message,cls="")=>{$("status").className=cls;$("status").textContent=message;};
+const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function groupId(g){return String(g?.id||g?.jid||g?.groupJid||g?.value||"").trim();}
+function uniqueGroups(list){const seen=new Set(),out=[];for(const g of Array.isArray(list)?list:[]){const id=groupId(g);if(!id.endsWith("@g.us")||seen.has(id))continue;seen.add(id);out.push({...g,id});}return out;}
+function normalizeSections(data){const arr=Array.isArray(data?.sections)?data.sections:[];return [0,1,2].map(i=>{const old=arr[i]||{};return{id:String(i+1),enabled:old.enabled===true,intervalMinutes:Math.max(1,Number(old.intervalMinutes)||60),slots:[...new Set((Array.isArray(old.slots)?old.slots:[]).map(String))],groups:[...new Set((Array.isArray(old.groups)?old.groups:[]).map(String).filter(x=>x.endsWith("@g.us")))]};});}
+function renderCommands(){$("commands").innerHTML=commands.length?commands.map((c,i)=>`<div class="command"><div><b>${escapeHtml(prefix+c.command)}</b><div class="hint">Salva no espaço ${c.slot}</div></div><div class="hint">Espaço ${c.slot}</div><button class="secondary" data-remove="${i}" type="button">Excluir</button></div>`).join(""):'<p class="hint">Nenhum comando criado ainda.</p>';$ ("commands").querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>{commands.splice(Number(b.dataset.remove),1);renderCommands();}));}
 function renderSessions(){
- $("sessions").innerHTML=sections.map((s,i)=>`
- <div class="session">
-  <h3>Sessão ${i+1}</h3>
-  <label class="check"><input type="checkbox" data-field="enabled" data-i="${i}" ${s.enabled?"checked":""}> Ativar esta sessão</label>
-  <label>Intervalo entre envios (minutos)</label>
-  <input type="number" min="1" max="10080" data-field="intervalMinutes" data-i="${i}" value="${s.intervalMinutes}">
-  <div class="hint warn">Recomendado: 30 minutos ou mais para evitar excesso de mensagens.</div>
-  <label>Espaços que serão divulgados</label>
-  <div class="slot-grid">${[1,2,3].map(n=>`<label class="check slot"><input type="checkbox" data-slot="${n}" data-i="${i}" ${s.slots.includes(String(n))?"checked":""}> Espaço ${n}</label>`).join("")}</div>
-  <label>Grupos de destino</label>
-  <div class="group-tools">
-   <div class="group-search"><span>⌕</span><input type="search" placeholder="Buscar grupo pelo nome..." data-search="${i}" aria-label="Buscar grupo"></div>
-   <button class="secondary" type="button" data-all="${i}">Selecionar todos</button>
-   <button class="secondary" type="button" data-none="${i}">Limpar todos</button>
-  </div>
-  <div class="group-count" data-count="${i}">${s.groups.length} grupo(s) selecionado(s)</div>
-  <div class="group-list">${groups.length?groups.map(g=>{const jid=g.id||g.jid||g.groupJid||g.value;const name=g.name||g.subject||jid;return `<label class="check" data-group-row><input type="checkbox" data-group="${escapeHtml(jid)}" data-i="${i}" ${s.groups.includes(jid)?"checked":""}> <span>${escapeHtml(name)}</span></label>`;}).join(""):'<span class="hint">Nenhum grupo foi encontrado no painel. Confira a sincronização dos grupos no bot.</span>'}</div>
- </div>`).join("");
- $("sessions").querySelectorAll("[data-field]").forEach(el=>el.addEventListener("change",()=>{const i=Number(el.dataset.i),f=el.dataset.field;sections[i][f]=f==="enabled"?el.checked:Number(el.value);}));
- $("sessions").querySelectorAll("[data-slot]").forEach(el=>el.addEventListener("change",()=>{const a=sections[Number(el.dataset.i)].slots,n=el.dataset.slot;if(el.checked&&!a.includes(n))a.push(n);if(!el.checked)sections[Number(el.dataset.i)].slots=a.filter(x=>x!==n);}));
- $("sessions").querySelectorAll("[data-group]").forEach(el=>el.addEventListener("change",()=>{const i=Number(el.dataset.i),a=sections[i].groups,n=el.dataset.group;if(el.checked&&!a.includes(n))a.push(n);if(!el.checked)sections[i].groups=a.filter(x=>x!==n);const count=$("sessions").querySelector('[data-count="'+i+'"]');if(count)count.textContent=a.length+" grupo(s) selecionado(s)";}));
- $("sessions").querySelectorAll("[data-search]").forEach(el=>el.addEventListener("input",()=>{const term=el.value.trim().toLocaleLowerCase("pt-BR"),session=el.closest(".session");session.querySelectorAll("[data-group-row]").forEach(row=>{row.style.display=row.textContent.toLocaleLowerCase("pt-BR").includes(term)?"flex":"none";});}));
- $("sessions").querySelectorAll("[data-all]").forEach(el=>el.addEventListener("click",()=>{const i=Number(el.dataset.all);sections[i].groups=groups.map(g=>g.id||g.jid||g.groupJid||g.value).filter(Boolean);renderSessions();}));
- $("sessions").querySelectorAll("[data-none]").forEach(el=>el.addEventListener("click",()=>{const i=Number(el.dataset.none);sections[i].groups=[];renderSessions();}));
+$("sessions").innerHTML=sections.map((s,i)=>`<div class="session"><h3>Sessão ${i+1}</h3><label class="check"><input type="checkbox" data-field="enabled" data-i="${i}" ${s.enabled?"checked":""}> Ativar esta sessão</label><label>Intervalo entre envios (minutos)</label><input type="number" min="1" max="10080" data-field="intervalMinutes" data-i="${i}" value="${s.intervalMinutes}"><div class="hint warn">Recomendado: 30 minutos ou mais para evitar excesso de mensagens.</div><label>Espaços que serão divulgados</label><div class="slot-grid">${[1,2,3].map(n=>`<label class="check slot"><input type="checkbox" data-slot="${n}" data-i="${i}" ${s.slots.includes(String(n))?"checked":""}> Espaço ${n}</label>`).join("")}</div><label>Grupos de destino</label><div class="group-tools"><div class="group-search"><span>⌕</span><input type="search" placeholder="Buscar grupo pelo nome..." data-search="${i}" aria-label="Buscar grupo"></div><button class="secondary" type="button" data-all="${i}">Selecionar todos</button><button class="secondary" type="button" data-none="${i}">Limpar todos</button></div><div class="group-count" data-count="${i}">${s.groups.length} grupo(s) selecionado(s)</div><div class="group-list">${groups.length?groups.map(g=>{const jid=groupId(g),name=g.name||g.subject||jid;return `<label class="check" data-group-row><input type="checkbox" data-group="${escapeHtml(jid)}" data-i="${i}" ${s.groups.includes(jid)?"checked":""}> <span>${escapeHtml(name)}</span></label>`;}).join(""):'<span class="hint">Nenhum grupo foi encontrado no painel. Confira a sincronização dos grupos no bot.</span>'}</div></div>`).join("");
+$("sessions").querySelectorAll("[data-field]").forEach(el=>el.addEventListener("change",()=>{const i=Number(el.dataset.i),f=el.dataset.field;sections[i][f]=f==="enabled"?el.checked:Number(el.value);}));
+$("sessions").querySelectorAll("[data-slot]").forEach(el=>el.addEventListener("change",()=>{const a=sections[Number(el.dataset.i)].slots,n=el.dataset.slot;if(el.checked&&!a.includes(n))a.push(n);if(!el.checked)sections[Number(el.dataset.i)].slots=a.filter(x=>x!==n);}));
+$("sessions").querySelectorAll("[data-group]").forEach(el=>el.addEventListener("change",()=>{const i=Number(el.dataset.i),a=sections[i].groups,n=el.dataset.group;if(el.checked&&!a.includes(n))a.push(n);if(!el.checked)sections[i].groups=a.filter(x=>x!==n);const count=$("sessions").querySelector('[data-count="'+i+'"]');if(count)count.textContent=a.length+" grupo(s) selecionado(s)";}));
+$("sessions").querySelectorAll("[data-search]").forEach(el=>el.addEventListener("input",()=>{const term=el.value.trim().toLocaleLowerCase("pt-BR"),session=el.closest(".session");session.querySelectorAll("[data-group-row]").forEach(row=>{row.style.display=row.textContent.toLocaleLowerCase("pt-BR").includes(term)?"flex":"none";});}));
+$("sessions").querySelectorAll("[data-all]").forEach(el=>el.addEventListener("click",()=>{const i=Number(el.dataset.all);sections[i].groups=uniqueGroups(groups).map(groupId);renderSessions();}));
+$("sessions").querySelectorAll("[data-none]").forEach(el=>el.addEventListener("click",()=>{const i=Number(el.dataset.none);sections[i].groups=[];renderSessions();}));
 }
-async function init(){
- const {data:{session},error}=await supabaseClient.auth.getSession();
- if(error||!session){location.href="index.html";return;}
- currentUser=session.user;
- const {data,error:readError}=await supabaseClient.from("bot_settings").select("prefix,divulgacao_enabled,divulgacao_config,divulgacao_commands,available_groups").eq("user_id",currentUser.id).maybeSingle();
- if(readError){status("Erro ao carregar: "+readError.message,"danger");return;}
- if(data){prefix=data.prefix||"#";$("globalEnabled").checked=data.divulgacao_enabled===true;groups=Array.isArray(data.available_groups)?data.available_groups:[];commands=Array.isArray(data.divulgacao_commands)?data.divulgacao_commands:[];sections=normalizeSections(data.divulgacao_config);}
- else sections=normalizeSections(null);
- renderCommands();renderSessions();
- status("Configurações carregadas. Prefixo atual: "+prefix,"ok");
-}
-$("addCommand").addEventListener("click",()=>{
- const command=$("newCommand").value.trim().toLowerCase().replace(new RegExp("^"+prefix.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")),"");
- const slot=Number($("newSlot").value);
- if(!/^[a-z0-9_-]{1,40}$/.test(command)){status("Nome inválido. Use letras minúsculas, números, _ ou -.","danger");return;}
- if(commands.some(c=>String(c.command).toLowerCase()===command)){status("Esse comando já existe.","danger");return;}
- commands.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),command,slot});
- $("newCommand").value="";renderCommands();status("Comando adicionado. Salve as configurações.","ok");
-});
-$("save").addEventListener("click",async()=>{
- const btn=$("save");btn.disabled=true;btn.textContent="SALVANDO...";
- try{
-  for(const [i,s] of sections.entries()){
-   s.intervalMinutes=Math.max(1,Math.min(10080,Number(s.intervalMinutes)||60));
-   if(s.enabled&&(!s.slots.length||!s.groups.length))throw new Error("Na sessão "+(i+1)+", escolha pelo menos um espaço e um grupo.");
-  }
-  const now=new Date().toISOString();
-  const payload={user_id:currentUser.id,divulgacao_enabled:$("globalEnabled").checked,divulgacao_config:{sections},divulgacao_commands:commands.map(c=>({id:c.id,command:c.command,slot:Number(c.slot)})),divulgacao_updated_at:now,updated_at:now};
-  const {error}=await supabaseClient.from("bot_settings").upsert(payload,{onConflict:"user_id"});
-  if(error)throw error;
-  status("Configurações salvas! O agente receberá a atualização na próxima sincronização.","ok");
- }catch(e){status("Não foi possível salvar: "+(e.message||e),"danger");}
- finally{btn.disabled=false;btn.textContent="SALVAR CONFIGURAÇÕES";}
-});
+async function init(){const {data:{session},error}=await supabaseClient.auth.getSession();if(error||!session){location.href="index.html";return;}currentUser=session.user;const {data,error:readError}=await supabaseClient.from("bot_settings").select("prefix,divulgacao_enabled,divulgacao_config,divulgacao_commands,available_groups").eq("user_id",currentUser.id).maybeSingle();if(readError){status("Erro ao carregar: "+readError.message,"danger");return;}if(data){prefix=data.prefix||"#";$("globalEnabled").checked=data.divulgacao_enabled===true;groups=uniqueGroups(data.available_groups);commands=Array.isArray(data.divulgacao_commands)?data.divulgacao_commands:[];sections=normalizeSections(data.divulgacao_config);}else sections=normalizeSections(null);renderCommands();renderSessions();status("Configurações carregadas. "+groups.length+" grupos únicos encontrados. Prefixo atual: "+prefix,"ok");}
+$("addCommand").addEventListener("click",()=>{const command=$("newCommand").value.trim().toLowerCase().replace(new RegExp("^"+prefix.replace(/[.*+?^${}()|[\\]\\]/g,"\\$&")),"");const slot=Number($("newSlot").value);if(!/^[a-z0-9_-]{1,40}$/.test(command)){status("Nome inválido. Use letras minúsculas, números, _ ou -.","danger");return;}if(commands.some(c=>String(c.command).toLowerCase()===command)){status("Esse comando já existe.","danger");return;}commands.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),command,slot});$("newCommand").value="";renderCommands();status("Comando adicionado. Salve as configurações.","ok");});
+$("save").addEventListener("click",async()=>{const btn=$("save");btn.disabled=true;btn.textContent="SALVANDO...";try{for(const [i,s] of sections.entries()){s.intervalMinutes=Math.max(1,Math.min(10080,Number(s.intervalMinutes)||60));s.groups=[...new Set(s.groups.map(String).filter(x=>x.endsWith("@g.us")))];s.slots=[...new Set(s.slots.map(String))];if(s.enabled&&(!s.slots.length||!s.groups.length))throw new Error("Na sessão "+(i+1)+", escolha pelo menos um espaço e um grupo.");}const now=new Date().toISOString();const payload={user_id:currentUser.id,divulgacao_enabled:$("globalEnabled").checked,divulgacao_config:{sections},divulgacao_commands:commands.map(c=>({id:c.id,command:c.command,slot:Number(c.slot)})),divulgacao_updated_at:now,updated_at:now};const {error}=await supabaseClient.from("bot_settings").upsert(payload,{onConflict:"user_id"});if(error)throw error;status("Configurações salvas! Grupos repetidos foram removidos. O agente receberá a atualização na próxima sincronização.","ok");}catch(e){status("Não foi possível salvar: "+(e.message||e),"danger");}finally{btn.disabled=false;btn.textContent="SALVAR CONFIGURAÇÕES";}});
 init();
 })();
 </script>
