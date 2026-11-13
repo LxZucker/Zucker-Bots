@@ -793,9 +793,61 @@ function getSeenReleaseIds(){
 function markReleaseHistoryAsSeen(){try{localStorage.setItem(getSeenReleaseKey(),JSON.stringify(releaseHistory.map(x=>String(x.id))));}catch(e){console.warn("Não foi possível salvar as novidades visualizadas.",e);}renderReleaseHistory();}
 function formatReleaseDate(value){if(!value)return "Data não informada";const d=new Date(value);if(Number.isNaN(d.getTime()))return "Data não informada";return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});}
 function renderReleaseHistory(){const list=$("updatesList"),summary=$("updatesSummary"),count=$("updatesCount");if(!list||!summary||!count)return;const seen=new Set(getSeenReleaseIds());const unseen=releaseHistory.filter(x=>!seen.has(String(x.id))).length;count.textContent=String(unseen);count.classList.toggle("hidden",unseen===0);summary.textContent=releaseHistory.length?`${releaseHistory.length} atualização(ões) publicada(s) no histórico.`:"Ainda não há atualizações publicadas.";list.innerHTML="";if(!releaseHistory.length){const e=document.createElement("div");e.className="update-empty";e.textContent="Nenhuma atualização publicada até agora.";list.appendChild(e);return;}releaseHistory.forEach(release=>{const isNew=!seen.has(String(release.id));const item=document.createElement("article");item.className=`update-item${isNew?" is-new":""}`;const top=document.createElement("div");top.className="update-item-top";const version=document.createElement("div");version.className="update-version";version.textContent=`ZuckerBots ${release.version}`;const right=document.createElement("div");right.style.display="flex";right.style.alignItems="center";right.style.gap="8px";if(isNew){const tag=document.createElement("span");tag.className="update-new-tag";tag.textContent="NOVA";right.appendChild(tag);}const date=document.createElement("span");date.className="update-date";date.textContent=formatReleaseDate(release.created_at);right.appendChild(date);top.append(version,right);const notes=document.createElement("p");notes.className="update-notes";notes.textContent=release.release_notes||"Esta versão não possui descrição cadastrada.";item.append(top,notes);list.appendChild(item);});}
-async function loadReleaseHistory(){const list=$("updatesList");try{const response=await fetch("/api/releases",{method:"GET",headers:{"Accept":"application/json"},cache:"no-store"});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.error||"Não foi possível carregar as atualizações.");releaseHistory=Array.isArray(data.releases)?data.releases:[];renderReleaseHistory();}catch(error){console.error("Erro ao carregar histórico de atualizações:",error);if(list){list.innerHTML="";const m=document.createElement("div");m.className="update-empty update-error";m.textContent="Não foi possível carregar as novidades. Tente atualizar a página.";list.appendChild(m);}$("updatesSummary").textContent="Falha ao consultar as atualizações.";}}
-$("updatesNavButton").addEventListener("click",()=>{$("updatesSection").scrollIntoView({behavior:"smooth",block:"start"});markReleaseHistoryAsSeen();});
-$("markUpdatesRead").addEventListener("click",markReleaseHistoryAsSeen);
+async function loadReleaseHistory() {
+  const list = $("updatesList");
+
+  try {
+    const response = await fetch(
+      "/api/agent/activation-claim?action=releases",
+      {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Authorization": "Bearer " + accessToken
+        },
+        cache: "no-store"
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Falha ao consultar atualizações.");
+    }
+
+    releaseHistory = Array.isArray(data.releases) ? data.releases : [];
+    renderReleaseHistory();
+
+  } catch (error) {
+    console.error("Erro ao carregar novidades:", error);
+
+    list.innerHTML = '<div class="update-empty update-error">Não foi possível consultar as atualizações.</div>';
+    $("updatesSummary").textContent = "Falha ao consultar as atualizações.";
+  }
+}
+
+$("updatesNavButton").addEventListener("click", async () => {
+  $("updatesModal").classList.remove("hidden");
+  await loadReleaseHistory();
+});
+
+$("closeUpdatesModal").addEventListener("click", () => {
+  $("updatesModal").classList.add("hidden");
+});
+
+$("updatesModal").addEventListener("click", (event) => {
+  if (event.target.id === "updatesModal") {
+    $("updatesModal").classList.add("hidden");
+  }
+});
+
+$("markUpdatesRead").addEventListener("click", markReleaseHistoryAsSeen);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    $("updatesModal").classList.add("hidden");
+  }
+});
 
 async function iniciarPainel() {
   try {
