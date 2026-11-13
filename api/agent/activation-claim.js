@@ -46,6 +46,22 @@ module.exports = async (req, res) => {
       });
     }
 
+    const suspensionMetadata = user.user_metadata || {};
+const suspendedUntil = suspensionMetadata.zucker_suspended_until;
+const suspensionTime = suspendedUntil
+  ? new Date(suspendedUntil).getTime()
+  : 0;
+
+if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
+  return res.status(200).json({
+    success: true,
+    suspended: true,
+    reason: suspensionMetadata.zucker_suspension_reason || "Motivo não informado.",
+    suspendedUntil,
+    remainingMs: suspensionTime - Date.now()
+  });
+}
+
     const headers = {
       "Content-Type": "application/json",
       apikey: SUPABASE_KEY,
