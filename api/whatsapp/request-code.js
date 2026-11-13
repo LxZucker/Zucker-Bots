@@ -38,7 +38,20 @@ module.exports = async function handler(req, res) {
     }
 
     const user = await userResponse.json();
+const metadata = user.user_metadata || {};
+const suspendedUntil = metadata.zucker_suspended_until;
+const suspensionTime = suspendedUntil
+  ? new Date(suspendedUntil).getTime()
+  : 0;
 
+if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
+  return res.status(403).json({
+    error: "Sua conta está suspensa.",
+    suspended: true,
+    reason: metadata.zucker_suspension_reason || "Motivo não informado.",
+    suspendedUntil
+  });
+}
     // GET: consultar o código de pareamento
     if (req.method === "GET") {
       const requestId = String(req.query?.requestId || "");
