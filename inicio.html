@@ -63,6 +63,26 @@ body{min-height:100vh;background:radial-gradient(ellipse at top left,rgba(255,25
 .logout{margin-top:18px;padding:12px 17px;background:#250b0b;border:1px solid #8d2525;color:#ff5555;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer}
 .footer{text-align:center;color:#484848;font-size:10px;margin-top:30px;letter-spacing:1px}
 @media(max-width:500px){body{padding:13px}.topbar{padding:15px}.stats{gap:10px}.stat-card{padding:15px}.welcome h1{font-size:24px}.card,.config-card{padding:17px}.brand h2{font-size:20px}}
+
+.update-nav-button{position:relative;display:flex;align-items:center;gap:8px;padding:10px 13px;background:#210d0d;border:1px solid #672323;border-radius:10px;color:#ff7777;font-size:12px;font-weight:bold;cursor:pointer}
+.update-nav-button:active{transform:scale(.98)}
+.update-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:20px;background:#ff2525;color:#fff;font-size:10px}
+.updates-section{margin-top:30px;scroll-margin-top:18px}
+.updates-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.updates-summary p{margin:0;color:#888;font-size:12px}
+.update-list{display:grid;gap:12px}
+.update-item{background:linear-gradient(145deg,#171717,#101010);border:1px solid #303030;border-left:3px solid #555;border-radius:12px;padding:17px}
+.update-item.is-new{border-left-color:var(--green);box-shadow:0 0 18px rgba(0,223,98,.06)}
+.update-item-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.update-version{font-size:16px;font-weight:bold}
+.update-date{font-size:11px;color:#777}
+.update-new-tag{font-size:9px;font-weight:bold;letter-spacing:.5px;color:#00df62;background:rgba(0,223,98,.09);border:1px solid rgba(0,223,98,.25);border-radius:20px;padding:5px 8px}
+.update-notes{white-space:pre-wrap;overflow-wrap:anywhere;color:#bbb;font-size:13px;line-height:1.7;margin:9px 0 0}
+.update-empty{color:#888;text-align:center;padding:18px;font-size:13px}
+.update-error{color:#ff7777}
+.update-read-button{padding:9px 12px;border:1px solid #3b3b3b;background:#171717;color:#aaa;border-radius:8px;font-size:10px;font-weight:bold;cursor:pointer}
+@media(max-width:500px){.update-nav-button{padding:9px 10px}.update-item{padding:14px}}
+
 </style>
 </head>
 
@@ -83,15 +103,34 @@ Não foi possível verificar sua sessão. Tente novamente.
     <div class="logo"><span class="z">Z</span><span class="b">B</span></div>
     <h2>Zucker<span>Bots</span></h2>
   </div>
-  <div class="status">
-    <span class="status-dot"></span>
-    PAINEL DE CONTROLE
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <button class="update-nav-button" id="updatesNavButton" type="button">
+      🔔 NOVIDADES <span class="update-count hidden" id="updatesCount">0</span>
+    </button>
+    <div class="status">
+      <span class="status-dot"></span>
+      PAINEL DE CONTROLE
+    </div>
   </div>
 </header>
 
 <section class="welcome">
   <h1>Olá, <span id="username">Usuário</span>!</h1>
   <p>Bem-vindo ao seu painel de controle.</p>
+</section>
+
+
+<section class="updates-section" id="updatesSection">
+  <h2 class="section-title">Novidades e atualizações</h2>
+  <section class="card green">
+    <div class="updates-summary">
+      <p id="updatesSummary">Carregando histórico de atualizações...</p>
+      <button class="update-read-button" id="markUpdatesRead" type="button">MARCAR COMO VISTAS</button>
+    </div>
+    <div class="update-list" id="updatesList">
+      <div class="update-empty">Buscando novidades do ZuckerBots...</div>
+    </div>
+  </section>
 </section>
 
 <section class="stats">
@@ -548,7 +587,7 @@ async function pollPairing(requestId) {
       {
         method: "GET",
         headers: {
-          Authorization: "Bearer " + accessToken
+     Authorization: "Bearer " + accessToken
         }
       }
     );
@@ -725,6 +764,33 @@ supabaseClient.auth.onAuthStateChange((event) => {
   }
 });
 
+
+let releaseHistory = [];
+let releaseHistoryUserId = null;
+function getSeenReleaseKey(){return `zuckerbots_seen_releases_${releaseHistoryUserId||"guest"}`;}
+function getSeenReleaseIds(){
+  try {
+    const key = getSeenReleaseKey();
+    const saved = localStorage.getItem(key);
+    if (saved !== null) {
+      const value = JSON.parse(saved);
+      return Array.isArray(value) ? value.map(String) : [];
+    }
+    // Na primeira visita, destaca a publicação mais recente sem marcar todo o histórico antigo como novo.
+    const initialSeen = releaseHistory.slice(1).map(item => String(item.id));
+    if (releaseHistory.length) localStorage.setItem(key, JSON.stringify(initialSeen));
+    return initialSeen;
+  } catch {
+    return [];
+  }
+}
+function markReleaseHistoryAsSeen(){try{localStorage.setItem(getSeenReleaseKey(),JSON.stringify(releaseHistory.map(x=>String(x.id))));}catch(e){console.warn("Não foi possível salvar as novidades visualizadas.",e);}renderReleaseHistory();}
+function formatReleaseDate(value){if(!value)return "Data não informada";const d=new Date(value);if(Number.isNaN(d.getTime()))return "Data não informada";return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});}
+function renderReleaseHistory(){const list=$("updatesList"),summary=$("updatesSummary"),count=$("updatesCount");if(!list||!summary||!count)return;const seen=new Set(getSeenReleaseIds());const unseen=releaseHistory.filter(x=>!seen.has(String(x.id))).length;count.textContent=String(unseen);count.classList.toggle("hidden",unseen===0);summary.textContent=releaseHistory.length?`${releaseHistory.length} atualização(ões) publicada(s) no histórico.`:"Ainda não há atualizações publicadas.";list.innerHTML="";if(!releaseHistory.length){const e=document.createElement("div");e.className="update-empty";e.textContent="Nenhuma atualização publicada até agora.";list.appendChild(e);return;}releaseHistory.forEach(release=>{const isNew=!seen.has(String(release.id));const item=document.createElement("article");item.className=`update-item${isNew?" is-new":""}`;const top=document.createElement("div");top.className="update-item-top";const version=document.createElement("div");version.className="update-version";version.textContent=`ZuckerBots ${release.version}`;const right=document.createElement("div");right.style.display="flex";right.style.alignItems="center";right.style.gap="8px";if(isNew){const tag=document.createElement("span");tag.className="update-new-tag";tag.textContent="NOVA";right.appendChild(tag);}const date=document.createElement("span");date.className="update-date";date.textContent=formatReleaseDate(release.created_at);right.appendChild(date);top.append(version,right);const notes=document.createElement("p");notes.className="update-notes";notes.textContent=release.release_notes||"Esta versão não possui descrição cadastrada.";item.append(top,notes);list.appendChild(item);});}
+async function loadReleaseHistory(){const list=$("updatesList");try{const response=await fetch("/api/releases",{method:"GET",headers:{"Accept":"application/json"},cache:"no-store"});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.error||"Não foi possível carregar as atualizações.");releaseHistory=Array.isArray(data.releases)?data.releases:[];renderReleaseHistory();}catch(error){console.error("Erro ao carregar histórico de atualizações:",error);if(list){list.innerHTML="";const m=document.createElement("div");m.className="update-empty update-error";m.textContent="Não foi possível carregar as novidades. Tente atualizar a página.";list.appendChild(m);}$("updatesSummary").textContent="Falha ao consultar as atualizações.";}}
+$("updatesNavButton").addEventListener("click",()=>{$("updatesSection").scrollIntoView({behavior:"smooth",block:"start"});markReleaseHistoryAsSeen();});
+$("markUpdatesRead").addEventListener("click",markReleaseHistoryAsSeen);
+
 async function iniciarPainel() {
   try {
     const session = await getSession();
@@ -735,8 +801,10 @@ async function iniciarPainel() {
     }
 
     await checkSession(session);
-
+    releaseHistoryUserId = session.user.id;
+    await loadReleaseHistory();
     setInterval(refreshDeviceStatus, 5000);
+    setInterval(loadReleaseHistory, 5 * 60 * 1000);
 
   } catch (error) {
     console.error("Erro ao iniciar painel:", error);
