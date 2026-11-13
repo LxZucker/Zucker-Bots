@@ -632,8 +632,12 @@ async function checkDevice(){
 
     if(!response.ok)
       throw new Error("Falha ao consultar o bot.");
-
-    const data=await response.json();
+  
+const data=await response.json();
+    if (data.suspended) {
+  window.location.href = "inicio.html";
+  return;
+    }
     const wasLinked=linked;
 
     linked=data.linked===true;
