@@ -133,11 +133,72 @@ body{min-height:100vh;background:radial-gradient(ellipse at top left,rgba(255,25
   cursor:pointer;
   flex-shrink:0;
 }
+
+  #suspensionScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: #080808;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25px;
+  text-align: center;
+}
+
+.suspension-content {
+  width: 100%;
+  max-width: 420px;
+  background: #111;
+  border: 1px solid #442020;
+  border-top: 3px solid #ff2525;
+  border-radius: 16px;
+  padding: 30px 22px;
+}
+
+.suspension-content h1 {
+  color: #ff3535;
+  font-size: 25px;
+  margin-bottom: 20px;
+}
+
+.suspension-content p {
+  color: #aaa;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+#suspensionReason {
+  color: white;
+  margin: 15px 0;
+}
+
+#suspensionTime {
+  color: #ff4545;
+  font-size: 30px;
+  font-weight: bold;
+  margin-top: 20px;
+  }
+  
 </style>
 </head>
 
 <body>
+<div id="suspensionScreen" class="hidden">
+  <div class="suspension-content">
+    <h1>CONTA SUSPENSA</h1>
 
+    <p>O acesso à plataforma está temporariamente bloqueado.</p>
+
+    <p style="margin-top:20px">MOTIVO DA SUSPENSÃO</p>
+
+    <p id="suspensionReason"></p>
+
+    <p>ACESSO SERÁ LIBERADO EM</p>
+
+    <div id="suspensionTime">00:00</div>
+  </div>
+</div>
 <div id="loading" style="text-align:center;margin-top:100px;color:#888">
 Verificando acesso...
 </div>
