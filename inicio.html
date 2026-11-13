@@ -440,7 +440,44 @@ async function loadDevice() {
   });
 
   const data = await response.json();
+if (data.suspended) {
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.add("hidden");
+  $("suspensionScreen").classList.remove("hidden");
 
+  $("suspensionReason").textContent =
+    data.reason || "Motivo não informado.";
+
+  if (window.suspensionTimer) {
+    clearInterval(window.suspensionTimer);
+  }
+
+  let remaining = Number(data.remainingMs) || 0;
+
+  function updateSuspensionTime() {
+    remaining = Math.max(0, remaining);
+
+    const totalSeconds = Math.ceil(remaining / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    $("suspensionTime").textContent =
+      `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+    if (remaining <= 0) {
+      clearInterval(window.suspensionTimer);
+      location.reload();
+      return;
+    }
+
+    remaining -= 1000;
+  }
+
+  updateSuspensionTime();
+  window.suspensionTimer = setInterval(updateSuspensionTime, 1000);
+
+  return null;
+}
   if (!response.ok) {
     throw new Error(showApiError(
       data,
