@@ -119,6 +119,26 @@ Não foi possível verificar sua sessão. Tente novamente.
   <p>Bem-vindo ao seu painel de controle.</p>
 </section>
 
+<div class="updates-modal hidden" id="updatesModal">
+  <div class="updates-modal-content">
+    <div class="updates-modal-header">
+      <h2>🔔 Novidades e atualizações</h2>
+      <button id="closeUpdatesModal" type="button">✕</button>
+    </div>
+
+    <div class="updates-summary">
+      <p id="updatesSummary">Carregando atualizações...</p>
+      <button class="update-read-button" id="markUpdatesRead" type="button">
+        MARCAR COMO VISTAS
+      </button>
+    </div>
+
+    <div class="update-list" id="updatesList">
+      <div class="update-empty">Buscando novidades...</div>
+    </div>
+  </div>
+</div>
+  
 <section class="stats">
   <div class="stat-card red">
     <div class="stat-icon">📱</div>
