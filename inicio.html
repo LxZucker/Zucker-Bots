@@ -541,10 +541,11 @@ async function refreshDeviceStatus() {
   }
 }
 
+
 async function checkSession(session) {
   if (!session) {
     window.location.href = "index.html";
-    return;
+    return false;
   }
 
   accessToken = session.access_token;
@@ -561,11 +562,18 @@ async function checkSession(session) {
 
   $("accountEmail").textContent = user.email || "Não informado";
 
+  await loadDevice();
+
+  if (!$("suspensionScreen").classList.contains("hidden")) {
+    return false;
+  }
+
   $("loading").classList.add("hidden");
   $("dashboard").classList.remove("hidden");
 
-  await loadDevice();
+  return true;
 }
+  
 
 async function validateActivation() {
   const code = $("activationCode").value.trim();
