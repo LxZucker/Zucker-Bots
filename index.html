@@ -1,258 +1,247 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZuckerBot</title>
+<meta name="theme-color" content="#090909">
+<title>ZuckerBots - Painel</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+:root{--red:#ff2525;--red-dark:#a90000;--green:#00df62;--bg:#080808;--card:#111111;--card2:#171717;--border:#292929;--muted:#888}
+body{min-height:100vh;background:radial-gradient(ellipse at top left,rgba(255,25,25,.10),transparent 40%),#080808;color:#fff;padding:22px}
+.hidden{display:none!important}
+.dashboard{max-width:900px;margin:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;padding:17px 20px;background:rgba(18,18,18,.92);border:1px solid #292929;border-radius:15px;margin-bottom:30px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{font-size:39px;font-weight:900;letter-spacing:-6px}
+.z{color:var(--red);text-shadow:0 0 15px rgba(255,30,30,.6)}
+.b{color:#fff}
+.brand h2{font-size:22px;letter-spacing:.3px}
+.brand h2 span{color:var(--red)}
+.status{display:flex;align-items:center;gap:7px;border:1px solid #383838;background:#1b1b1b;border-radius:30px;padding:9px 13px;font-size:11px;color:#ccc}
+.status-dot{width:7px;height:7px;background:var(--red);border-radius:50%;box-shadow:0 0 8px var(--red)}
+.welcome{margin-bottom:25px}
+.welcome h1{font-size:28px;margin-bottom:8px}
+.welcome h1 span{color:var(--red)}
+.welcome p{color:#888;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+.stat-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#181818,#101010);border:1px solid #303030;border-radius:14px;padding:20px;transition:.2s}
+.stat-card.red{border-left:3px solid var(--red)}
+.stat-card.green{border-left:3px solid var(--green)}
+.stat-icon{font-size:25px;margin-bottom:13px}
+.stat-card h3{font-size:15px;margin-bottom:9px}
+.stat-card p{color:#aaa;font-size:12px;line-height:1.5}
+.section-title{font-size:18px;margin:32px 0 15px;display:flex;align-items:center;gap:9px}
+.section-title::before{content:"";width:4px;height:19px;background:var(--red);border-radius:5px;box-shadow:0 0 10px rgba(255,30,30,.4)}
+.card{background:linear-gradient(145deg,#151515,#101010);border:1px solid #303030;border-radius:14px;padding:21px;margin-bottom:16px;box-shadow:0 8px 25px rgba(0,0,0,.18)}
+.card.red{border-top:2px solid var(--red)}
+.card.green{border-top:2px solid #444}
+.card h3{font-size:16px;margin-bottom:11px}
+.card p{color:#929292;font-size:13px;line-height:1.7;margin-bottom:15px}
+.field{width:100%;padding:14px;background:#090909;border:1px solid #353535;border-radius:9px;color:#fff;font-size:15px;margin:9px 0 15px;outline:none;transition:.2s}
+.field:focus{border-color:var(--red);box-shadow:0 0 0 2px rgba(255,30,30,.12)}
+.code-field{text-align:center;font-size:27px;letter-spacing:9px;font-weight:bold}
+.action-btn{width:100%;padding:14px;border:1px solid #ff4141;border-radius:9px;background:linear-gradient(135deg,#ff3030,#bd0000);color:#fff;font-weight:bold;font-size:12px;letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 15px rgba(255,0,0,.13);transition:.2s}
+.action-btn:active{transform:scale(.98)}
+.action-btn:disabled{opacity:.5;cursor:not-allowed}
+.danger-btn{width:100%;padding:14px;border:1px solid #792323;border-radius:9px;background:#250b0b;color:#ff5555;font-weight:bold;font-size:12px;cursor:pointer}
+.danger-btn:disabled{opacity:.5;cursor:not-allowed}
+.message{margin-top:13px;color:#aaa;font-size:12px;line-height:1.6;min-height:18px}
+.message.offline{color:#ff3535;font-weight:bold}
+.pairing-code{color:var(--green);letter-spacing:6px;text-align:center;font-size:30px;margin:18px 0;text-shadow:0 0 15px rgba(0,223,98,.2)}
+.pairing-box{background:#090909;border:1px solid #333;border-radius:12px;padding:16px;margin-top:18px}
+.config-card{position:relative;overflow:hidden;background:radial-gradient(ellipse at top right,rgba(255,20,20,.09),transparent 55%),linear-gradient(145deg,#171717,#101010);border:1px solid #343434;border-top:2px solid var(--red);border-radius:14px;padding:21px;margin-top:30px}
+.config-card h3{font-size:17px;margin-bottom:10px}
+.config-card p{color:#929292;font-size:13px;line-height:1.6;margin-bottom:17px}
+.config-icon{font-size:27px;margin-bottom:13px}
+.config-label{display:inline-block;background:#260d0d;border:1px solid #5b2020;color:#ff5555;border-radius:20px;padding:6px 10px;font-size:10px;margin-bottom:12px}
+.account{margin-top:25px;background:#111;border:1px solid #292929;border-radius:14px;padding:20px}
+.account h3{font-size:15px}
+.account p{color:#888;font-size:12px;margin-top:11px;overflow-wrap:anywhere}
+.logout{margin-top:18px;padding:12px 17px;background:#250b0b;border:1px solid #8d2525;color:#ff5555;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer}
+.footer{text-align:center;color:#484848;font-size:10px;margin-top:30px;letter-spacing:1px}
+@media(max-width:500px){body{padding:13px}.topbar{padding:15px}.stats{gap:10px}.stat-card{padding:15px}.welcome h1{font-size:24px}.card,.config-card{padding:17px}.brand h2{font-size:20px}}
 
-body {
-  min-height: 100vh;
-  background: #080808;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
+/* Central de novidades */
+.updates-nav{position:relative;display:flex;align-items:center;gap:8px;padding:10px 13px;background:#210d0d;border:1px solid #672323;border-radius:10px;color:#ff7777;font-size:11px;font-weight:bold;cursor:pointer}
+.updates-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:20px;background:#ff2525;color:#fff;font-size:10px}
+.updates-section{margin:0 0 26px;scroll-margin-top:18px}
+.updates-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.updates-head p{color:#888;font-size:12px;line-height:1.5}
+.updates-list{display:grid;gap:11px}
+.update-entry{background:linear-gradient(145deg,#181818,#101010);border:1px solid #303030;border-left:3px solid #555;border-radius:12px;padding:16px}
+.update-entry.unseen{border-left-color:var(--green);box-shadow:0 0 16px rgba(0,223,98,.06)}
+.update-entry-top{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px}
+.update-entry-version{font-size:15px;font-weight:bold}
+.update-entry-date{font-size:10px;color:#777}
+.update-entry-new{font-size:9px;font-weight:bold;color:var(--green);background:rgba(0,223,98,.09);border:1px solid rgba(0,223,98,.24);border-radius:20px;padding:5px 8px}
+.update-entry-notes{white-space:pre-wrap;overflow-wrap:anywhere;color:#bbb;font-size:12px;line-height:1.7;margin:0}
+.updates-empty{padding:17px;text-align:center;color:#888;font-size:12px}
+.updates-read{padding:8px 11px;border:1px solid #383838;background:#171717;color:#aaa;border-radius:8px;font-size:10px;font-weight:bold;cursor:pointer}
+@media(max-width:500px){.updates-nav{padding:9px 10px}.update-entry{padding:14px}}
 
-.container {
-  width: 100%;
-  max-width: 390px;
-  text-align: center;
-}
-
-.logo {
-  font-size: 65px;
-  font-weight: 900;
-  letter-spacing: -8px;
-  margin-bottom: 5px;
-}
-
-.logo .z {
-  color: #ff2020;
-  text-shadow: 0 0 12px red, 0 0 30px #ff2020;
-}
-
-.logo .b {
-  color: #00ff55;
-  text-shadow: 0 0 12px #00ff55, 0 0 30px #00ff55;
-}
-
-.brand {
-  font-size: 27px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.brand span {
-  color: #00ff55;
-}
-
-.subtitle {
-  color: #777;
-  font-size: 12px;
-  letter-spacing: 3px;
-  margin-bottom: 35px;
-}
-
-.panel {
-  background: #111;
-  border: 1px solid #292929;
-  border-radius: 15px;
-  padding: 27px 22px;
-  text-align: left;
-}
-
-.panel h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 21px;
-}
-
-.field {
-  margin-bottom: 17px;
-}
-
-label {
-  display: block;
-  font-size: 13px;
-  color: #bbb;
-  margin-bottom: 8px;
-}
-
-input {
-  width: 100%;
-  padding: 14px;
-  background: #080808;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: white;
-  outline: none;
-}
-
-input:focus {
-  border-color: #00ff55;
-  box-shadow: 0 0 8px #00ff5533;
-}
-
-.main-btn {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 8px;
-  background: #00e64d;
-  color: black;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 8px;
-}
-
-.main-btn:active {
-  transform: scale(.98);
-}
-
-.main-btn:disabled {
-  opacity: .6;
-  cursor: wait;
-}
-
-.switch {
-  text-align: center;
-  color: #888;
-  font-size: 13px;
-  margin-top: 22px;
-}
-
-.switch a {
-  color: #00ff55;
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.message {
-  text-align: center;
-  font-size: 13px;
-  margin-top: 12px;
-  color: #00ff55;
-  overflow-wrap: anywhere;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.footer {
-  margin-top: 25px;
-  font-size: 11px;
-  color: #444;
-}
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
-  <div class="logo">
-    <span class="z">Z</span><span class="b">B</span>
-  </div>
-
-  <div class="brand">Zucker<span>Bot</span></div>
-  <div class="subtitle">WHATSAPP BOT PLATFORM</div>
-
-  <div class="panel">
-
-    <!-- LOGIN: PRIMEIRA TELA -->
-    <form id="login">
-      <h2>Bem-vindo de volta</h2>
-
-      <div class="field">
-        <label>Nome de usuário</label>
-        <input id="loginUsername" type="text"
-          placeholder="Seu usuário"
-          autocomplete="username" required>
-      </div>
-
-      <div class="field">
-        <label>Senha</label>
-        <input id="loginPassword" type="password"
-          placeholder="Sua senha"
-          autocomplete="current-password" required>
-      </div>
-
-      <button class="main-btn" id="loginButton" type="submit">
-        ENTRAR
-      </button>
-
-      <p class="switch">
-        Não possui uma conta?
-        <a href="#" id="goRegister">Criar conta</a>
-      </p>
-    </form>
-
-    <!-- CADASTRO: APARECE AO CLICAR -->
-    <form id="register" class="hidden">
-      <h2>Criar sua conta</h2>
-
-      <div class="field">
-        <label>Nome de usuário</label>
-        <input id="username" type="text"
-          placeholder="Escolha seu nome"
-          minlength="3" maxlength="20"
-          autocomplete="username" required>
-      </div>
-
-      <div class="field">
-        <label>Senha</label>
-        <input id="password" type="password"
-          placeholder="Crie uma senha"
-          minlength="8"
-          autocomplete="new-password" required>
-      </div>
-
-      <div class="field">
-        <label>Confirmar senha</label>
-        <input id="confirm" type="password"
-          placeholder="Repita sua senha"
-          autocomplete="new-password" required>
-      </div>
-
-      <button class="main-btn" id="registerButton" type="submit">
-        CRIAR CONTA
-      </button>
-
-      <p class="switch">
-        Já possui uma conta?
-        <a href="#" id="goLogin">Entrar</a>
-      </p>
-    </form>
-
-    <p id="message" class="message"></p>
-
-  </div>
-
-  <div class="footer">
-    ZUCKERBOT © 2026 — TODOS OS DIREITOS RESERVADOS
-  </div>
-
+<div id="loading" style="text-align:center;margin-top:100px;color:#888">
+Verificando acesso...
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<div id="error" class="hidden" style="text-align:center;color:#ff2525;margin-top:40px">
+Não foi possível verificar sua sessão. Tente novamente.
+</div>
 
+<main class="dashboard hidden" id="dashboard">
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo"><span class="z">Z</span><span class="b">B</span></div>
+    <h2>Zucker<span>Bots</span></h2>
+  </div>
+  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+    <button class="updates-nav" id="updatesNav" type="button">
+      🔔 NOVIDADES <span class="updates-badge hidden" id="updatesBadge">0</span>
+    </button>
+    <div class="status">
+      <span class="status-dot"></span>
+      PAINEL DE CONTROLE
+    </div>
+  </div>
+</header>
+
+<section class="welcome">
+  <h1>Olá, <span id="username">Usuário</span>!</h1>
+  <p>Bem-vindo ao seu painel de controle.</p>
+</section>
+
+
+<section class="updates-section" id="updatesSection">
+  <h2 class="section-title">Novidades e atualizações</h2>
+  <section class="card green">
+    <div class="updates-head">
+      <p id="updatesSummary">Carregando histórico...</p>
+      <button class="updates-read" id="updatesMarkRead" type="button">MARCAR COMO VISTAS</button>
+    </div>
+    <div class="updates-list" id="updatesList">
+      <div class="updates-empty">Buscando atualizações publicadas...</div>
+    </div>
+  </section>
+</section>
+
+<section class="stats">
+  <div class="stat-card red">
+    <div class="stat-icon">📱</div>
+    <h3>WhatsApp</h3>
+    <p id="whatsappStatus">Aguardando ativação do bot</p>
+  </div>
+
+  <div class="stat-card green">
+    <div class="stat-icon">🤖</div>
+    <h3>Agente ZuckerBots</h3>
+    <p id="botStatus">Não vinculado</p>
+  </div>
+</section>
+
+<h2 class="section-title">Ativação do ZuckerBots</h2>
+
+<section class="card red" id="activationCard">
+  <h3>🔐 Vincular seu bot</h3>
+  <p>
+    1. Inicie o bot pelo Termux.<br>
+    2. Ele mostrará um código de 6 números.<br>
+    3. Digite o código abaixo. Ele vale por apenas 3 minutos e só pode ser usado uma vez.
+  </p>
+
+  <label for="activationCode" style="display:block;color:#ccc;font-size:13px">
+    Código de ativação
+  </label>
+
+  <input class="field code-field" id="activationCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+
+  <button class="action-btn" id="activationButton" type="button">
+    VALIDAR E VINCULAR BOT
+  </button>
+
+  <p class="message" id="activationMessage">
+    Aguardando o código do Termux.
+  </p>
+</section>
+
+<section id="linkedSection" class="hidden">
+  <section class="card red">
+    <h3>🔌 Desvincular dispositivo</h3>
+    <p>
+      Ao confirmar, o ZuckerBots solicitará o encerramento da conexão e a remoção dos registros deste dispositivo. Sua conta e outros dispositivos não serão apagados.
+    </p>
+    <button class="danger-btn" id="unlinkButton" type="button">
+      DESCONECTAR DO BOT
+    </button>
+    <p class="message" id="unlinkMessage"></p>
+  </section>
+</section>
+
+<section id="whatsappSection" class="hidden">
+  <h2 class="section-title">Conexão WhatsApp</h2>
+
+  <section class="card red">
+    <h3>📱 Conectar seu WhatsApp</h3>
+    <p>
+      Informe seu número com DDI e DDD para gerar seu código de conexão.
+    </p>
+
+    <label for="whatsappNumber" style="display:block;color:#ccc;font-size:13px">
+      Número com DDI e DDD
+    </label>
+
+    <input class="field" type="tel" id="whatsappNumber" placeholder="Ex: 5511999999999" maxlength="15">
+
+    <button class="action-btn" id="pairingButton" type="button">
+      GERAR CÓDIGO DE CONEXÃO
+    </button>
+
+    <div id="pairingResult" class="pairing-box hidden">
+      <p style="color:#aaa;text-align:center;margin:0">
+        SEU CÓDIGO DE CONEXÃO
+      </p>
+      <h2 id="pairingCode" class="pairing-code">--------</h2>
+    </div>
+
+    <p class="message" id="pairingMessage">Aguardando conexão.</p>
+  </section>
+</section>
+
+<section class="config-card">
+  <div class="config-icon">⚙️</div>
+  <span class="config-label">ÁREA DE CONFIGURAÇÕES</span>
+  <h3>Configurações do bot</h3>
+  <p>
+    Personalize o funcionamento do seu ZuckerBots. Aqui ficarão as opções para configurar e controlar os recursos do seu bot.
+  </p>
+<button class="action-btn" type="button" onclick="window.location.href='configuracoes.html'">
+  ABRIR CONFIGURAÇÕES
+</button>
+
+<button class="action-btn" type="button" onclick="window.location.href='logs.html'">
+  📋 LOGS DE COMANDO
+</button>
+</section>
+
+<section class="account">
+  <h3>👤 Minha conta</h3>
+  <p>Usuário: <strong id="accountUsername">-</strong></p>
+  <p id="accountEmail"></p>
+  <button class="logout" id="logoutButton">SAIR DA CONTA</button>
+</section>
+
+<footer class="footer">ZUCKERBOTS © 2026</footer>
+
+</main>
 <script>
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
-
 const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
 
 const supabaseClient = window.supabase.createClient(
@@ -260,162 +249,695 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_KEY
 );
 
-const register = document.getElementById("register");
-const login = document.getElementById("login");
-const message = document.getElementById("message");
+const $ = id => document.getElementById(id);
 
-// VERIFICAR SE JÁ ESTÁ LOGADO
-async function checkExistingSession() {
-  try {
-    const { data, error } = await supabaseClient.auth.getSession();
+let accessToken = null;
+let currentDeviceId = null;
+let pairingTimer = null;
+let pairingActive = false;
+let pollingPairing = false;
+let refreshing = false;
+let pairingChecks = 0;
 
-    if (error) throw error;
+const AGENT_TIMEOUT = 90000;
 
-    if (data.session) {
-      window.location.replace("inicio.html");
+function setWhatsAppStatus(message, color = "#aaa") {
+  const status = $("whatsappStatus");
+  status.textContent = message;
+  status.style.color = color;
+}
+
+function showApiError(data, fallback) {
+  return data?.error || data?.message || fallback;
+}
+
+function agentIsOnline(device) {
+  if (!device || device.status !== "online" || !device.last_seen) {
+    return false;
+  }
+
+  const lastSeen = new Date(device.last_seen).getTime();
+
+  return Number.isFinite(lastSeen) &&
+    Date.now() - lastSeen < AGENT_TIMEOUT;
+}
+
+function showAgentStatus(device) {
+  const status = $("botStatus");
+
+  if (!device) {
+    status.textContent = "NÃO VINCULADO";
+    status.style.color = "#ff4545";
+    return false;
+  }
+
+  if (device.status === "connecting") {
+    status.textContent = "CONECTANDO";
+    status.style.color = "#f0ad4e";
+    return false;
+  }
+
+  const online = agentIsOnline(device);
+
+  status.textContent = online ? "ONLINE" : "OFFLINE";
+  status.style.color = online ? "#00df62" : "#ff4545";
+
+  return online;
+}
+
+async function getSession() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) throw error;
+
+  return data.session;
+}
+
+async function loadDevice() {
+  const response = await fetch("/api/agent/activation-claim", {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + accessToken
     }
+  });
 
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(showApiError(
+      data,
+      "Não foi possível consultar o vínculo."
+    ));
+  }
+
+  const device = data.device || null;
+
+  currentDeviceId = data.linked && device ? device.id : null;
+
+  const linked = Boolean(currentDeviceId);
+
+  $("activationCard").classList.toggle("hidden", linked);
+  $("linkedSection").classList.toggle("hidden", !linked);
+  const whatsappConnected = device?.whatsapp_connected === true;
+
+$("whatsappSection").classList.toggle(
+  "hidden",
+  !linked || whatsappConnected
+);
+
+    if (linked) {
+    const online = showAgentStatus(device);
+
+    if (device.whatsapp_connected === true) {
+      setWhatsAppStatus("WHATSAPP CONECTADO", "#00ff88");
+    } else if (pairingActive && online) {
+      setWhatsAppStatus("Aguardando código de conexão...", "#f0ad4e");
+    } else {
+      setWhatsAppStatus(
+        online
+          ? "Agente online; aguardando conexão do WhatsApp"
+          : "Agente vinculado; aguardando ficar online",
+        online ? "#f0ad4e" : "#ff4545"
+      );
+    }
+  } else {
+    showAgentStatus(null);
+    setWhatsAppStatus("Aguardando ativação do bot");
+  }
+
+  return device;
+}
+
+async function refreshDeviceStatus() {
+  if (!accessToken || refreshing) return;
+
+  refreshing = true;
+
+  try {
+    const device = await loadDevice();
+
+    if (pairingActive && !agentIsOnline(device)) {
+      stopPairingAsOffline();
+    }
   } catch (error) {
-    console.error("Erro ao verificar sessão:", error);
-    message.textContent =
-      "Não foi possível verificar sua sessão. Tente novamente.";
+    console.error("Erro ao atualizar status:", error);
+  } finally {
+    refreshing = false;
   }
 }
 
-checkExistingSession();
-
-// ALTERNAR TELAS
-function showLogin() {
-  register.classList.add("hidden");
-  login.classList.remove("hidden");
-  message.textContent = "";
-}
-
-function showRegister() {
-  login.classList.add("hidden");
-  register.classList.remove("hidden");
-  message.textContent = "";
-}
-
-document.getElementById("goLogin").addEventListener("click", function(e) {
-  e.preventDefault();
-  showLogin();
-});
-
-document.getElementById("goRegister").addEventListener("click", function(e) {
-  e.preventDefault();
-  showRegister();
-});
-
-// CADASTRO
-register.addEventListener("submit", async function(e) {
-  e.preventDefault();
-
-  const username = document.getElementById("username")
-    .value.trim().toLowerCase();
-
-  const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirm").value;
-  const button = document.getElementById("registerButton");
-
-  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
-    message.textContent =
-      "Use de 3 a 20 caracteres: letras, números ou _.";
+async function checkSession(session) {
+  if (!session) {
+    window.location.href = "index.html";
     return;
   }
 
-  if (password.length < 8) {
-    message.textContent =
-      "A senha precisa ter pelo menos 8 caracteres.";
-    return;
-  }
+  accessToken = session.access_token;
 
-  if (password !== confirmPassword) {
-    message.textContent = "As senhas não coincidem!";
+  const user = session.user;
+
+  $("username").textContent =
+    user.user_metadata?.username ||
+    user.email?.split("@")[0] ||
+    "Usuário";
+
+  $("accountUsername").textContent =
+    user.user_metadata?.username || "Não informado";
+
+  $("accountEmail").textContent = user.email || "Não informado";
+
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+
+  await loadDevice();
+}
+
+async function validateActivation() {
+  const code = $("activationCode").value.trim();
+  const button = $("activationButton");
+  const message = $("activationMessage");
+
+  if (!/^\d{6}$/.test(code)) {
+    message.textContent = "Digite o código de 6 números.";
+    message.style.color = "#ff4545";
     return;
   }
 
   button.disabled = true;
-  message.textContent = "Criando sua conta...";
+  button.textContent = "VINCULANDO...";
+  message.textContent = "";
 
   try {
-    const response = await fetch("/api/register", {
+    const response = await fetch("/api/agent/activation-claim", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + accessToken
       },
       body: JSON.stringify({
-        username,
-        password,
-        confirmPassword
+        activationCode: code
       })
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      message.textContent =
-        data.error || "Não foi possível criar sua conta.";
+    if (!response.ok || !data.success) {
+      throw new Error(showApiError(
+        data,
+        "Não foi possível vincular o bot."
+      ));
+    }
+
+    message.textContent = data.message || "Bot vinculado com sucesso!";
+    message.style.color = "#00df62";
+
+    setTimeout(async () => {
+      try {
+        await loadDevice();
+      } catch (error) {
+        console.error(error);
+      }
+
+      button.disabled = false;
+      button.textContent = "VALIDAR E VINCULAR BOT";
+    }, 1200);
+
+  } catch (error) {
+    message.textContent = error.message;
+    message.style.color = "#ff4545";
+
+    button.disabled = false;
+    button.textContent = "VALIDAR E VINCULAR BOT";
+  }
+}
+
+async function requestUnlink() {
+  if (!currentDeviceId) {
+    $("unlinkMessage").textContent = "Nenhum bot vinculado.";
+    return;
+  }
+
+  const button = $("unlinkButton");
+  const message = $("unlinkMessage");
+
+  button.disabled = true;
+  button.textContent = "ENVIANDO...";
+  message.textContent = "";
+
+  try {
+    const response = await fetch("/api/agent/unlink-request", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + accessToken
+      },
+      body: JSON.stringify({
+        deviceId: currentDeviceId
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(showApiError(
+        data,
+        "Não foi possível solicitar a desconexão."
+      ));
+    }
+
+    message.textContent =
+      "Solicitação enviada! Aguarde o Termux confirmar a desconexão.";
+    message.style.color = "#00df62";
+
+    button.textContent = "AGUARDANDO...";
+
+    setTimeout(refreshDeviceStatus, 2000);
+
+  } catch (error) {
+    message.textContent = error.message;
+    message.style.color = "#ff4545";
+
+    button.disabled = false;
+    button.textContent = "DESCONECTAR DO BOT";
+  }
+}
+
+async function verificarAgenteDurantePedido() {
+  const response = await fetch("/api/agent/activation-claim", {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + accessToken
+    }
+  });
+
+  if (!response.ok) return false;
+
+  const data = await response.json();
+  const device = data.device || null;
+
+  if (!data.linked || !device || device.id !== currentDeviceId) {
+    return false;
+  }
+
+  return showAgentStatus(device);
+}
+
+function stopPairingAsOffline() {
+  pairingActive = false;
+
+  if (pairingTimer) {
+    clearInterval(pairingTimer);
+    pairingTimer = null;
+  }
+
+  $("pairingButton").disabled = false;
+  $("pairingButton").textContent = "GERAR CÓDIGO DE CONEXÃO";
+
+  $("pairingMessage").textContent =
+    "O bot ficou offline. Coloque o agente do Termux online e tente novamente.";
+
+  $("pairingMessage").style.color = "#ff4545";
+
+  setWhatsAppStatus(
+    "Agente offline; não é possível gerar o código",
+    "#ff4545"
+  );
+}
+
+async function pollPairing(requestId) {
+  if (!pairingActive || pollingPairing) return;
+
+  pollingPairing = true;
+  pairingChecks++;
+
+  try {
+    if (pairingChecks % 4 === 0) {
+      const online = await verificarAgenteDurantePedido();
+
+      if (!online) {
+        stopPairingAsOffline();
+        return;
+      }
+    }
+
+    // Consulta o código pela API autenticada
+    const response = await fetch(
+      `/api/whatsapp/request-code?requestId=${encodeURIComponent(requestId)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + accessToken
+        }
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.error || "Falha ao consultar código."
+      );
+    }
+
+    const data = {
+      status: result.status,
+      pairing_code: result.pairingCode,
+      expires_at: result.expiresAt
+    };
+
+    if (data.status === "generated" && data.pairing_code) {
+      pairingActive = false;
+
+      if (pairingTimer) {
+        clearInterval(pairingTimer);
+        pairingTimer = null;
+      }
+
+      $("pairingResult").classList.remove("hidden");
+      $("pairingCode").textContent = data.pairing_code;
+
+      $("pairingMessage").textContent =
+        "Código gerado! Conclua a conexão no WhatsApp.";
+      $("pairingMessage").style.color = "#00df62";
+
+      setWhatsAppStatus("Código de conexão gerado", "#00df62");
+
+      $("pairingButton").disabled = false;
+      $("pairingButton").textContent = "GERAR NOVO CÓDIGO";
+
       return;
     }
 
-    register.reset();
-    showLogin();
+    if (
+      data.status === "expired" ||
+      (
+        data.expires_at &&
+        new Date(data.expires_at).getTime() < Date.now()
+      )
+    ) {
+      pairingActive = false;
 
-    document.getElementById("loginUsername").value = username;
+      if (pairingTimer) {
+        clearInterval(pairingTimer);
+        pairingTimer = null;
+      }
 
-    message.textContent =
-      "Conta criada com sucesso! Agora faça login.";
+      $("pairingMessage").textContent =
+        "O pedido expirou. Gere um novo código.";
+      $("pairingMessage").style.color = "#ff4545";
+
+      setWhatsAppStatus(
+        "Solicitação de conexão expirada",
+        "#ff4545"
+      );
+
+      $("pairingButton").disabled = false;
+      $("pairingButton").textContent =
+        "GERAR CÓDIGO DE CONEXÃO";
+    }
 
   } catch (error) {
-    message.textContent =
-      "Erro de conexão. Tente novamente.";
+    console.error("Erro ao consultar código:", error);
+
+    $("pairingMessage").textContent =
+      "Erro ao consultar o código. Tente novamente.";
+    $("pairingMessage").style.color = "#ff4545";
+
   } finally {
-    button.disabled = false;
+    pollingPairing = false;
   }
-});
+}
 
-// LOGIN
-login.addEventListener("submit", async function(e) {
-  e.preventDefault();
+async function solicitarCodigoWhatsApp() {
+  const phone = $("whatsappNumber").value.replace(/\D/g, "");
+  const button = $("pairingButton");
+  const message = $("pairingMessage");
 
-  const username = document.getElementById("loginUsername")
-    .value.trim().toLowerCase();
-
-  const password = document.getElementById("loginPassword").value;
-  const button = document.getElementById("loginButton");
-
-  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
-    message.textContent = "Nome de usuário inválido.";
+  if (phone.length < 12 || phone.length > 13) {
+    message.textContent =
+      "Digite o número com DDI e DDD (55 para Brasil).";
+    message.style.color = "#ff4545";
     return;
   }
 
   button.disabled = true;
-  message.textContent = "Entrando na sua conta...";
+  button.textContent = "SOLICITANDO...";
+  message.textContent = "";
+
+  setWhatsAppStatus("Solicitando código de conexão...", "#f0ad4e");
+
+  $("pairingResult").classList.add("hidden");
 
   try {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: `${username}@login.zuckerbot.invalid`,
-      password: password
+    const online = await verificarAgenteDurantePedido();
+
+    if (!online) {
+      throw new Error("Seu bot está offline no Termux.");
+    }
+
+    const response = await fetch("/api/whatsapp/request-code", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + accessToken
+      },
+      body: JSON.stringify({
+        phone: phone
+      })
     });
 
-    if (error) {
-      message.textContent = "Usuário ou senha incorretos.";
+    const data = await response.json();
+
+    if (!response.ok || !data.success || !data.requestId) {
+      throw new Error(showApiError(
+        data,
+        "Não foi possível solicitar o código."
+      ));
+    }
+
+    pairingActive = true;
+    pairingChecks = 0;
+
+    message.textContent = "Pedido enviado. Aguardando código...";
+    message.style.color = "#f0ad4e";
+
+    setWhatsAppStatus("Aguardando código de conexão...", "#f0ad4e");
+
+    button.textContent = "AGUARDANDO CÓDIGO...";
+
+    if (pairingTimer) clearInterval(pairingTimer);
+
+    pairingTimer = setInterval(() => {
+      pollPairing(data.requestId);
+    }, 2000);
+
+    pollPairing(data.requestId);
+
+  } catch (error) {
+    message.textContent = error.message;
+    message.style.color = "#ff4545";
+
+    setWhatsAppStatus(
+      "Não foi possível iniciar a conexão",
+      "#ff4545"
+    );
+
+    button.disabled = false;
+    button.textContent = "GERAR CÓDIGO DE CONEXÃO";
+  }
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+  window.location.href = "index.html";
+}
+
+$("activationButton").addEventListener("click", validateActivation);
+$("unlinkButton").addEventListener("click", requestUnlink);
+$("pairingButton").addEventListener("click", solicitarCodigoWhatsApp);
+$("logoutButton").addEventListener("click", logout);
+
+supabaseClient.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_OUT") {
+    window.location.href = "index.html";
+  }
+});
+
+
+let publishedReleases = [];
+let releasesUserId = null;
+
+function releasesSeenStorageKey() {
+  return `zuckerbots_releases_seen_${releasesUserId || "user"}`;
+}
+
+function getSeenReleaseIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(releasesSeenStorageKey()) || "[]");
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function markReleasesSeen() {
+  try {
+    localStorage.setItem(
+      releasesSeenStorageKey(),
+      JSON.stringify(publishedReleases.map(item => String(item.id)))
+    );
+  } catch (error) {
+    console.warn("Não foi possível salvar as novidades visualizadas.", error);
+  }
+  renderPublishedReleases();
+}
+
+function formatReleaseDate(value) {
+  if (!value) return "Data não informada";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Data não informada";
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+function renderPublishedReleases() {
+  const list = $("updatesList");
+  const summary = $("updatesSummary");
+  const badge = $("updatesBadge");
+  if (!list || !summary || !badge) return;
+
+  const seen = new Set(getSeenReleaseIds());
+  const unseen = publishedReleases.filter(item => !seen.has(String(item.id))).length;
+
+  badge.textContent = String(unseen);
+  badge.classList.toggle("hidden", unseen === 0);
+
+  summary.textContent = publishedReleases.length
+    ? `${publishedReleases.length} atualização(ões) publicada(s). O histórico continua disponível mesmo depois da instalação automática.`
+    : "Ainda não há atualizações publicadas.";
+
+  list.innerHTML = "";
+
+  if (!publishedReleases.length) {
+    const empty = document.createElement("div");
+    empty.className = "updates-empty";
+    empty.textContent = "Nenhuma atualização publicada até agora.";
+    list.appendChild(empty);
+    return;
+  }
+
+  for (const release of publishedReleases) {
+    const isUnseen = !seen.has(String(release.id));
+    const entry = document.createElement("article");
+    entry.className = `update-entry${isUnseen ? " unseen" : ""}`;
+
+    const top = document.createElement("div");
+    top.className = "update-entry-top";
+
+    const version = document.createElement("strong");
+    version.className = "update-entry-version";
+    version.textContent = `ZuckerBots ${release.version || ""}`;
+
+    const right = document.createElement("div");
+    right.style.display = "flex";
+    right.style.alignItems = "center";
+    right.style.gap = "8px";
+
+    if (isUnseen) {
+      const tag = document.createElement("span");
+      tag.className = "update-entry-new";
+      tag.textContent = "NOVA";
+      right.appendChild(tag);
+    }
+
+    const date = document.createElement("span");
+    date.className = "update-entry-date";
+    date.textContent = formatReleaseDate(release.created_at);
+    right.appendChild(date);
+
+    top.append(version, right);
+
+    const notes = document.createElement("p");
+    notes.className = "update-entry-notes";
+    notes.textContent = release.release_notes || "Esta versão não possui descrição cadastrada.";
+
+    entry.append(top, notes);
+    list.appendChild(entry);
+  }
+}
+
+async function loadPublishedReleases() {
+  const list = $("updatesList");
+  try {
+    // Reutiliza a API autenticada já existente; nenhuma nova função Vercel é criada.
+    const response = await fetch("/api/agent/activation-claim?action=releases", {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + accessToken
+      },
+      cache: "no-store"
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Não foi possível consultar as atualizações.");
+    }
+
+    publishedReleases = Array.isArray(data.releases) ? data.releases : [];
+    renderPublishedReleases();
+  } catch (error) {
+    console.error("Erro ao carregar histórico de releases:", error);
+    if (list) {
+      list.innerHTML = "";
+      const message = document.createElement("div");
+      message.className = "updates-empty";
+      message.textContent = "Não foi possível carregar as novidades. Atualize a página para tentar novamente.";
+      list.appendChild(message);
+    }
+    if ($("updatesSummary")) $("updatesSummary").textContent = "Falha ao consultar atualizações.";
+  }
+}
+
+$("updatesNav").addEventListener("click", () => {
+  $("updatesSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  markReleasesSeen();
+});
+
+$("updatesMarkRead").addEventListener("click", markReleasesSeen);
+
+
+async function iniciarPainel() {
+  try {
+    const session = await getSession();
+
+    if (!session) {
+      window.location.href = "index.html";
       return;
     }
 
-    message.textContent = "Login realizado! Redirecionando...";
+    await checkSession(session);
 
-    window.location.replace("inicio.html");
+    releasesUserId = session.user.id;
+    await loadPublishedReleases();
+    setInterval(loadPublishedReleases, 5 * 60 * 1000);
+
+    setInterval(refreshDeviceStatus, 5000);
 
   } catch (error) {
-    message.textContent =
-      "Erro de conexão. Tente novamente.";
-  } finally {
-    button.disabled = false;
-  }
-});
-</script>
+    console.error("Erro ao iniciar painel:", error);
 
+    $("loading").classList.add("hidden");
+    $("error").classList.remove("hidden");
+
+    $("error").textContent =
+      "Não foi possível carregar o painel. Atualize a página e tente novamente.";
+  }
+}
+
+iniciarPainel();
+</script>
 </body>
 </html>
