@@ -53,6 +53,33 @@ module.exports = async (req, res) => {
       Prefer: "return=representation"
     };
          if (req.method === "GET") {
+      // Histórico público de releases publicados, consultado pelo usuário autenticado.
+      // Usa esta função existente para não consumir mais uma Serverless Function na Vercel.
+      if (req.query?.action === "releases") {
+        const releasesResponse = await fetch(
+          `${SUPABASE_URL}/rest/v1/bot_releases` +
+          `?status=eq.published` +
+          `&select=id,version,created_at,release_notes` +
+          `&order=created_at.desc&limit=50`,
+          { headers }
+        );
+
+        if (!releasesResponse.ok) {
+          console.error(
+            "Falha ao consultar histórico de releases:",
+            await releasesResponse.text()
+          );
+          throw new Error("Falha ao consultar atualizações.");
+        }
+
+        const releases = await releasesResponse.json();
+
+        return res.status(200).json({
+          success: true,
+          releases: Array.isArray(releases) ? releases : []
+        });
+      }
+
       const response = await fetch(
         `${SUPABASE_URL}/rest/v1/devices` +
         `?user_id=eq.${user.id}` +
@@ -72,7 +99,7 @@ module.exports = async (req, res) => {
         linked: devices.length > 0,
         device: devices[0] || null
       });
-         }
+    }
     if (req.method !== "POST") {
       return res.status(405).json({
         error: "Método não permitido"
@@ -263,3 +290,4 @@ module.exports = async (req, res) => {
     });
   }
 };
+        
