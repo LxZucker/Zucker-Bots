@@ -147,7 +147,10 @@ async function carregarLogs() {
     });
 
     const deviceData = await response.json();
-
+if (deviceData.suspended) {
+  window.location.href = "inicio.html";
+  return;
+}
         if (!response.ok) {
       throw new Error(
         deviceData.error || "Erro HTTP: " + response.status
