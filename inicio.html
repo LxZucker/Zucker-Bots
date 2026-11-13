@@ -1014,7 +1014,9 @@ async function iniciarPainel() {
       return;
     }
 
-    await checkSession(session);
+    const acessoLiberado = await checkSession(session);
+
+if (!acessoLiberado) return;
     releaseHistoryUserId = session.user.id;
     await loadReleaseHistory();
     setInterval(refreshDeviceStatus, 5000);
