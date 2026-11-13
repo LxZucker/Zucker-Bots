@@ -32,6 +32,20 @@ module.exports = async (req, res) => {
     }
 
     const user = await userResponse.json();
+    const metadata = user.user_metadata || {};
+const suspendedUntil = metadata.zucker_suspended_until;
+const suspensionTime = suspendedUntil
+  ? new Date(suspendedUntil).getTime()
+  : 0;
+
+if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
+  return res.status(403).json({
+    error: "Sua conta está suspensa.",
+    suspended: true,
+    reason: metadata.zucker_suspension_reason || "Motivo não informado.",
+    suspendedUntil
+  });
+}
     const deviceId = String(req.body?.deviceId || "");
 
     if (!/^[0-9a-f-]{36}$/i.test(deviceId)) {
