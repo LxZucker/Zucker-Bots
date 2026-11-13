@@ -46,6 +46,50 @@ module.exports = async (req, res) => {
     if (device.status === "unlink_pending") {
       return res.status(200).json({ success: true, unlinkPending: true });
     }
+    // VERIFICA SE A CONTA ESTÁ SUSPENSA
+const accountResponse = await fetch(
+  `${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(device.user_id)}`,
+  {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    }
+  }
+);
+
+if (!accountResponse.ok) {
+  throw new Error("Não foi possível verificar a suspensão da conta.");
+}
+
+const accountData = await accountResponse.json();
+
+const suspendedUntil =
+  accountData.user_metadata?.zucker_suspended_until || null;
+
+const suspensionTime = suspendedUntil
+  ? new Date(suspendedUntil).getTime()
+  : 0;
+
+if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
+  await fetch(
+    `${SUPABASE_URL}/rest/v1/devices?${filter}`,
+    {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({
+        status: "offline",
+        whatsapp_connected: false
+      })
+    }
+  );
+
+  return res.status(200).json({
+    success: true,
+    suspended: true,
+    suspendedUntil,
+    remainingMs: suspensionTime - Date.now()
+  });
+}
 
     const update = await fetch(
       `${SUPABASE_URL}/rest/v1/devices?${filter}&status=neq.unlink_pending`,
