@@ -255,6 +255,42 @@ module.exports = async (req, res) => {
       });
     }
 
+    // Verifica se a conta vinculada ao agente está suspensa.
+    const accountResponse = await fetch(
+      `${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(device.user_id)}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const account = await accountResponse.json();
+
+    if (!accountResponse.ok) {
+      throw new Error("Falha ao verificar a conta do agente.");
+    }
+
+    const metadata = account.user_metadata || {};
+    const suspendedUntil = metadata.zucker_suspended_until;
+    const suspensionTime = suspendedUntil
+      ? new Date(suspendedUntil).getTime()
+      : 0;
+
+    if (
+      Number.isFinite(suspensionTime) &&
+      suspensionTime > Date.now()
+    ) {
+      return res.status(200).json({
+        success: true,
+        suspended: true,
+        hasCommand: false,
+        commands: [],
+        settingsSync: null
+      });
+  }
+    
     // 4. Busca as configurações completas do bot.
     let prefix = "#";
     let ownerNumber = null;
