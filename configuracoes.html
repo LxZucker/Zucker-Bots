@@ -138,6 +138,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <label for="autoReplyCooldownMinutes">Intervalo por contato (minutos)</label>
     <input id="autoReplyCooldownMinutes" type="number" min="1" max="43200" step="1" value="60">
     <div class="hint">Cada pessoa terá seu próprio intervalo. Exemplo: 60 = o mesmo contato só recebe outra resposta automática depois de 60 minutos. O intervalo será mantido mesmo se o bot reiniciar.</div>
+
+    <label for="autoReplyExcludedNumbers">Números que não receberão a mensagem automática</label>
+    <textarea id="autoReplyExcludedNumbers" maxlength="5000" rows="4" placeholder="5511999999999
+5511888888888"></textarea>
+    <div class="hint">Digite um número por linha, com DDI e DDD. Esses contatos serão ignorados somente pela resposta automática.</div>
   </div>
 
   <div id="groupsCard" class="card hidden">
@@ -564,7 +569,7 @@ function clearGroupSelection(){
 async function loadSettings(){
   const {data,error}=await supabaseClient
     .from("bot_settings")
-    .select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups,auto_reply_enabled,auto_reply_message,auto_reply_cooldown_minutes")
+    .select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups,auto_reply_enabled,auto_reply_message,auto_reply_cooldown_minutes,auto_reply_excluded_numbers")
     .eq("user_id",currentUser.id)
     .maybeSingle();
 
@@ -585,6 +590,9 @@ async function loadSettings(){
   $("autoReplyEnabled").checked = data?.auto_reply_enabled === true;
   $("autoReplyMessage").value = data?.auto_reply_message || "";
   $("autoReplyCooldownMinutes").value = data?.auto_reply_cooldown_minutes ?? 60;
+  $("autoReplyExcludedNumbers").value = Array.isArray(data?.auto_reply_excluded_numbers)
+    ? data.auto_reply_excluded_numbers.join("\n")
+    : "";
 
   if(data?.bot_pv_enabled==null)
     settingsData.bot_pv_enabled=true;
@@ -634,9 +642,9 @@ async function checkDevice(){
       throw new Error("Falha ao consultar o bot.");
   
 const data=await response.json();
-    if (data.suspended) {
-  window.location.href = "inicio.html";
-  return;
+    if (data.suspended || data.validityExpired) {
+      window.location.href = "inicio.html";
+      return;
     }
     const wasLinked=linked;
 
@@ -715,6 +723,17 @@ async function saveSettings(){
   const autoReplyEnabled = $("autoReplyEnabled").checked;
   const autoReplyMessage = $("autoReplyMessage").value.trim();
   const autoReplyCooldownMinutes = Number($("autoReplyCooldownMinutes").value);
+  const autoReplyExcludedNumbers = [...new Set(
+    $("autoReplyExcludedNumbers").value
+      .split(/[\n,;]+/)
+      .map(value => value.replace(/\D/g, ""))
+      .filter(value => value.length > 0)
+  )];
+
+  if (autoReplyExcludedNumbers.some(value => !/^\d{10,15}$/.test(value)) || autoReplyExcludedNumbers.length > 200) {
+    saveStatus.textContent = "Confira os números ignorados: use DDI + DDD + número, um por linha (máximo 200).";
+    return;
+  }
 
   if (!Number.isInteger(autoReplyCooldownMinutes) ||
       autoReplyCooldownMinutes < 1 ||
@@ -766,6 +785,7 @@ async function saveSettings(){
     auto_reply_enabled:autoReplyEnabled,
     auto_reply_message:autoReplyMessage,
     auto_reply_cooldown_minutes:autoReplyCooldownMinutes,
+    auto_reply_excluded_numbers:autoReplyExcludedNumbers,
 
     updated_at:new Date().toISOString()
   };
