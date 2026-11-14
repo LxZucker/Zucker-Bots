@@ -62,6 +62,18 @@ if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
   });
 }
 
+const validityUntil = suspensionMetadata.zucker_valid_until || null;
+const validityTime = validityUntil ? new Date(validityUntil).getTime() : 0;
+if (Number.isFinite(validityTime) && validityTime > 0 && validityTime <= Date.now()) {
+  return res.status(200).json({
+    success: true,
+    validityExpired: true,
+    validityType: suspensionMetadata.zucker_validity_type === "trial" ? "trial" : "paid",
+    validityUntil,
+    remainingMs: 0
+  });
+}
+
     const headers = {
       "Content-Type": "application/json",
       apikey: SUPABASE_KEY,
@@ -306,4 +318,5 @@ if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
     });
   }
 };
-        
+
+            
