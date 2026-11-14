@@ -52,6 +52,15 @@ if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
     suspendedUntil
   });
 }
+const validityUntil = metadata.zucker_valid_until || null;
+const validityTime = validityUntil ? new Date(validityUntil).getTime() : 0;
+if (Number.isFinite(validityTime) && validityTime > 0 && validityTime <= Date.now()) {
+  return res.status(403).json({
+    error: "Sua sessão expirou. Entre em contato com o dono do site para renovar.",
+    validityExpired: true,
+    validityType: metadata.zucker_validity_type === "trial" ? "trial" : "paid"
+  });
+}
     // GET: consultar o código de pareamento
     if (req.method === "GET") {
       const requestId = String(req.query?.requestId || "");
