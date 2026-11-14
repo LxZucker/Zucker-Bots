@@ -45,7 +45,9 @@ module.exports = async (req, res) => {
           password,
           email_confirm: true,
           user_metadata: {
-            username: name
+            username: name,
+            zucker_valid_until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            zucker_validity_type: "trial"
           }
         })
       }
