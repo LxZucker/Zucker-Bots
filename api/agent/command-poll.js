@@ -290,6 +290,26 @@ module.exports = async (req, res) => {
         settingsSync: null
       });
   }
+
+    const validityUntil = metadata.zucker_valid_until || null;
+    const validityTime = validityUntil ? new Date(validityUntil).getTime() : 0;
+    if (Number.isFinite(validityTime) && validityTime > 0 && validityTime <= Date.now()) {
+      const ownerResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/bot_settings?user_id=eq.${encodeURIComponent(device.user_id)}&select=owner_number&limit=1`,
+        { headers }
+      );
+      const ownerRows = ownerResponse.ok ? await ownerResponse.json() : [];
+      return res.status(200).json({
+        success: true,
+        validityExpired: true,
+        validityType: metadata.zucker_validity_type === "trial" ? "trial" : "paid",
+        validityUntil,
+        ownerNumber: ownerRows[0]?.owner_number || null,
+        hasCommand: false,
+        commands: [],
+        settingsSync: null
+      });
+    }
     
     // 4. Busca as configurações completas do bot.
     let prefix = "#";
@@ -308,7 +328,7 @@ module.exports = async (req, res) => {
       `gp_all_groups,gp_selected_groups,` +
       `divulgacao_enabled,divulgacao_config,divulgacao_commands,` +
       `divulgacao_updated_at,` +
-      `auto_reply_enabled,auto_reply_message,auto_reply_cooldown_minutes,` +
+      `auto_reply_enabled,auto_reply_message,auto_reply_cooldown_minutes,auto_reply_excluded_numbers,` +
       `updated_at` +
       `&limit=1`,
       { headers }
@@ -377,6 +397,9 @@ module.exports = async (req, res) => {
           autoReplyMessage: String(saved.auto_reply_message || ""),
           autoReplyCooldownMinutes:
             saved.auto_reply_cooldown_minutes ?? 60,
+          autoReplyExcludedNumbers: Array.isArray(saved.auto_reply_excluded_numbers)
+            ? saved.auto_reply_excluded_numbers
+            : [],
 
           // Configurações independentes da divulgação.
           divulgacaoEnabled: saved.divulgacao_enabled === true,
@@ -439,4 +462,5 @@ module.exports = async (req, res) => {
   }
 };
 
-      
+
+            
