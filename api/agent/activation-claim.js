@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { getAccountAccessById, accessBlockPayload } = require("../../lib/account-access");
 
 const SUPABASE_URL =
   "https://khkjlodngoahevxkxswj.supabase.co";
@@ -46,33 +47,13 @@ module.exports = async (req, res) => {
       });
     }
 
-    const suspensionMetadata = user.user_metadata || {};
-const suspendedUntil = suspensionMetadata.zucker_suspended_until;
-const suspensionTime = suspendedUntil
-  ? new Date(suspendedUntil).getTime()
-  : 0;
+    const access = await getAccountAccessById(user.id);
+    const accessPayload = accessBlockPayload(access);
+    if (accessPayload.accessBlocked) {
+      return res.status(200).json({ success: true, ...accessPayload,
+        reason: accessPayload.reason || accessPayload.suspensionReason || null });
+    }
 
-if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
-  return res.status(200).json({
-    success: true,
-    suspended: true,
-    reason: suspensionMetadata.zucker_suspension_reason || "Motivo não informado.",
-    suspendedUntil,
-    remainingMs: suspensionTime - Date.now()
-  });
-}
-
-const validityUntil = suspensionMetadata.zucker_valid_until || null;
-const validityTime = validityUntil ? new Date(validityUntil).getTime() : 0;
-if (Number.isFinite(validityTime) && validityTime > 0 && validityTime <= Date.now()) {
-  return res.status(200).json({
-    success: true,
-    validityExpired: true,
-    validityType: suspensionMetadata.zucker_validity_type === "trial" ? "trial" : "paid",
-    validityUntil,
-    remainingMs: 0
-  });
-}
 
     const headers = {
       "Content-Type": "application/json",
@@ -319,4 +300,5 @@ if (Number.isFinite(validityTime) && validityTime > 0 && validityTime <= Date.no
   }
 };
 
-            
+
+      
