@@ -539,7 +539,7 @@ function renderGroups(){
 function filterGroups(){
   const query=($("groupSearch")?.value||"")
     .trim()
-    .toLocaleLowerCase();
+  .toLocaleLowerCase();
 
   document.querySelectorAll(".group-option").forEach(label=>{
     const text=label.textContent.toLocaleLowerCase();
