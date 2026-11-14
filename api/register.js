@@ -7,6 +7,10 @@ module.exports = async (req, res) => {
   }
 
   try {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(500).json({ error: "Servidor não configurado." });
+    }
+
     const { username, password, confirmPassword } = req.body || {};
 
     const name = String(username || "").trim().toLowerCase();
@@ -45,15 +49,20 @@ module.exports = async (req, res) => {
           password,
           email_confirm: true,
           user_metadata: {
-            username: name,
+            username: name
+          },
+          app_metadata: {
+            zucker_access_control_version: 1,
             zucker_valid_until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            zucker_validity_type: "trial"
+            zucker_validity_type: "trial",
+            zucker_validity_trial_granted_at: new Date().toISOString(),
+            zucker_validity_renewal_count: 0
           }
         })
       }
     );
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       return res.status(400).json({
