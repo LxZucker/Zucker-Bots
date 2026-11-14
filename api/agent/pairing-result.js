@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { getAccountAccessById, accessBlockPayload } = require("../../lib/account-access");
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -65,6 +66,12 @@ module.exports = async (req, res) => {
       });
     }
 
+    const access = await getAccountAccessById(devices[0].user_id);
+    const accessPayload = accessBlockPayload(access);
+    if (accessPayload.accessBlocked) {
+      return res.status(403).json({ error: "Acesso do agente bloqueado.", ...accessPayload });
+    }
+
     const updateResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/whatsapp_pairing` +
       `?id=eq.${encodeURIComponent(requestId)}` +
@@ -110,3 +117,4 @@ module.exports = async (req, res) => {
     });
   }
 };
+      
