@@ -1,3 +1,5 @@
+const { getAccountAccessById, accessBlockPayload } = require("../../lib/account-access");
+
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -32,30 +34,15 @@ module.exports = async (req, res) => {
     }
 
     const user = await userResponse.json();
-    const metadata = user.user_metadata || {};
-const suspendedUntil = metadata.zucker_suspended_until;
-const suspensionTime = suspendedUntil
-  ? new Date(suspendedUntil).getTime()
-  : 0;
-
-if (Number.isFinite(suspensionTime) && suspensionTime > Date.now()) {
-  return res.status(403).json({
-    error: "Sua conta está suspensa.",
-    suspended: true,
-    reason: metadata.zucker_suspension_reason || "Motivo não informado.",
-    suspendedUntil
-  });
-}
-const validityUntil = metadata.zucker_valid_until || null;
-const validityTime = validityUntil ? new Date(validityUntil).getTime() : 0;
-if (Number.isFinite(validityTime) && validityTime > 0 && validityTime <= Date.now()) {
-  return res.status(403).json({
-    error: "Sua sessão expirou. Entre em contato com o dono do site para renovar.",
-    validityExpired: true,
-    validityType: metadata.zucker_validity_type === "trial" ? "trial" : "paid"
-  });
-}
-    const deviceId = String(req.body?.deviceId || "");
+    const access = await getAccountAccessById(user.id);
+    const accessPayload = accessBlockPayload(access);
+    if (accessPayload.accessBlocked) {
+      return res.status(403).json({
+        error: accessPayload.suspended ? "Sua conta está suspensa." : "Sua validade expirou.",
+        ...accessPayload
+      });
+    }
+        const deviceId = String(req.body?.deviceId || "");
 
     if (!/^[0-9a-f-]{36}$/i.test(deviceId)) {
       return res.status(400).json({ error: "Dispositivo inválido" });
@@ -171,4 +158,4 @@ if (Number.isFinite(validityTime) && validityTime > 0 && validityTime <= Date.no
     });
   }
 };
-        
+
