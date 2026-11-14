@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { getAccountAccessById, accessBlockPayload } = require("../../lib/account-access");
 
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -63,6 +64,17 @@ module.exports = async (req, res) => {
     const updatedDevices = await update.json();
     if (!updatedDevices.length) return res.status(200).json({ success: true, unlinkPending: true });
 
+    const access = await getAccountAccessById(device.user_id);
+    const accessPayload = accessBlockPayload(access);
+    if (accessPayload.accessBlocked) {
+      return res.status(200).json({
+        success: true,
+        ...accessPayload,
+        savedMessages: 0,
+        message: "Agente bloqueado pelo controle de acesso da conta."
+      });
+    }
+
     const incoming = Array.isArray(req.body?.messages) ? req.body.messages.slice(0, 20) : [];
     const rows = incoming
       .filter(m => m && typeof m.remoteJid === "string" && m.remoteJid && typeof m.messageId === "string" && m.messageId)
@@ -99,6 +111,7 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      ...accessPayload,
       savedMessages: rows.length,
       message: "Comunicação recebida."
     });
