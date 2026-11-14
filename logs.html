@@ -147,7 +147,7 @@ async function carregarLogs() {
     });
 
     const deviceData = await response.json();
-if (deviceData.suspended) {
+if (deviceData.suspended || deviceData.validityExpired) {
   window.location.href = "inicio.html";
   return;
 }
