@@ -180,6 +180,24 @@ body{min-height:100vh;background:radial-gradient(ellipse at top left,rgba(255,25
   margin-top: 20px;
   }
   
+
+#validityScreen {
+  position: fixed; inset: 0; z-index: 1000000; background: #080808;
+  display: flex; align-items: center; justify-content: center;
+  padding: 25px; text-align: center;
+}
+.validity-content {
+  width: 100%; max-width: 440px; background: #111;
+  border: 1px solid #442020; border-top: 3px solid #ff3030;
+  border-radius: 16px; padding: 30px 22px;
+}
+.validity-content h1 { color: #ff4545; font-size: 24px; margin: 0 0 18px; }
+.validity-content p { color: #bbb; line-height: 1.7; overflow-wrap: anywhere; }
+.validity-content a {
+  display: inline-block; margin-top: 16px; color: #fff; background: #168a43;
+  text-decoration: none; font-weight: bold; padding: 12px 18px; border-radius: 9px;
+}
+
 </style>
 </head>
 
@@ -197,6 +215,14 @@ body{min-height:100vh;background:radial-gradient(ellipse at top left,rgba(255,25
     <p>ACESSO SERÁ LIBERADO EM</p>
 
     <div id="suspensionTime">00:00</div>
+  </div>
+</div>
+<div id="validityScreen" class="hidden">
+  <div class="validity-content">
+    <h1 id="validityTitle">SESSÃO ENCERRADA</h1>
+    <p id="validityMessage"></p>
+    <p>Para renovar seu acesso, entre em contato com o dono do site:</p>
+    <a href="https://wa.me/5513997703191" target="_blank" rel="noopener noreferrer">FALAR COM O DONO NO WHATSAPP</a>
   </div>
 </div>
 <div id="loading" style="text-align:center;margin-top:100px;color:#888">
@@ -478,6 +504,21 @@ if (data.suspended) {
 
   return null;
 }
+
+if (data.validityExpired) {
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.add("hidden");
+  $("validityScreen").classList.remove("hidden");
+
+  const isTrial = data.validityType === "trial";
+  $("validityTitle").textContent = isTrial
+    ? "SEU TESTE TERMINOU"
+    : "SUA SESSÃO ACABOU";
+  $("validityMessage").textContent = isTrial
+    ? "Sua sessão de teste terminou, para garantir um plano entre em contato com o dono do site!"
+    : "Sua sessão acabou, para renovar entre em contato com o dono do site!";
+  return null;
+}
   if (!response.ok) {
     throw new Error(showApiError(
       data,
@@ -525,6 +566,10 @@ $("whatsappSection").classList.toggle(
 
 async function refreshDeviceStatus() {
   if (!accessToken || refreshing) return;
+  if (
+    !$("suspensionScreen").classList.contains("hidden") ||
+    !$("validityScreen").classList.contains("hidden")
+  ) return;
 
   refreshing = true;
 
@@ -564,7 +609,10 @@ async function checkSession(session) {
 
   await loadDevice();
 
-  if (!$("suspensionScreen").classList.contains("hidden")) {
+  if (
+    !$("suspensionScreen").classList.contains("hidden") ||
+    !$("validityScreen").classList.contains("hidden")
+  ) {
     return false;
   }
 
