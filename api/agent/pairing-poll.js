@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { getAccountAccessById, accessBlockPayload } = require("../../lib/account-access");
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -55,6 +56,11 @@ module.exports = async (req, res) => {
     }
 
     const device = devices[0];
+    const access = await getAccountAccessById(device.user_id);
+    const accessPayload = accessBlockPayload(access);
+    if (accessPayload.accessBlocked) {
+      return res.status(200).json({ success: true, hasRequest: false, ...accessPayload });
+    }
 
     if (device.status === "unlink_pending" || device.status === "offline") {
       return res.status(409).json({
