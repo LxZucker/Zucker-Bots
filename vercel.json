@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/agent/update-report",
+      "destination": "/api/agent/heartbeat?mode=update-report"
+    }
+  ]
+}
