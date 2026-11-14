@@ -1,5 +1,6 @@
 
 const crypto = require("crypto");
+const { getAccountAccessById, accessBlockPayload } = require("../../lib/account-access");
 
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -255,62 +256,25 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Verifica se a conta vinculada ao agente está suspensa.
-    const accountResponse = await fetch(
-      `${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(device.user_id)}`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`
-        }
-      }
-    );
-
-    const account = await accountResponse.json();
-
-    if (!accountResponse.ok) {
-      throw new Error("Falha ao verificar a conta do agente.");
-    }
-
-    const metadata = account.user_metadata || {};
-    const suspendedUntil = metadata.zucker_suspended_until;
-    const suspensionTime = suspendedUntil
-      ? new Date(suspendedUntil).getTime()
-      : 0;
-
-    if (
-      Number.isFinite(suspensionTime) &&
-      suspensionTime > Date.now()
-    ) {
+    // A conta é sempre validada no servidor usando app_metadata.
+    // A consulta de atualização acima permanece disponível para permitir recuperação
+    // de agentes suspensos/expirados após uma correção publicada pelo administrador.
+    const access = await getAccountAccessById(device.user_id);
+    const accessPayload = accessBlockPayload(access);
+    if (accessPayload.accessBlocked) {
       return res.status(200).json({
         success: true,
-        suspended: true,
-        hasCommand: false,
-        commands: [],
-        settingsSync: null
-      });
-  }
-
-    const validityUntil = metadata.zucker_valid_until || null;
-    const validityTime = validityUntil ? new Date(validityUntil).getTime() : 0;
-    if (Number.isFinite(validityTime) && validityTime > 0 && validityTime <= Date.now()) {
-      const ownerResponse = await fetch(
-        `${SUPABASE_URL}/rest/v1/bot_settings?user_id=eq.${encodeURIComponent(device.user_id)}&select=owner_number&limit=1`,
-        { headers }
-      );
-      const ownerRows = ownerResponse.ok ? await ownerResponse.json() : [];
-      return res.status(200).json({
-        success: true,
-        validityExpired: true,
-        validityType: metadata.zucker_validity_type === "trial" ? "trial" : "paid",
-        validityUntil,
-        ownerNumber: ownerRows[0]?.owner_number || null,
+        ...accessPayload,
+        suspended: accessPayload.suspended === true,
+        validityExpired: accessPayload.validityExpired === true,
+        validityType: accessPayload.validityType,
+        validityUntil: accessPayload.validityUntil,
         hasCommand: false,
         commands: [],
         settingsSync: null
       });
     }
-    
+
     // 4. Busca as configurações completas do bot.
     let prefix = "#";
     let ownerNumber = null;
@@ -438,6 +402,7 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      ...accessPayload,
 
       hasCommand: commands.length > 0,
 
@@ -461,6 +426,7 @@ module.exports = async (req, res) => {
     });
   }
 };
+
 
 
             
