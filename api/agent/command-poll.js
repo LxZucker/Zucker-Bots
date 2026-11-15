@@ -1,4 +1,3 @@
-
 const crypto = require("crypto");
 const { getAccountAccessById, accessBlockPayload } = require("../../lib/account-access");
 
@@ -210,7 +209,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 3. Recebe e registra logs.
+    // 3. Recebe e registra logs dos comandos.
     if (req.body?.action === "log") {
       const command = String(req.body.command || "")
         .trim()
@@ -256,6 +255,92 @@ module.exports = async (req, res) => {
       });
     }
 
+    // 4. Registra logs de divulgação pela autenticação desta função existente.
+    // O usuário e o dispositivo vêm do registro autenticado, nunca do corpo da requisição.
+    if (req.body?.action === "divulgacao-log") {
+      const runId = String(req.body.runId || "");
+      const sectionId = String(req.body.sectionId || "").trim().slice(0, 40);
+      const startedAt = String(req.body.startedAt || "");
+      const endedAt = req.body.endedAt ? String(req.body.endedAt) : null;
+      const status = String(req.body.status || "");
+      const sentCount = Number(req.body.sentCount ?? 0);
+      const failedCount = Number(req.body.failedCount ?? 0);
+      const errorReason = String(req.body.errorReason || "").slice(0, 3000);
+
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(runId) || !sectionId) {
+        return res.status(400).json({
+          error: "Identificação da execução inválida."
+        });
+      }
+
+      if (!["running", "success", "error"].includes(status)) {
+        return res.status(400).json({
+          error: "Status da divulgação inválido."
+        });
+      }
+
+      if (!Number.isFinite(Date.parse(startedAt))) {
+        return res.status(400).json({
+          error: "Horário de início inválido."
+        });
+      }
+
+      const startedTime = Date.parse(startedAt);
+      const endedTime = endedAt ? Date.parse(endedAt) : null;
+
+      if (
+        (status !== "running" && endedAt === null) ||
+        (endedAt !== null && (!Number.isFinite(endedTime) || endedTime < startedTime))
+      ) {
+        return res.status(400).json({
+          error: "Horário de término inválido."
+        });
+      }
+
+      if (
+        !Number.isSafeInteger(sentCount) || sentCount < 0 || sentCount > 100000 ||
+        !Number.isSafeInteger(failedCount) || failedCount < 0 || failedCount > 100000
+      ) {
+        return res.status(400).json({
+          error: "Contagem de envios inválida."
+        });
+      }
+
+      const saveLog = await fetch(
+        `${SUPABASE_URL}/rest/v1/divulgacao_logs?on_conflict=device_id,run_id`,
+        {
+          method: "POST",
+          headers: {
+            ...headers,
+            Prefer: "resolution=merge-duplicates,return=minimal"
+          },
+          body: JSON.stringify({
+            user_id: device.user_id,
+            device_id: device.id,
+            run_id: runId,
+            section_id: sectionId,
+            started_at: new Date(startedAt).toISOString(),
+            ended_at: endedAt ? new Date(endedAt).toISOString() : null,
+            status,
+            sent_count: sentCount,
+            failed_count: failedCount,
+            error_reason: errorReason || null
+          })
+        }
+      );
+
+      if (!saveLog.ok) {
+        console.error("[DIVULGACAO LOG]", await saveLog.text());
+        return res.status(502).json({
+          error: "Não foi possível salvar o log de divulgação."
+        });
+      }
+
+      return res.status(200).json({
+        success: true
+      });
+    }
+
     // A conta é sempre validada no servidor usando app_metadata.
     // A consulta de atualização acima permanece disponível para permitir recuperação
     // de agentes suspensos/expirados após uma correção publicada pelo administrador.
@@ -275,7 +360,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 4. Busca as configurações completas do bot.
+    // 5. Busca as configurações completas do bot.
     let prefix = "#";
     let ownerNumber = null;
     let settingsSync = null;
@@ -383,7 +468,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    // 5. Procura comandos pendentes do dispositivo.
+    // 6. Procura comandos pendentes do dispositivo.
     const commandResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/agent_commands` +
       `?device_id=eq.${encodeURIComponent(deviceId)}` +
@@ -426,7 +511,4 @@ module.exports = async (req, res) => {
     });
   }
 };
-
-
-
-            
+              
