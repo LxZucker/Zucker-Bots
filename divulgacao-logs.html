@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090909">
+<title>ZuckerBots — Logs de Divulgação</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{color-scheme:dark;--bg:#080808;--card:#141414;--line:#303030;--muted:#999;--red:#ff4141;--green:#25d366;--yellow:#f2bd55}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#241010 0,#080808 45%);color:#f5f5f5;font:15px Arial,sans-serif;padding:18px}
+main{width:min(900px,100%);margin:0 auto}.back{display:inline-block;margin:0 0 18px;padding:10px 14px;border-radius:9px;background:#292929;color:#fff;text-decoration:none;font-weight:bold}
+header,.log{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:13px}h1{margin:0;color:var(--red);font-size:24px}header p{color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 0}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0;color:var(--muted);font-size:12px}button{border:1px solid #444;background:#202020;color:#fff;border-radius:8px;padding:10px 13px;font-weight:bold;cursor:pointer}
+.log{display:grid;grid-template-columns:1fr auto;gap:12px}.top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:10px}.session{font-weight:bold}.badge{font-size:11px;font-weight:bold;border-radius:20px;padding:6px 10px}.success{color:var(--green);background:#0d2919;border:1px solid #1d6840}.error{color:#ff7777;background:#2a1010;border:1px solid #743030}.running{color:var(--yellow);background:#2b210e;border:1px solid #74551b}.times{display:grid;grid-template-columns:1fr 1fr;gap:8px;color:#bbb;font-size:12px}.times strong{display:block;color:#777;font-size:10px;text-transform:uppercase;margin-bottom:4px}.counts{color:#bbb;font-size:12px;margin-top:10px}.reason{margin-top:10px;padding:10px;border-radius:8px;background:#210f0f;color:#ffb0b0;font-size:12px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}.empty,.message{padding:25px;text-align:center;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:12px;font-size:13px}.empty.error{color:#ff9999}.updated{font-size:11px;color:#777}@media(max-width:560px){body{padding:12px}.log{grid-template-columns:1fr}.times{grid-template-columns:1fr 1fr}h1{font-size:21px}}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="divulgacao.html">← VOLTAR PARA DIVULGAÇÃO</a>
+<header><h1>📊 LOGS DE DIVULGAÇÃO</h1><p>Acompanhe cada execução enviada pelo seu agente Termux, incluindo horários, resultado e motivo de falhas. Os registros são exclusivos da sua conta.</p></header>
+<div class="toolbar"><span id="refreshStatus">Carregando histórico...</span><button id="refresh" type="button">ATUALIZAR</button></div>
+<section id="logs"><div class="empty">Carregando registros...</div></section>
+</main>
+<script>
+const SUPABASE_URL="https://khkjlodngoahevxkxswj.supabase.co";
+const SUPABASE_KEY="sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const logs=document.getElementById("logs");
+const refreshStatus=document.getElementById("refreshStatus");
+let userId=null,loading=false;
+const fmt=value=>value?new Date(value).toLocaleString("pt-BR"):"Aguardando conclusão";
+function safeText(tag,className,value){const el=document.createElement(tag);el.className=className;el.textContent=value;return el;}
+function render(rows){logs.replaceChildren();if(!rows.length){logs.append(safeText("div","empty","Nenhuma divulgação registrada ainda."));return;}
+for(const row of rows){const card=safeText("article","log","");const body=safeText("div","body","");const top=safeText("div","top","");top.append(safeText("span","session","Sessão "+row.section_id));const status=row.status==="success"?"success":row.status==="error"?"error":"running";const label=status==="success"?"SUCESSO":status==="error"?"ERRO":"EM ANDAMENTO";top.append(safeText("span","badge "+status,label));body.append(top);
+const times=safeText("div","times","");const start=safeText("div","","");start.append(safeText("strong","","Horário de início"),document.createTextNode(fmt(row.started_at)));const end=safeText("div","","");end.append(safeText("strong","","Horário de término"),document.createTextNode(fmt(row.ended_at)));times.append(start,end);body.append(times);
+body.append(safeText("div","counts",`Envios concluídos: ${row.sent_count||0} • Falhas: ${row.failed_count||0}`));if(row.error_reason)body.append(safeText("div","reason",row.error_reason));card.append(body);logs.append(card);}}
+async function loadLogs(){if(loading||!userId)return;loading=true;try{const {data,error}=await client.from("divulgacao_logs").select("id,section_id,started_at,ended_at,status,sent_count,failed_count,error_reason").eq("user_id",userId).order("started_at",{ascending:false}).limit(100);if(error)throw error;render(data||[]);refreshStatus.textContent="Atualizado às "+new Date().toLocaleTimeString("pt-BR");}catch(error){console.error(error);logs.replaceChildren(safeText("div","empty error","Não foi possível carregar os logs. Confirme se a migração SQL foi aplicada. Detalhe: "+error.message));refreshStatus.textContent="Falha ao atualizar";}finally{loading=false;}}
+async function init(){try{const {data:{session},error}=await client.auth.getSession();if(error)throw error;if(!session){location.href="index.html";return;}const accessResponse=await fetch("/api/agent/activation-claim",{headers:{Authorization:"Bearer "+session.access_token}});const access=await accessResponse.json();if(!accessResponse.ok||access.suspended||access.validityExpired||access.accessBlocked){location.href="inicio.html";return;}userId=session.user.id;await loadLogs();setInterval(loadLogs,5000);}catch(error){logs.replaceChildren(safeText("div","empty error","Erro ao iniciar os logs: "+error.message));refreshStatus.textContent="Erro";}}
+document.getElementById("refresh").addEventListener("click",loadLogs);init();
+</script>
+</body>
+</html>
