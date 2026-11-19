@@ -1072,7 +1072,7 @@ async function iniciarPainel() {
 if (!acessoLiberado) return;
     releaseHistoryUserId = session.user.id;
     await loadReleaseHistory();
-    setInterval(refreshDeviceStatus, 5000);
+    setInterval(refreshDeviceStatus, 15000);
     setInterval(loadReleaseHistory, 5 * 60 * 1000);
 
   } catch (error) {
