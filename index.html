@@ -339,7 +339,7 @@ register.addEventListener("submit", async function(e) {
   message.textContent = "Criando sua conta...";
 
   try {
-    const response = await fetch("/api/register", {
+    const response = await fetch("https://zuckerbots-api.duckdns.org:40592/api/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
