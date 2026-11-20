@@ -1,396 +1,258 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#090909">
-<title>ZuckerBots - Painel</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>ZuckerBot</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-:root{--red:#ff2525;--red-dark:#a90000;--green:#00df62;--bg:#080808;--card:#111111;--card2:#171717;--border:#292929;--muted:#888}
-body{min-height:100vh;background:radial-gradient(ellipse at top left,rgba(255,25,25,.10),transparent 40%),#080808;color:#fff;padding:22px}
-.hidden{display:none!important}
-.dashboard{max-width:900px;margin:auto}
-.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;padding:17px 20px;background:rgba(18,18,18,.92);border:1px solid #292929;border-radius:15px;margin-bottom:30px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{font-size:39px;font-weight:900;letter-spacing:-6px}
-.z{color:var(--red);text-shadow:0 0 15px rgba(255,30,30,.6)}
-.b{color:#fff}
-.brand h2{font-size:22px;letter-spacing:.3px}
-.brand h2 span{color:var(--red)}
-.status{display:flex;align-items:center;gap:7px;border:1px solid #383838;background:#1b1b1b;border-radius:30px;padding:9px 13px;font-size:11px;color:#ccc}
-.status-dot{width:7px;height:7px;background:var(--red);border-radius:50%;box-shadow:0 0 8px var(--red)}
-.welcome{margin-bottom:25px}
-.welcome h1{font-size:28px;margin-bottom:8px}
-.welcome h1 span{color:var(--red)}
-.welcome p{color:#888;font-size:13px}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
-.stat-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#181818,#101010);border:1px solid #303030;border-radius:14px;padding:20px;transition:.2s}
-.stat-card.red{border-left:3px solid var(--red)}
-.stat-card.green{border-left:3px solid var(--green)}
-.stat-icon{font-size:25px;margin-bottom:13px}
-.stat-card h3{font-size:15px;margin-bottom:9px}
-.stat-card p{color:#aaa;font-size:12px;line-height:1.5}
-.section-title{font-size:18px;margin:32px 0 15px;display:flex;align-items:center;gap:9px}
-.section-title::before{content:"";width:4px;height:19px;background:var(--red);border-radius:5px;box-shadow:0 0 10px rgba(255,30,30,.4)}
-.card{background:linear-gradient(145deg,#151515,#101010);border:1px solid #303030;border-radius:14px;padding:21px;margin-bottom:16px;box-shadow:0 8px 25px rgba(0,0,0,.18)}
-.card.red{border-top:2px solid var(--red)}
-.card.green{border-top:2px solid #444}
-.card h3{font-size:16px;margin-bottom:11px}
-.card p{color:#929292;font-size:13px;line-height:1.7;margin-bottom:15px}
-.field{width:100%;padding:14px;background:#090909;border:1px solid #353535;border-radius:9px;color:#fff;font-size:15px;margin:9px 0 15px;outline:none;transition:.2s}
-.field:focus{border-color:var(--red);box-shadow:0 0 0 2px rgba(255,30,30,.12)}
-.code-field{text-align:center;font-size:27px;letter-spacing:9px;font-weight:bold}
-.action-btn{width:100%;padding:14px;border:1px solid #ff4141;border-radius:9px;background:linear-gradient(135deg,#ff3030,#bd0000);color:#fff;font-weight:bold;font-size:12px;letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 15px rgba(255,0,0,.13);transition:.2s}
-.action-btn:active{transform:scale(.98)}
-.action-btn:disabled{opacity:.5;cursor:not-allowed}
-.danger-btn{width:100%;padding:14px;border:1px solid #792323;border-radius:9px;background:#250b0b;color:#ff5555;font-weight:bold;font-size:12px;cursor:pointer}
-.danger-btn:disabled{opacity:.5;cursor:not-allowed}
-.message{margin-top:13px;color:#aaa;font-size:12px;line-height:1.6;min-height:18px}
-.message.offline{color:#ff3535;font-weight:bold}
-.pairing-code{color:var(--green);letter-spacing:6px;text-align:center;font-size:30px;margin:18px 0;text-shadow:0 0 15px rgba(0,223,98,.2)}
-.pairing-box{background:#090909;border:1px solid #333;border-radius:12px;padding:16px;margin-top:18px}
-.config-card{position:relative;overflow:hidden;background:radial-gradient(ellipse at top right,rgba(255,20,20,.09),transparent 55%),linear-gradient(145deg,#171717,#101010);border:1px solid #343434;border-top:2px solid var(--red);border-radius:14px;padding:21px;margin-top:30px}
-.config-card h3{font-size:17px;margin-bottom:10px}
-.config-card p{color:#929292;font-size:13px;line-height:1.6;margin-bottom:17px}
-.config-icon{font-size:27px;margin-bottom:13px}
-.config-label{display:inline-block;background:#260d0d;border:1px solid #5b2020;color:#ff5555;border-radius:20px;padding:6px 10px;font-size:10px;margin-bottom:12px}
-.account{margin-top:25px;background:#111;border:1px solid #292929;border-radius:14px;padding:20px}
-.account h3{font-size:15px}
-.account p{color:#888;font-size:12px;margin-top:11px;overflow-wrap:anywhere}
-.logout{margin-top:18px;padding:12px 17px;background:#250b0b;border:1px solid #8d2525;color:#ff5555;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer}
-.footer{text-align:center;color:#484848;font-size:10px;margin-top:30px;letter-spacing:1px}
-@media(max-width:500px){body{padding:13px}.topbar{padding:15px}.stats{gap:10px}.stat-card{padding:15px}.welcome h1{font-size:24px}.card,.config-card{padding:17px}.brand h2{font-size:20px}}
-
-.update-nav-button{position:relative;display:flex;align-items:center;gap:8px;padding:10px 13px;background:#210d0d;border:1px solid #672323;border-radius:10px;color:#ff7777;font-size:12px;font-weight:bold;cursor:pointer}
-.update-nav-button:active{transform:scale(.98)}
-.update-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:20px;background:#ff2525;color:#fff;font-size:10px}
-.updates-section{margin-top:30px;scroll-margin-top:18px}
-.updates-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.updates-summary p{margin:0;color:#888;font-size:12px}
-.update-list{display:grid;gap:12px}
-.update-item{background:linear-gradient(145deg,#171717,#101010);border:1px solid #303030;border-left:3px solid #555;border-radius:12px;padding:17px}
-.update-item.is-new{border-left-color:var(--green);box-shadow:0 0 18px rgba(0,223,98,.06)}
-.update-item-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-.update-version{font-size:16px;font-weight:bold}
-.update-date{font-size:11px;color:#777}
-.update-new-tag{font-size:9px;font-weight:bold;letter-spacing:.5px;color:#00df62;background:rgba(0,223,98,.09);border:1px solid rgba(0,223,98,.25);border-radius:20px;padding:5px 8px}
-.update-notes{white-space:pre-wrap;overflow-wrap:anywhere;color:#bbb;font-size:13px;line-height:1.7;margin:9px 0 0}
-.update-empty{color:#888;text-align:center;padding:18px;font-size:13px}
-.update-error{color:#ff7777}
-.update-read-button{padding:9px 12px;border:1px solid #3b3b3b;background:#171717;color:#aaa;border-radius:8px;font-size:10px;font-weight:bold;cursor:pointer}
-@media(max-width:500px){.update-nav-button{padding:9px 10px}.update-item{padding:14px}}
-.updates-modal{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-  background:rgba(0,0,0,.82);
-  backdrop-filter:blur(5px);
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
-.updates-modal.hidden{
-  display:none!important;
-}
-
-.updates-modal-content{
-  width:min(100%,650px);
-  max-height:85vh;
-  overflow-y:auto;
-  background:#111;
-  border:1px solid #3b2929;
-  border-top:2px solid var(--red);
-  border-radius:16px;
-  padding:20px;
-  box-shadow:0 20px 70px rgba(0,0,0,.65);
-}
-
-.updates-modal-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:18px;
-}
-
-.updates-modal-header h2{
-  font-size:18px;
-}
-
-#closeUpdatesModal{
-  width:35px;
-  height:35px;
-  border:1px solid #444;
-  border-radius:9px;
-  background:#1b1b1b;
-  color:#fff;
-  font-size:18px;
-  cursor:pointer;
-  flex-shrink:0;
-}
-
-  #suspensionScreen {
-  position: fixed;
-  inset: 0;
-  z-index: 999999;
+body {
+  min-height: 100vh;
   background: #080808;
+  color: white;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 25px;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 390px;
   text-align: center;
 }
 
-.suspension-content {
-  width: 100%;
-  max-width: 420px;
+.logo {
+  font-size: 65px;
+  font-weight: 900;
+  letter-spacing: -8px;
+  margin-bottom: 5px;
+}
+
+.logo .z {
+  color: #ff2020;
+  text-shadow: 0 0 12px red, 0 0 30px #ff2020;
+}
+
+.logo .b {
+  color: #00ff55;
+  text-shadow: 0 0 12px #00ff55, 0 0 30px #00ff55;
+}
+
+.brand {
+  font-size: 27px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.brand span {
+  color: #00ff55;
+}
+
+.subtitle {
+  color: #777;
+  font-size: 12px;
+  letter-spacing: 3px;
+  margin-bottom: 35px;
+}
+
+.panel {
   background: #111;
-  border: 1px solid #442020;
-  border-top: 3px solid #ff2525;
-  border-radius: 16px;
-  padding: 30px 22px;
+  border: 1px solid #292929;
+  border-radius: 15px;
+  padding: 27px 22px;
+  text-align: left;
 }
 
-.suspension-content h1 {
-  color: #ff3535;
-  font-size: 25px;
-  margin-bottom: 20px;
+.panel h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 21px;
 }
 
-.suspension-content p {
-  color: #aaa;
-  line-height: 1.7;
+.field {
+  margin-bottom: 17px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  color: #bbb;
+  margin-bottom: 8px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  background: #080808;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: white;
+  outline: none;
+}
+
+input:focus {
+  border-color: #00ff55;
+  box-shadow: 0 0 8px #00ff5533;
+}
+
+.main-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: #00e64d;
+  color: black;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.main-btn:active {
+  transform: scale(.98);
+}
+
+.main-btn:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.switch {
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+  margin-top: 22px;
+}
+
+.switch a {
+  color: #00ff55;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.message {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 12px;
+  color: #00ff55;
   overflow-wrap: anywhere;
 }
 
-#suspensionReason {
-  color: white;
-  margin: 15px 0;
+.hidden {
+  display: none !important;
 }
 
-#suspensionTime {
-  color: #ff4545;
-  font-size: 30px;
-  font-weight: bold;
-  margin-top: 20px;
-  }
-  
-
-#validityScreen {
-  position: fixed; inset: 0; z-index: 1000000; background: #080808;
-  display: flex; align-items: center; justify-content: center;
-  padding: 25px; text-align: center;
+.footer {
+  margin-top: 25px;
+  font-size: 11px;
+  color: #444;
 }
-.validity-content {
-  width: 100%; max-width: 440px; background: #111;
-  border: 1px solid #442020; border-top: 3px solid #ff3030;
-  border-radius: 16px; padding: 30px 22px;
-}
-.validity-content h1 { color: #ff4545; font-size: 24px; margin: 0 0 18px; }
-.validity-content p { color: #bbb; line-height: 1.7; overflow-wrap: anywhere; }
-.validity-content a {
-  display: inline-block; margin-top: 16px; color: #fff; background: #168a43;
-  text-decoration: none; font-weight: bold; padding: 12px 18px; border-radius: 9px;
-}
-
 </style>
 </head>
 
 <body>
-<div id="suspensionScreen" class="hidden">
-  <div class="suspension-content">
-    <h1>CONTA SUSPENSA</h1>
 
-    <p>O acesso à plataforma está temporariamente bloqueado.</p>
+<div class="container">
 
-    <p style="margin-top:20px">MOTIVO DA SUSPENSÃO</p>
-
-    <p id="suspensionReason"></p>
-
-    <p>ACESSO SERÁ LIBERADO EM</p>
-
-    <div id="suspensionTime">00:00</div>
+  <div class="logo">
+    <span class="z">Z</span><span class="b">B</span>
   </div>
-</div>
-<div id="validityScreen" class="hidden">
-  <div class="validity-content">
-    <h1 id="validityTitle">SESSÃO ENCERRADA</h1>
-    <p id="validityMessage"></p>
-    <p>Para renovar seu acesso, entre em contato com o dono do site:</p>
-    <p><strong>+55 (13) 99770-3191</strong></p>
-    <a href="https://wa.me/5513997703191" target="_blank" rel="noopener noreferrer">FALAR COM O DONO NO WHATSAPP</a>
-  </div>
-</div>
-<div id="loading" style="text-align:center;margin-top:100px;color:#888">
-Verificando acesso...
-</div>
 
-<div id="error" class="hidden" style="text-align:center;color:#ff2525;margin-top:40px">
-Não foi possível verificar sua sessão. Tente novamente.
-</div>
+  <div class="brand">Zucker<span>Bot</span></div>
+  <div class="subtitle">WHATSAPP BOT PLATFORM</div>
 
-<main class="dashboard hidden" id="dashboard">
+  <div class="panel">
 
-<header class="topbar">
-  <div class="brand">
-    <div class="logo"><span class="z">Z</span><span class="b">B</span></div>
-    <h2>Zucker<span>Bots</span></h2>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <button class="update-nav-button" id="updatesNavButton" type="button">
-      🔔 NOVIDADES <span class="update-count hidden" id="updatesCount">0</span>
-    </button>
-    <div class="status">
-      <span class="status-dot"></span>
-      PAINEL DE CONTROLE
-    </div>
-  </div>
-</header>
+    <!-- LOGIN: PRIMEIRA TELA -->
+    <form id="login">
+      <h2>Bem-vindo de volta</h2>
 
-<section class="welcome">
-  <h1>Olá, <span id="username">Usuário</span>!</h1>
-  <p>Bem-vindo ao seu painel de controle.</p>
-</section>
+      <div class="field">
+        <label>Nome de usuário</label>
+        <input id="loginUsername" type="text"
+          placeholder="Seu usuário"
+          autocomplete="username" required>
+      </div>
 
-<div class="updates-modal hidden" id="updatesModal">
-  <div class="updates-modal-content">
-    <div class="updates-modal-header">
-      <h2>🔔 Novidades e atualizações</h2>
-      <button id="closeUpdatesModal" type="button">✕</button>
-    </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="loginPassword" type="password"
+          placeholder="Sua senha"
+          autocomplete="current-password" required>
+      </div>
 
-    <div class="updates-summary">
-      <p id="updatesSummary">Carregando atualizações...</p>
-      <button class="update-read-button" id="markUpdatesRead" type="button">
-        MARCAR COMO VISTAS
+      <button class="main-btn" id="loginButton" type="submit">
+        ENTRAR
       </button>
-    </div>
 
-    <div class="update-list" id="updatesList">
-      <div class="update-empty">Buscando novidades...</div>
-    </div>
-  </div>
-</div>
-  
-<section class="stats">
-  <div class="stat-card red">
-    <div class="stat-icon">📱</div>
-    <h3>WhatsApp</h3>
-    <p id="whatsappStatus">Aguardando ativação do bot</p>
-  </div>
-
-  <div class="stat-card green">
-    <div class="stat-icon">🤖</div>
-    <h3>Agente ZuckerBots</h3>
-    <p id="botStatus">Não vinculado</p>
-  </div>
-</section>
-
-<h2 class="section-title">Ativação do ZuckerBots</h2>
-
-<section class="card red" id="activationCard">
-  <h3>🔐 Vincular seu bot</h3>
-  <p>
-    1. Inicie o bot pelo Termux.<br>
-    2. Ele mostrará um código de 6 números.<br>
-    3. Digite o código abaixo. Ele vale por apenas 3 minutos e só pode ser usado uma vez.
-  </p>
-
-  <label for="activationCode" style="display:block;color:#ccc;font-size:13px">
-    Código de ativação
-  </label>
-
-  <input class="field code-field" id="activationCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
-
-  <button class="action-btn" id="activationButton" type="button">
-    VALIDAR E VINCULAR BOT
-  </button>
-
-  <p class="message" id="activationMessage">
-    Aguardando o código do Termux.
-  </p>
-</section>
-
-<section id="linkedSection" class="hidden">
-  <section class="card red">
-    <h3>🔌 Desvincular dispositivo</h3>
-    <p>
-      Ao confirmar, o ZuckerBots solicitará o encerramento da conexão e a remoção dos registros deste dispositivo. Sua conta e outros dispositivos não serão apagados.
-    </p>
-    <button class="danger-btn" id="unlinkButton" type="button">
-      DESCONECTAR DO BOT
-    </button>
-    <p class="message" id="unlinkMessage"></p>
-  </section>
-</section>
-
-<section id="whatsappSection" class="hidden">
-  <h2 class="section-title">Conexão WhatsApp</h2>
-
-  <section class="card red">
-    <h3>📱 Conectar seu WhatsApp</h3>
-    <p>
-      Informe seu número com DDI e DDD para gerar seu código de conexão.
-    </p>
-
-    <label for="whatsappNumber" style="display:block;color:#ccc;font-size:13px">
-      Número com DDI e DDD
-    </label>
-
-    <input class="field" type="tel" id="whatsappNumber" placeholder="Ex: 5511999999999" maxlength="15">
-
-    <button class="action-btn" id="pairingButton" type="button">
-      GERAR CÓDIGO DE CONEXÃO
-    </button>
-
-    <div id="pairingResult" class="pairing-box hidden">
-      <p style="color:#aaa;text-align:center;margin:0">
-        SEU CÓDIGO DE CONEXÃO
+      <p class="switch">
+        Não possui uma conta?
+        <a href="#" id="goRegister">Criar conta</a>
       </p>
-      <h2 id="pairingCode" class="pairing-code">--------</h2>
-    </div>
+    </form>
 
-    <p class="message" id="pairingMessage">Aguardando conexão.</p>
-  </section>
-</section>
+    <!-- CADASTRO: APARECE AO CLICAR -->
+    <form id="register" class="hidden">
+      <h2>Criar sua conta</h2>
 
-<section class="config-card">
-  <div class="config-icon">⚙️</div>
-  <span class="config-label">ÁREA DE CONFIGURAÇÕES</span>
-  <h3>Configurações do bot</h3>
-  <p>
-    Personalize o funcionamento do seu ZuckerBots. Aqui ficarão as opções para configurar e controlar os recursos do seu bot.
-  </p>
-<button class="action-btn" type="button" onclick="window.location.href='configuracoes.html'">
-  ABRIR CONFIGURAÇÕES
-</button>
+      <div class="field">
+        <label>Nome de usuário</label>
+        <input id="username" type="text"
+          placeholder="Escolha seu nome"
+          minlength="3" maxlength="20"
+          autocomplete="username" required>
+      </div>
 
-<button class="action-btn" type="button" onclick="window.location.href='logs.html'">
-  📋 LOGS DE COMANDO
-</button>
+      <div class="field">
+        <label>Senha</label>
+        <input id="password" type="password"
+          placeholder="Crie uma senha"
+          minlength="8"
+          autocomplete="new-password" required>
+      </div>
 
-  <button class="action-btn" type="button" onclick="window.location.href='divulgacao-logs.html'">
-  📊 LOGS DE DIVULGAÇÃO
-  </button>
-</section>
+      <div class="field">
+        <label>Confirmar senha</label>
+        <input id="confirm" type="password"
+          placeholder="Repita sua senha"
+          autocomplete="new-password" required>
+      </div>
 
-<section class="account">
-  <h3>👤 Minha conta</h3>
-  <p>Usuário: <strong id="accountUsername">-</strong></p>
-  <p id="accountEmail"></p>
-  <button class="logout" id="logoutButton">SAIR DA CONTA</button>
-</section>
+      <button class="main-btn" id="registerButton" type="submit">
+        CRIAR CONTA
+      </button>
 
-<footer class="footer">ZUCKERBOTS © 2026</footer>
+      <p class="switch">
+        Já possui uma conta?
+        <a href="#" id="goLogin">Entrar</a>
+      </p>
+    </form>
 
-</main>
+    <p id="message" class="message"></p>
+
+  </div>
+
+  <div class="footer">
+    ZUCKERBOT © 2026 — TODOS OS DIREITOS RESERVADOS
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 const SUPABASE_URL = "https://khkjlodngoahevxkxswj.supabase.co";
+
 const SUPABASE_KEY = "sb_publishable_rotySSsmUkOouZSUf0O-Sg_RbMJMumQ";
 
 const supabaseClient = window.supabase.createClient(
@@ -398,179 +260,163 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_KEY
 );
 
-const $ = id => document.getElementById(id);
+const register = document.getElementById("register");
+const login = document.getElementById("login");
+const message = document.getElementById("message");
 
-let accessToken = null;
-let currentDeviceId = null;
-let pairingTimer = null;
-let pairingActive = false;
-let pollingPairing = false;
-let refreshing = false;
-let pairingChecks = 0;
+// VERIFICAR SE JÁ ESTÁ LOGADO
+async function checkExistingSession() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
 
-const AGENT_TIMEOUT = 90000;
+    if (error) throw error;
 
-function setWhatsAppStatus(message, color = "#aaa") {
-  const status = $("whatsappStatus");
-  status.textContent = message;
-  status.style.color = color;
-}
-
-function showApiError(data, fallback) {
-  return data?.error || data?.message || fallback;
-}
-
-function agentIsOnline(device) {
-  if (!device || device.status !== "online" || !device.last_seen) {
-    return false;
-  }
-
-  const lastSeen = new Date(device.last_seen).getTime();
-
-  return Number.isFinite(lastSeen) &&
-    Date.now() - lastSeen < AGENT_TIMEOUT;
-}
-
-function showAgentStatus(device) {
-  const status = $("botStatus");
-
-  if (!device) {
-    status.textContent = "NÃO VINCULADO";
-    status.style.color = "#ff4545";
-    return false;
-  }
-
-  if (device.status === "connecting") {
-    status.textContent = "CONECTANDO";
-    status.style.color = "#f0ad4e";
-    return false;
-  }
-
-  const online = agentIsOnline(device);
-
-  status.textContent = online ? "ONLINE" : "OFFLINE";
-  status.style.color = online ? "#00df62" : "#ff4545";
-
-  return online;
-}
-
-async function getSession() {
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error) throw error;
-
-  return data.session;
-}
-
-async function loadDevice() {
-  const response = await fetch("https://zuckerbots-api.duckdns.org:40592/api/agent/activation-claim", {
-    method: "GET",
-    headers: {
-      Authorization: "Bearer " + accessToken
+    if (data.session) {
+      window.location.replace("inicio.html");
     }
-  });
 
-  const data = await response.json();
-if (data.suspended) {
-  $("loading").classList.add("hidden");
-  $("dashboard").classList.add("hidden");
-  $("suspensionScreen").classList.remove("hidden");
+  } catch (error) {
+    console.error("Erro ao verificar sessão:", error);
+    message.textContent =
+      "Não foi possível verificar sua sessão. Tente novamente.";
+  }
+}
 
-  $("suspensionReason").textContent =
-    data.reason || "Motivo não informado.";
+checkExistingSession();
 
-  if (window.suspensionTimer) {
-    clearInterval(window.suspensionTimer);
+// ALTERNAR TELAS
+function showLogin() {
+  register.classList.add("hidden");
+  login.classList.remove("hidden");
+  message.textContent = "";
+}
+
+function showRegister() {
+  login.classList.add("hidden");
+  register.classList.remove("hidden");
+  message.textContent = "";
+}
+
+document.getElementById("goLogin").addEventListener("click", function(e) {
+  e.preventDefault();
+  showLogin();
+});
+
+document.getElementById("goRegister").addEventListener("click", function(e) {
+  e.preventDefault();
+  showRegister();
+});
+
+// CADASTRO
+register.addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const username = document.getElementById("username")
+    .value.trim().toLowerCase();
+
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirm").value;
+  const button = document.getElementById("registerButton");
+
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    message.textContent =
+      "Use de 3 a 20 caracteres: letras, números ou _.";
+    return;
   }
 
-  let remaining = Number(data.remainingMs) || 0;
+  if (password.length < 8) {
+    message.textContent =
+      "A senha precisa ter pelo menos 8 caracteres.";
+    return;
+  }
 
-  function updateSuspensionTime() {
-    remaining = Math.max(0, remaining);
+  if (password !== confirmPassword) {
+    message.textContent = "As senhas não coincidem!";
+    return;
+  }
 
-    const totalSeconds = Math.ceil(remaining / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+  button.disabled = true;
+  message.textContent = "Criando sua conta...";
 
-    $("suspensionTime").textContent =
-      `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  try {
+    const response = await fetch("https://zuckerbots-api.duckdns.org:40592/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        confirmPassword
+      })
+    });
 
-    if (remaining <= 0) {
-      clearInterval(window.suspensionTimer);
-      location.reload();
+    const data = await response.json();
+
+    if (!response.ok) {
+      message.textContent =
+        data.error || "Não foi possível criar sua conta.";
       return;
     }
 
-    remaining -= 1000;
+    register.reset();
+    showLogin();
+
+    document.getElementById("loginUsername").value = username;
+
+    message.textContent =
+      "Conta criada com sucesso! Agora faça login.";
+
+  } catch (error) {
+    message.textContent =
+      "Erro de conexão. Tente novamente.";
+  } finally {
+    button.disabled = false;
+  }
+});
+
+// LOGIN
+login.addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const username = document.getElementById("loginUsername")
+    .value.trim().toLowerCase();
+
+  const password = document.getElementById("loginPassword").value;
+  const button = document.getElementById("loginButton");
+
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    message.textContent = "Nome de usuário inválido.";
+    return;
   }
 
-  updateSuspensionTime();
-  window.suspensionTimer = setInterval(updateSuspensionTime, 1000);
+  button.disabled = true;
+  message.textContent = "Entrando na sua conta...";
 
-  return null;
-}
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: `${username}@login.zuckerbot.invalid`,
+      password: password
+    });
 
-if (data.validityExpired) {
-  $("loading").classList.add("hidden");
-  $("dashboard").classList.add("hidden");
-  $("validityScreen").classList.remove("hidden");
-
-  const isTrial = data.validityType === "trial";
-  $("validityTitle").textContent = isTrial
-    ? "SEU TESTE TERMINOU"
-    : "SUA SESSÃO ACABOU";
-  $("validityMessage").textContent = isTrial
-    ? "Sua sessão de teste terminou, para garantir um plano entre em contato com o dono do site!"
-    : "Sua sessão acabou, para renovar entre em contato com o dono do site!";
-  return null;
-}
-  if (!response.ok) {
-    throw new Error(showApiError(
-      data,
-      "Não foi possível consultar o vínculo."
-    ));
-  }
-
-  const device = data.device || null;
-
-  currentDeviceId = data.linked && device ? device.id : null;
-
-  const linked = Boolean(currentDeviceId);
-
-  $("activationCard").classList.toggle("hidden", linked);
-  $("linkedSection").classList.toggle("hidden", !linked);
-  const whatsappConnected = device?.whatsapp_connected === true;
-
-$("whatsappSection").classList.toggle(
-  "hidden",
-  !linked || whatsappConnected
-);
-
-    if (linked) {
-    const online = showAgentStatus(device);
-
-    if (device.whatsapp_connected === true) {
-      setWhatsAppStatus("WHATSAPP CONECTADO", "#00ff88");
-    } else if (pairingActive && online) {
-      setWhatsAppStatus("Aguardando código de conexão...", "#f0ad4e");
-    } else {
-      setWhatsAppStatus(
-        online
-          ? "Agente online; aguardando conexão do WhatsApp"
-          : "Agente vinculado; aguardando ficar online",
-        online ? "#f0ad4e" : "#ff4545"
-      );
+    if (error) {
+      message.textContent = "Usuário ou senha incorretos.";
+      return;
     }
-  } else {
-    showAgentStatus(null);
-    setWhatsAppStatus("Aguardando ativação do bot");
+
+    message.textContent = "Login realizado! Redirecionando...";
+
+    window.location.replace("inicio.html");
+
+  } catch (error) {
+    message.textContent =
+      "Erro de conexão. Tente novamente.";
+  } finally {
+    button.disabled = false;
   }
+});
+</script>
 
-  return device;
-}
+</body>
+</html>
 
-async function refreshDeviceStatus() {
-  if (!accessToken || refreshing) return;
-  if (
-    !$("suspensionScreen").classList.contains("hidden") ||
-    !$("validityScreen").classLi
