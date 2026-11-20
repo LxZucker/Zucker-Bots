@@ -139,7 +139,7 @@ async function carregarLogs() {
       return;
     }
 
-    const response = await fetch("/api/agent/activation-claim?logs=1", {
+    const response = await fetch("https://zuckerbots-api.duckdns.org:40592/api/agent/activation-claim?logs=1", {
       method: "GET",
       headers: {
         Authorization: "Bearer " + session.access_token
