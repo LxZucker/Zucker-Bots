@@ -377,7 +377,8 @@ module.exports = async (req, res) => {
       `gp_all_groups,gp_selected_groups,` +
       `divulgacao_enabled,divulgacao_config,divulgacao_commands,` +
       `divulgacao_updated_at,` +
-      `auto_reply_enabled,auto_reply_message,auto_reply_cooldown_minutes,auto_reply_excluded_numbers,` +
+      `auto_reply_enabled,auto_reply_message,auto_reply_mode,auto_reply_command,` +
+      `auto_reply_cooldown_minutes,auto_reply_excluded_numbers,` +
       `updated_at` +
       `&limit=1`,
       { headers }
@@ -444,6 +445,8 @@ module.exports = async (req, res) => {
           // Resposta automática em PV.
           autoReplyEnabled: saved.auto_reply_enabled === true,
           autoReplyMessage: String(saved.auto_reply_message || ""),
+          autoReplyMode: saved.auto_reply_mode === "command" ? "command" : "manual",
+          autoReplyCommand: String(saved.auto_reply_command || ""),
           autoReplyCooldownMinutes:
             saved.auto_reply_cooldown_minutes ?? 60,
           autoReplyExcludedNumbers: Array.isArray(saved.auto_reply_excluded_numbers)
@@ -511,4 +514,5 @@ module.exports = async (req, res) => {
     });
   }
 };
-              
+
+        
