@@ -151,17 +151,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div id="autoReplyManualFields">
       <label for="autoReplyMessage">Mensagem automática</label>
       <textarea id="autoReplyMessage" maxlength="4000" placeholder="Exemplo: Olá! Recebi sua mensagem. Assim que possível vou responder."></textarea>
-      <div class="hint">Máximo de 4.000 caracteres.</div>
+      <div class="hint">Máximo de 4.000 caracteres. Se quiser responder com foto, vídeo, áudio ou documento, use o modo comando e selecione a mensagem no WhatsApp.</div>
     </div>
 
-    <div id="autoReplyImageFields">
-      <label for="autoReplyImage">Foto da mensagem (opcional)</label>
-      <input id="autoReplyImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
-      <div class="hint">Adicione uma foto para acompanhar a resposta automática. Formatos: JPG, PNG, WEBP ou GIF. Máximo: 5 MB.</div>
-      <img id="autoReplyImagePreview" class="image-preview hidden" alt="Prévia da foto da resposta automática">
-      <div class="file-actions">
-        <button type="button" class="secondary" id="removeAutoReplyImage">REMOVER FOTO</button>
-      </div>
+    <div id="autoReplyCommandFields" class="hidden">
+      <label for="autoReplyCommand">Comando para salvar mensagem automática</label>
+      <input id="autoReplyCommand" type="text" maxlength="40" placeholder="Exemplo: msgauto" autocomplete="off" spellcheck="false">
+      <div class="hint">No WhatsApp, responda à mensagem que deseja salvar enviando esse comando. O bot deverá capturar o conteúdo da mensagem respondida, incluindo foto, vídeo, áudio ou documento.</div>
     </div>
 
     <div class="hint" id="autoReplyModeHint">No modo manual, o texto é definido aqui pelo site.</div>
@@ -315,7 +311,7 @@ let settingsData={
   auto_reply_enabled:false,
   auto_reply_message:"",
   auto_reply_mode:"manual",
-  auto_reply_image_url:null,
+  auto_reply_command:"",
   auto_reply_cooldown_minutes:60
 };
 
@@ -602,7 +598,7 @@ function clearGroupSelection(){
 async function loadSettings(){
   const {data,error}=await supabaseClient
     .from("bot_settings")
-    .select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups,auto_reply_enabled,auto_reply_message,auto_reply_mode,auto_reply_image_url,auto_reply_cooldown_minutes,auto_reply_excluded_numbers")
+    .select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups,auto_reply_enabled,auto_reply_message,auto_reply_mode,auto_reply_command,auto_reply_cooldown_minutes,auto_reply_excluded_numbers")
     .eq("user_id",currentUser.id)
     .maybeSingle();
 
@@ -624,8 +620,7 @@ async function loadSettings(){
   $("autoReplyMessage").value = data?.auto_reply_message || "";
   $("autoReplyModeCommand").checked = data?.auto_reply_mode === "command";
   $("autoReplyModeManual").checked = data?.auto_reply_mode !== "command";
-  settingsData.auto_reply_image_url = data?.auto_reply_image_url || null;
-  renderAutoReplyImage(settingsData.auto_reply_image_url);
+  $("autoReplyCommand").value = data?.auto_reply_command || "";
   updateAutoReplyMode();
   $("autoReplyCooldownMinutes").value = data?.auto_reply_cooldown_minutes ?? 60;
   $("autoReplyExcludedNumbers").value = Array.isArray(data?.auto_reply_excluded_numbers)
@@ -720,49 +715,10 @@ function getAutoReplyMode(){
 function updateAutoReplyMode(){
   const commandMode=getAutoReplyMode()==="command";
   $("autoReplyManualFields").classList.toggle("hidden",commandMode);
+  $("autoReplyCommandFields").classList.toggle("hidden",!commandMode);
   $("autoReplyModeHint").textContent=commandMode
-    ? "No modo comando, o campo de texto fica oculto. A mensagem será definida pelo comando no WhatsApp."
+    ? "No modo comando, o bot salva a mensagem do WhatsApp que for respondida com o comando configurado."
     : "No modo manual, o texto é definido aqui pelo site.";
-}
-
-function renderAutoReplyImage(url){
-  const preview=$("autoReplyImagePreview");
-  if(url){
-    preview.src=url;
-    preview.classList.remove("hidden");
-  }else{
-    preview.removeAttribute("src");
-    preview.classList.add("hidden");
-  }
-}
-
-function handleAutoReplyImageSelection(){
-  const file=$("autoReplyImage").files?.[0];
-  if(!file)return;
-  if(!["image/jpeg","image/png","image/webp","image/gif"].includes(file.type)){
-    saveStatus.textContent="Escolha uma imagem JPG, PNG, WEBP ou GIF.";
-    $("autoReplyImage").value="";
-    return;
-  }
-  if(file.size>5*1024*1024){
-    saveStatus.textContent="A foto deve ter no máximo 5 MB.";
-    $("autoReplyImage").value="";
-    return;
-  }
-  renderAutoReplyImage(URL.createObjectURL(file));
-  saveStatus.textContent="Foto selecionada. Salve as configurações para enviar.";
-}
-
-async function uploadAutoReplyImage(file){
-  const extension=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
-  const path=`${currentUser.id}/${Date.now()}.${extension}`;
-  const {error:uploadError}=await supabaseClient.storage
-    .from("auto-reply-media")
-    .upload(path,file,{upsert:true,contentType:file.type});
-  if(uploadError)throw uploadError;
-  const {data}=supabaseClient.storage.from("auto-reply-media").getPublicUrl(path);
-  if(!data?.publicUrl)throw new Error("Não foi possível obter o endereço da foto.");
-  return data.publicUrl;
 }
 
 function validateCooldown(id,label){
@@ -813,8 +769,8 @@ async function saveSettings(){
   const autoReplyEnabled = $("autoReplyEnabled").checked;
   const autoReplyMode = getAutoReplyMode();
   const autoReplyMessage = autoReplyMode === "manual" ? $("autoReplyMessage").value.trim() : "";
+  const autoReplyCommand = autoReplyMode === "command" ? $("autoReplyCommand").value.trim().replace(/^\//, "").toLowerCase() : "";
   const autoReplyCooldownMinutes = Number($("autoReplyCooldownMinutes").value);
-  const autoReplyImageFile = $("autoReplyImage").files?.[0] || null;
   const autoReplyExcludedNumbers = [...new Set(
     $("autoReplyExcludedNumbers").value
       .split(/[\n,;]+/)
@@ -839,13 +795,18 @@ async function saveSettings(){
     return;
   }
 
-  if (autoReplyEnabled && autoReplyMode === "manual" && !autoReplyMessage && !settingsData.auto_reply_image_url && !autoReplyImageFile) {
-    saveStatus.textContent = "Digite a mensagem automática ou adicione uma foto, ou desative a resposta automática.";
+  if (autoReplyEnabled && autoReplyMode === "manual" && !autoReplyMessage) {
+    saveStatus.textContent = "Digite a mensagem automática ou desative a resposta automática.";
     return;
   }
 
-  if (autoReplyImageFile && autoReplyImageFile.size > 5 * 1024 * 1024) {
-    saveStatus.textContent = "A foto deve ter no máximo 5 MB.";
+  if (autoReplyEnabled && autoReplyMode === "command" && !autoReplyCommand) {
+    saveStatus.textContent = "Digite o comando que será usado para salvar a mensagem automática.";
+    return;
+  }
+
+  if (autoReplyCommand && !/^[a-z0-9_-]{2,40}$/.test(autoReplyCommand)) {
+    saveStatus.textContent = "Use no comando apenas letras, números, _ ou -, com 2 a 40 caracteres.";
     return;
   }
 
@@ -854,19 +815,7 @@ async function saveSettings(){
 
   saving=true;
   saveButton.disabled=true;
-  saveStatus.textContent=autoReplyImageFile?"Enviando foto e salvando...":"Salvando...";
-
-  let autoReplyImageUrl=settingsData.auto_reply_image_url||null;
-  try{
-    if(autoReplyImageFile)
-      autoReplyImageUrl=await uploadAutoReplyImage(autoReplyImageFile);
-  }catch(uploadError){
-    saving=false;
-    saveButton.disabled=false;
-    saveStatus.textContent="Erro ao enviar a foto: "+(uploadError.message||"falha no armazenamento");
-    console.error("[ERRO FOTO RESPOSTA AUTOMÁTICA]",uploadError);
-    return;
-  }
+  saveStatus.textContent="Salvando...";
 
   const payload={
     user_id:currentUser.id,
@@ -894,7 +843,7 @@ async function saveSettings(){
     auto_reply_enabled:autoReplyEnabled,
     auto_reply_message:autoReplyMessage,
     auto_reply_mode:autoReplyMode,
-    auto_reply_image_url:autoReplyImageUrl,
+    auto_reply_command:autoReplyCommand,
     auto_reply_cooldown_minutes:autoReplyCooldownMinutes,
     auto_reply_excluded_numbers:autoReplyExcludedNumbers,
 
@@ -914,9 +863,7 @@ async function saveSettings(){
     return;
   }
 
-  settingsData.auto_reply_image_url=autoReplyImageUrl;
-  $("autoReplyImage").value="";
-  renderAutoReplyImage(autoReplyImageUrl);
+  settingsData.auto_reply_command=autoReplyCommand;
   saveStatus.textContent="✓ Configurações salvas!";
 }
 
@@ -1202,13 +1149,6 @@ function cancelEdit(){
 async function start(){
   $("autoReplyModeCommand").addEventListener("change",updateAutoReplyMode);
   $("autoReplyModeManual").addEventListener("change",updateAutoReplyMode);
-  $("autoReplyImage").addEventListener("change",handleAutoReplyImageSelection);
-  $("removeAutoReplyImage").addEventListener("click",()=>{
-    settingsData.auto_reply_image_url=null;
-    $("autoReplyImage").value="";
-    renderAutoReplyImage(null);
-    saveStatus.textContent="Foto marcada para remoção. Salve as configurações para confirmar.";
-  });
   createMultiSlotOptions();
 
   const {data,error}=await supabaseClient.auth.getSession();
