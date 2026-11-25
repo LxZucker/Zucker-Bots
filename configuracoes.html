@@ -55,6 +55,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .multi-slots{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}
 .multi-description{color:#888;font-size:12px;margin-top:9px;line-height:1.5}
 .warning{background:#241b0b;border:1px solid #806020;border-radius:9px;padding:12px;color:#ffd477;font-size:12px;line-height:1.5;margin-top:12px}
+.auto-reply-mode{display:grid;gap:9px;margin:14px 0}
+.auto-reply-mode label{display:flex;align-items:center;gap:10px;background:#090909;border:1px solid #383838;border-radius:10px;padding:13px;margin:0;cursor:pointer;color:#eee}
+.auto-reply-mode input{width:18px;height:18px;margin:0;accent-color:#e32636}
+.image-preview{display:block;max-width:100%;max-height:220px;object-fit:contain;border:1px solid #383838;border-radius:10px;margin-top:12px}
+.file-actions{display:flex;gap:8px;align-items:center;margin-top:10px}
+.file-actions button{margin:0}
 
 /* BOTÃO ÚNICO PARA SALVAR AS CONFIGURAÇÕES */
 .save-area{
@@ -131,9 +137,34 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <input id="autoReplyEnabled" type="checkbox">
     </div>
 
-    <label for="autoReplyMessage">Mensagem automática</label>
-    <textarea id="autoReplyMessage" maxlength="4000" placeholder="Exemplo: Olá! Recebi sua mensagem. Assim que possível vou responder."></textarea>
-    <div class="hint">Máximo de 4.000 caracteres. Deixe desativada para o bot não responder automaticamente.</div>
+    <div class="auto-reply-mode" role="radiogroup" aria-label="Modo de configuração da mensagem automática">
+      <label for="autoReplyModeCommand">
+        <input id="autoReplyModeCommand" type="radio" name="autoReplyMode" value="command">
+        <span>Usar comando</span>
+      </label>
+      <label for="autoReplyModeManual">
+        <input id="autoReplyModeManual" type="radio" name="autoReplyMode" value="manual" checked>
+        <span>Inserir texto manualmente</span>
+      </label>
+    </div>
+
+    <div id="autoReplyManualFields">
+      <label for="autoReplyMessage">Mensagem automática</label>
+      <textarea id="autoReplyMessage" maxlength="4000" placeholder="Exemplo: Olá! Recebi sua mensagem. Assim que possível vou responder."></textarea>
+      <div class="hint">Máximo de 4.000 caracteres.</div>
+    </div>
+
+    <div id="autoReplyImageFields">
+      <label for="autoReplyImage">Foto da mensagem (opcional)</label>
+      <input id="autoReplyImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+      <div class="hint">Adicione uma foto para acompanhar a resposta automática. Formatos: JPG, PNG, WEBP ou GIF. Máximo: 5 MB.</div>
+      <img id="autoReplyImagePreview" class="image-preview hidden" alt="Prévia da foto da resposta automática">
+      <div class="file-actions">
+        <button type="button" class="secondary" id="removeAutoReplyImage">REMOVER FOTO</button>
+      </div>
+    </div>
+
+    <div class="hint" id="autoReplyModeHint">No modo manual, o texto é definido aqui pelo site.</div>
 
     <label for="autoReplyCooldownMinutes">Intervalo por contato (minutos)</label>
     <input id="autoReplyCooldownMinutes" type="number" min="1" max="43200" step="1" value="60">
@@ -283,6 +314,8 @@ let settingsData={
   available_groups:[],
   auto_reply_enabled:false,
   auto_reply_message:"",
+  auto_reply_mode:"manual",
+  auto_reply_image_url:null,
   auto_reply_cooldown_minutes:60
 };
 
@@ -569,7 +602,7 @@ function clearGroupSelection(){
 async function loadSettings(){
   const {data,error}=await supabaseClient
     .from("bot_settings")
-    .select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups,auto_reply_enabled,auto_reply_message,auto_reply_cooldown_minutes,auto_reply_excluded_numbers")
+    .select("prefix,owner_number,custom_functions,custom_functions_gp,bot_pv_enabled,bot_gp_enabled,pv_unknown_message,gp_unknown_message,pv_owner_cooldown,pv_user_cooldown,gp_owner_cooldown,gp_user_cooldown,gp_all_groups,gp_selected_groups,available_groups,auto_reply_enabled,auto_reply_message,auto_reply_mode,auto_reply_image_url,auto_reply_cooldown_minutes,auto_reply_excluded_numbers")
     .eq("user_id",currentUser.id)
     .maybeSingle();
 
@@ -589,6 +622,11 @@ async function loadSettings(){
 
   $("autoReplyEnabled").checked = data?.auto_reply_enabled === true;
   $("autoReplyMessage").value = data?.auto_reply_message || "";
+  $("autoReplyModeCommand").checked = data?.auto_reply_mode === "command";
+  $("autoReplyModeManual").checked = data?.auto_reply_mode !== "command";
+  settingsData.auto_reply_image_url = data?.auto_reply_image_url || null;
+  renderAutoReplyImage(settingsData.auto_reply_image_url);
+  updateAutoReplyMode();
   $("autoReplyCooldownMinutes").value = data?.auto_reply_cooldown_minutes ?? 60;
   $("autoReplyExcludedNumbers").value = Array.isArray(data?.auto_reply_excluded_numbers)
     ? data.auto_reply_excluded_numbers.join("\n")
@@ -675,6 +713,58 @@ const data=await response.json();
   }
 }
 
+function getAutoReplyMode(){
+  return $("autoReplyModeCommand").checked ? "command" : "manual";
+}
+
+function updateAutoReplyMode(){
+  const commandMode=getAutoReplyMode()==="command";
+  $("autoReplyManualFields").classList.toggle("hidden",commandMode);
+  $("autoReplyModeHint").textContent=commandMode
+    ? "No modo comando, o campo de texto fica oculto. A mensagem será definida pelo comando no WhatsApp."
+    : "No modo manual, o texto é definido aqui pelo site.";
+}
+
+function renderAutoReplyImage(url){
+  const preview=$("autoReplyImagePreview");
+  if(url){
+    preview.src=url;
+    preview.classList.remove("hidden");
+  }else{
+    preview.removeAttribute("src");
+    preview.classList.add("hidden");
+  }
+}
+
+function handleAutoReplyImageSelection(){
+  const file=$("autoReplyImage").files?.[0];
+  if(!file)return;
+  if(!["image/jpeg","image/png","image/webp","image/gif"].includes(file.type)){
+    saveStatus.textContent="Escolha uma imagem JPG, PNG, WEBP ou GIF.";
+    $("autoReplyImage").value="";
+    return;
+  }
+  if(file.size>5*1024*1024){
+    saveStatus.textContent="A foto deve ter no máximo 5 MB.";
+    $("autoReplyImage").value="";
+    return;
+  }
+  renderAutoReplyImage(URL.createObjectURL(file));
+  saveStatus.textContent="Foto selecionada. Salve as configurações para enviar.";
+}
+
+async function uploadAutoReplyImage(file){
+  const extension=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path=`${currentUser.id}/${Date.now()}.${extension}`;
+  const {error:uploadError}=await supabaseClient.storage
+    .from("auto-reply-media")
+    .upload(path,file,{upsert:true,contentType:file.type});
+  if(uploadError)throw uploadError;
+  const {data}=supabaseClient.storage.from("auto-reply-media").getPublicUrl(path);
+  if(!data?.publicUrl)throw new Error("Não foi possível obter o endereço da foto.");
+  return data.publicUrl;
+}
+
 function validateCooldown(id,label){
   const value=Number($(id).value);
 
@@ -721,8 +811,10 @@ async function saveSettings(){
   }
 
   const autoReplyEnabled = $("autoReplyEnabled").checked;
-  const autoReplyMessage = $("autoReplyMessage").value.trim();
+  const autoReplyMode = getAutoReplyMode();
+  const autoReplyMessage = autoReplyMode === "manual" ? $("autoReplyMessage").value.trim() : "";
   const autoReplyCooldownMinutes = Number($("autoReplyCooldownMinutes").value);
+  const autoReplyImageFile = $("autoReplyImage").files?.[0] || null;
   const autoReplyExcludedNumbers = [...new Set(
     $("autoReplyExcludedNumbers").value
       .split(/[\n,;]+/)
@@ -747,8 +839,13 @@ async function saveSettings(){
     return;
   }
 
-  if (autoReplyEnabled && !autoReplyMessage) {
-    saveStatus.textContent = "Digite a mensagem automática ou desative a resposta automática.";
+  if (autoReplyEnabled && autoReplyMode === "manual" && !autoReplyMessage && !settingsData.auto_reply_image_url && !autoReplyImageFile) {
+    saveStatus.textContent = "Digite a mensagem automática ou adicione uma foto, ou desative a resposta automática.";
+    return;
+  }
+
+  if (autoReplyImageFile && autoReplyImageFile.size > 5 * 1024 * 1024) {
+    saveStatus.textContent = "A foto deve ter no máximo 5 MB.";
     return;
   }
 
@@ -757,7 +854,19 @@ async function saveSettings(){
 
   saving=true;
   saveButton.disabled=true;
-  saveStatus.textContent="Salvando...";
+  saveStatus.textContent=autoReplyImageFile?"Enviando foto e salvando...":"Salvando...";
+
+  let autoReplyImageUrl=settingsData.auto_reply_image_url||null;
+  try{
+    if(autoReplyImageFile)
+      autoReplyImageUrl=await uploadAutoReplyImage(autoReplyImageFile);
+  }catch(uploadError){
+    saving=false;
+    saveButton.disabled=false;
+    saveStatus.textContent="Erro ao enviar a foto: "+(uploadError.message||"falha no armazenamento");
+    console.error("[ERRO FOTO RESPOSTA AUTOMÁTICA]",uploadError);
+    return;
+  }
 
   const payload={
     user_id:currentUser.id,
@@ -784,6 +893,8 @@ async function saveSettings(){
 
     auto_reply_enabled:autoReplyEnabled,
     auto_reply_message:autoReplyMessage,
+    auto_reply_mode:autoReplyMode,
+    auto_reply_image_url:autoReplyImageUrl,
     auto_reply_cooldown_minutes:autoReplyCooldownMinutes,
     auto_reply_excluded_numbers:autoReplyExcludedNumbers,
 
@@ -803,6 +914,9 @@ async function saveSettings(){
     return;
   }
 
+  settingsData.auto_reply_image_url=autoReplyImageUrl;
+  $("autoReplyImage").value="";
+  renderAutoReplyImage(autoReplyImageUrl);
   saveStatus.textContent="✓ Configurações salvas!";
 }
 
@@ -1086,6 +1200,15 @@ function cancelEdit(){
 }
 
 async function start(){
+  $("autoReplyModeCommand").addEventListener("change",updateAutoReplyMode);
+  $("autoReplyModeManual").addEventListener("change",updateAutoReplyMode);
+  $("autoReplyImage").addEventListener("change",handleAutoReplyImageSelection);
+  $("removeAutoReplyImage").addEventListener("click",()=>{
+    settingsData.auto_reply_image_url=null;
+    $("autoReplyImage").value="";
+    renderAutoReplyImage(null);
+    saveStatus.textContent="Foto marcada para remoção. Salve as configurações para confirmar.";
+  });
   createMultiSlotOptions();
 
   const {data,error}=await supabaseClient.auth.getSession();
