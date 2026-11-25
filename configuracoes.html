@@ -224,6 +224,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <option value="store">GUARDAR</option>
       <option value="show">MOSTRAR</option>
       <option value="delete">APAGAR</option>
+      <option value="buttons">BOTÕES</option>
     </select>
 
     <label for="functionCommand">Nome do comando</label>
@@ -250,6 +251,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <label>Selecione os slots que serão mostrados</label>
       <div class="multi-slots" id="multiSlotOptions"></div>
       <div class="multi-description">Você pode selecionar de 1 até 10 slots. O comando mostrará somente os slots selecionados.</div>
+    </div>
+
+    <div id="buttonsField" class="hidden">
+      <label for="buttonsMessage">Mensagem do menu</label>
+      <textarea id="buttonsMessage" maxlength="4000" placeholder="Escolha uma opção abaixo:"></textarea>
+      <div class="hint">Adicione até 7 botões. Cada botão pode responder com texto ou mostrar slots.</div>
+      <div id="buttonEditors"></div>
+      <button type="button" class="secondary" onclick="addMenuButton()">+ ADICIONAR BOTÃO</button>
     </div>
 
     <div id="responseField">
@@ -488,7 +497,7 @@ function updateMultiSlotFields(){
   const type=$("functionType").value;
   const enabled=type==="show"&&$("multiSlotEnabled").checked;
 
-  $("slotField").classList.toggle("hidden",type==="reply"||enabled);
+  $("slotField").classList.toggle("hidden",type==="reply"||type==="buttons"||enabled);
   $("multiSlotField").classList.toggle("hidden",type!=="show"||!enabled);
 }
 
@@ -884,19 +893,116 @@ async function saveFunctionsAutomatically(){
   }
 }
 
+function addMenuButton(data={}){
+  const wrap=$("buttonEditors");
+  if(wrap.children.length>=7){
+    functionStatus.textContent="O menu permite no máximo 7 botões.";
+    return;
+  }
+
+  const number=wrap.children.length+1;
+  const card=document.createElement("div");
+  card.className="function-item menu-button-editor";
+  card.innerHTML=`
+    <div class="function-title">BOTÃO ${number}</div>
+    <label>Texto do botão</label>
+    <input class="menu-button-text" maxlength="30" placeholder="Exemplo: Ver catálogo">
+
+    <label>Ação do botão</label>
+    <select class="menu-button-action" onchange="updateMenuButtonFields(this)">
+      <option value="reply">RESPONDER</option>
+      <option value="show">MOSTRAR SLOT</option>
+    </select>
+
+    <div class="menu-button-reply">
+      <label>Mensagem da resposta</label>
+      <textarea class="menu-button-response" maxlength="4000" placeholder="Digite a resposta deste botão..."></textarea>
+    </div>
+
+    <div class="menu-button-show hidden">
+      <label>Modo de exibição</label>
+      <select class="menu-button-mode" onchange="updateMenuButtonFields(this)">
+        <option value="single">SLOT ESPECÍFICO</option>
+        <option value="multi">MULTISLOT</option>
+      </select>
+      <div class="menu-button-single">
+        <label>Slot que será mostrado</label>
+        <select class="menu-button-slot">
+          ${Array.from({length:10},(_,i)=>`<option value="${i+1}">Slot ${i+1}</option>`).join("")}
+        </select>
+      </div>
+      <div class="menu-button-multi hidden">
+        <label>Slots que serão mostrados</label>
+        <div class="multi-slots">
+          ${Array.from({length:10},(_,i)=>`<label class="multi-slot-option"><input type="checkbox" class="menu-button-slot-check" value="${i+1}"><span>Slot ${i+1}</span></label>`).join("")}
+        </div>
+      </div>
+    </div>
+    <button type="button" class="secondary danger" onclick="this.parentElement.remove();renumberMenuButtons()">REMOVER BOTÃO</button>
+  `;
+
+  wrap.appendChild(card);
+  card.querySelector(".menu-button-text").value=data.text||"";
+  card.querySelector(".menu-button-action").value=data.action||"reply";
+  card.querySelector(".menu-button-response").value=data.response||"";
+  card.querySelector(".menu-button-mode").value=data.multiSlot===true?"multi":"single";
+  card.querySelector(".menu-button-slot").value=String(data.slot||1);
+  card.querySelectorAll(".menu-button-slot-check").forEach(input=>{
+    input.checked=Array.isArray(data.slots)&&data.slots.map(Number).includes(Number(input.value));
+  });
+  updateMenuButtonFields(card.querySelector(".menu-button-action"));
+}
+
+function updateMenuButtonFields(control){
+  const card=control.closest(".menu-button-editor");
+  if(!card)return;
+  const action=card.querySelector(".menu-button-action").value;
+  const multi=card.querySelector(".menu-button-mode").value==="multi";
+  card.querySelector(".menu-button-reply").classList.toggle("hidden",action!=="reply");
+  card.querySelector(".menu-button-show").classList.toggle("hidden",action!=="show");
+  card.querySelector(".menu-button-single").classList.toggle("hidden",multi);
+  card.querySelector(".menu-button-multi").classList.toggle("hidden",!multi);
+}
+
+function renumberMenuButtons(){
+  document.querySelectorAll("#buttonEditors .menu-button-editor").forEach((card,index)=>{
+    card.querySelector(".function-title").textContent="BOTÃO "+(index+1);
+  });
+}
+
+function readMenuButtons(){
+  return Array.from(document.querySelectorAll("#buttonEditors .menu-button-editor")).map(card=>{
+    const action=card.querySelector(".menu-button-action").value;
+    const button={
+      text:card.querySelector(".menu-button-text").value.trim(),
+      action
+    };
+    if(action==="reply"){
+      button.response=card.querySelector(".menu-button-response").value.trim();
+    }else if(card.querySelector(".menu-button-mode").value==="multi"){
+      button.multiSlot=true;
+      button.slots=Array.from(card.querySelectorAll(".menu-button-slot-check:checked")).map(input=>Number(input.value));
+    }else{
+      button.slot=Number(card.querySelector(".menu-button-slot").value);
+    }
+    return button;
+  });
+}
+
 function updateFunctionFields(){
   const type=$("functionType").value;
   const isShow=type==="show";
 
-  $("slotField").classList.toggle("hidden",type==="reply");
+  $("slotField").classList.toggle("hidden",type==="reply"||type==="buttons");
   $("responseField").classList.toggle("hidden",type!=="reply");
   $("multiSlotToggle").classList.toggle("hidden",!isShow);
+  $("buttonsField").classList.toggle("hidden",type!=="buttons");
 
   if(!isShow)
     $("multiSlotEnabled").checked=false;
 
   updateMultiSlotFields();
-}
+  }
 
 async function addFunction(){
   if(!linked)return;
@@ -915,6 +1021,8 @@ async function addFunction(){
 
   const repeatCount=Number($("repeatCount").value);
   const intervalMs=Number($("intervalMs").value);
+  const menuMessage=$("buttonsMessage").value.trim();
+  const menuButtons=type==="buttons"?readMenuButtons():[];
 
   functionStatus.textContent="";
 
@@ -928,6 +1036,20 @@ if(!/^[a-z0-9_-]{1,40}$/.test(command)){
 }
   if(/\s/.test(command)){
     functionStatus.textContent="O comando não pode conter espaços.";
+    return;
+  }
+
+  if(type==="buttons"&&(!menuMessage||!menuButtons.length)){
+    functionStatus.textContent="Digite a mensagem do menu e adicione pelo menos um botão.";
+    return;
+  }
+
+  if(type==="buttons"&&menuButtons.some(button=>
+    !button.text||
+    (button.action==="reply"&&!button.response)||
+    (button.action==="show"&&button.multiSlot===true&&(!Array.isArray(button.slots)||!button.slots.length))
+  )){
+    functionStatus.textContent="Confira os botões: preencha o texto, a resposta e selecione pelo menos um slot no MULTISLOT.";
     return;
   }
 
@@ -953,7 +1075,7 @@ if(!/^[a-z0-9_-]{1,40}$/.test(command)){
     return;
   }
 
-  if(type!=="reply"&&!multiSlotEnabled&&(!Number.isInteger(slot)||slot<1||slot>10)){
+  if(type!=="reply"&&type!=="buttons"&&!multiSlotEnabled&&(!Number.isInteger(slot)||slot<1||slot>10)){
     functionStatus.textContent="Escolha um slot válido.";
     return;
   }
@@ -966,7 +1088,7 @@ if(!/^[a-z0-9_-]{1,40}$/.test(command)){
     return;
   }
 
-  if(type!=="reply"&&!multiSlotEnabled&&customFunctions.some(
+  if(type!=="reply"&&type!=="buttons"&&!multiSlotEnabled&&customFunctions.some(
     x=>x.type===type&&Number(x.slot)===slot&&x.id!==editingId
   )){
     functionStatus.textContent=
@@ -982,6 +1104,8 @@ if(!/^[a-z0-9_-]{1,40}$/.test(command)){
     permission,
     ...(type==="reply"?
       {response,repeatCount,intervalMs}:
+      type==="buttons"?
+        {message:menuMessage,buttons:menuButtons}:
       multiSlotEnabled?
         {multiSlot:true,slots:selectedSlots}:
         {slot})
@@ -1026,7 +1150,8 @@ function renderFunctions(){
       reply:"RESPONDER",
       store:"GUARDAR",
       show:"MOSTRAR",
-      delete:"APAGAR"
+      delete:"APAGAR",
+      buttons:"BOTÕES"
     };
 
     let slotInfo=
@@ -1044,7 +1169,8 @@ function renderFunctions(){
       repeatInfo+
       " | Permissão: "+
       (item.permission==="owner"?"DONO":"TODOS")+
-      (item.response?" | Resposta: "+item.response:"");
+      (item.response?" | Resposta: "+item.response:"")+ 
+      (item.type==="buttons"?" | Botões: "+(item.buttons||[]).length:"");
 
     const actions=document.createElement("div");
     actions.className="actions";
@@ -1075,6 +1201,9 @@ function editFunction(id){
   $("functionPermission").value=item.permission||"all";
   $("functionSlot").value=item.slot||"1";
   $("functionResponse").value=item.response||"";
+  $("buttonsMessage").value=item.message||"";
+  $("buttonEditors").innerHTML="";
+  if(item.type==="buttons")(item.buttons||[]).forEach(button=>addMenuButton(button));
   $("repeatCount").value=item.repeatCount||1;
   $("intervalMs").value=item.intervalMs||1000;
 
@@ -1124,6 +1253,8 @@ function resetFunctionForm(clearStatus=true){
   $("functionPermission").value="owner";
   $("functionSlot").value="1";
   $("functionResponse").value="";
+  $("buttonsMessage").value="";
+  $("buttonEditors").innerHTML="";
   $("repeatCount").value="1";
   $("intervalMs").value="1000";
 
